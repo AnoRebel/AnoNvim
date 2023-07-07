@@ -442,15 +442,12 @@ function setup_avim() {
 	msg "Installing AnoNvim shim"
 	setup_shim
 	create_desktop_file
-	echo "Preparing Lazy setup"
-  echo "This might time a minute(Installing packages)"
-
-	"$INSTALL_PREFIX/bin/avim" --headless \
-		-c "lua require('avim.core.log'):set_level([[$ANONVIM_LOG_LEVEL]])" \
-		-c 'autocmd User LazyDone quitall' \
-		-c 'Lazy! sync'
-
-	echo "Lazy setup complete"
+  msg "AnoNvim installed"
+  echo "Make sure \`$INSTALL_PREFIX/bin\` is in your path, then run \`avim\`"
+  echo ""
+	echo "Opening AnoNvim for initial setup in a second"
+  sleep 1
+  $INSTALL_PREFIX/bin/avim
 }
 
 function print_logo() {
