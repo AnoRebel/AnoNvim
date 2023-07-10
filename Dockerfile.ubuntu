@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+
+FROM ubuntu:jammy
+
+# Set environment correctly
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PATH="/root/.local/bin:/root/.cargo/bin:/root/.npm-global/bin${PATH}"
+
+RUN apt update && apt upgrade -y && \
+    apt install -y sudo build-essential git ripgrep curl wget zsh cargo fzf python3-dev python3-pip ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip doxygen && \
+    curl -sL https://deb.nodesource.com/setup_16.x | bash && \
+    apt update && \
+    apt install -y nodejs yarn && \
+    cargo install fd-find ripgrep && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* && \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+WORKDIR /root
+
+RUN git clone https://github.com/neovim/neovim && \
+    cd neovim && \
+    make CMAKE_BUILD_TYPE=RelWithDebInfo && \
+    make install
+
+RUN curl -s https://raw.githubusercontent.com/AnoRebel/AnoNvim/main/.install/installer.sh | bash
+
+CMD ["avim"]
+
+# vim: ft=dockerfile:

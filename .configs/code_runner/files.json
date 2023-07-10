@@ -1,0 +1,17 @@
+{
+  "lua": "lua",
+  "dart": "dart",
+  "bun": "bun run",
+  "deno": "deno run",
+  "elixir": "elixir",
+  "typescript": "tsc",
+  "javascript": "node",
+  "python": "python -u",
+  "shellscript": "bash",
+  "rust": "cd $dir && rustc $fileName && $dir$fileNameWithoutExt",
+  "java": "cd $dir && javac $fileName && java $fileNameWithoutExt",
+  "csharp": "cd $dir && mcs $fileName && mono $fileNameWithoutExt.exe",
+  "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt && $dir/$fileNameWithoutExt",
+  "cpp": "cd $dir && g++ $fileName -o $fileNameWithoutExt && $dir/$fileNameWithoutExt",
+  "kotlin": "cd $dir && kotlinc-native $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt.kexe"
+}

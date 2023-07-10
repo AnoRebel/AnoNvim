@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+
+FROM archlinux:base-devel
+
+# Set environment correctly
+ENV PATH="/root/.local/bin:/root/.cargo/bin:/root/.npm-global/bin${PATH}"
+
+RUN sudo pacman-key --init && \
+  sudo pacman -Syu git ripgrep curl wget zsh nodejs rustup fzf yarn python-pip base-devel cmake unzip ninja tree-sitter --noconfirm && \
+  rustup default stable && \
+  cargo install fd-find ripgrep && \
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+WORKDIR /root
+
+RUN git clone https://github.com/neovim/neovim && \
+    cd neovim && \
+    make CMAKE_BUILD_TYPE=RelWithDebInfo && \
+    make install
+
+RUN curl -s https://raw.githubusercontent.com/AnoRebel/AnoNvim/main/.install/installer.sh | bash
+
+CMD ["avim"]
+
+# vim: ft=dockerfile:

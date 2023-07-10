@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "Lua.completion.autoRequire": false,
+  "Lua.diagnostics.disable": [
+    "deprecated",
+    "redundant-parameter",
+    "param-type-mismatch",
+    "missing-parameter",
+    "need-check-nil",
+    "assign-type-mismatch",
+    "missing-return",
+    "different-requires",
+    "lowercase-global"
+  ],
+  "Lua.diagnostics.globals": [
+    "vim",
+    "use",
+    "NOREF_NOERR_TRUNC",
+    "lfs",
+    "avim"
+  ],
+  "Lua.workspace.checkThirdParty": false
+}

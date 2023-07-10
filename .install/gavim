@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# exec neovide --multigrid --neovim-bin ~/.local/bin/avim "$@"
+exec neoray --multigrid --nvim ~/.local/bin/avim "$@"
