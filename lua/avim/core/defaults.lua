@@ -97,7 +97,6 @@ M.treesitter = {
 	"gowork",
 	"gosum",
 	"graphql",
-	"help",
 	"heex",
 	"html",
 	"http",
@@ -127,6 +126,7 @@ M.treesitter = {
 	"tsx",
 	"typescript",
 	"vim",
+	"vimdoc",
 	"vue",
 	"yaml",
 }

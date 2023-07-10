@@ -364,6 +364,19 @@ return {
 	},
 	-- DB
 	{
+		"kndndrj/nvim-dbee",
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+		},
+		build = function()
+			-- INstall tries to automatically detect the install method
+			-- If it fails, try calling it with one of these paramaters:
+			--    "curl", "wget", "bitsadmin", "go"
+			require("dbee").install()
+		end,
+		config = true,
+	},
+	{
 		"tpope/vim-dadbod",
 		enabled = false,
 		dependencies = {
