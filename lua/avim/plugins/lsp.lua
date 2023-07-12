@@ -8,6 +8,29 @@ local M = {
 			dependencies = { "nvim-lua/plenary.nvim" },
 		},
 		{
+			"olexsmir/gopher.nvim",
+			enabled = true,
+			ft = "go",
+			build = ":GoInstallDeps",
+			init = function()
+				-- require("gopher.dap").setup()
+				-- quick_type
+				vim.api.nvim_create_user_command(
+					"GoQuickType",
+					'lua require("avim.utils.quicktype").quick_type(<count>, <f-args>)',
+					{
+						nargs = "*",
+						complete = "file",
+					}
+				)
+			end,
+			dependencies = {
+				"nvim-lua/plenary.nvim",
+				"nvim-treesitter/nvim-treesitter",
+			},
+			config = true,
+		},
+		{
 			"williamboman/mason.nvim",
 			build = ":MasonUpdate", -- :MasonUpdate updates registry contents
 			config = function()
@@ -354,6 +377,14 @@ function M.config()
 				settings = {
 					gopls = {
 						semanticTokens = true,
+						completeUnimported = true,
+						usePlaceholders = true,
+						analyses = {
+							unusedparams = true,
+							unusedvariable = true,
+							nilness = true,
+							-- shadow = true,
+						},
 						hints = {
 							assignVariableTypes = true,
 							compositeLiteralFields = true,

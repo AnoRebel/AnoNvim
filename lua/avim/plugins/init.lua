@@ -369,12 +369,19 @@ return {
 			"MunifTanjim/nui.nvim",
 		},
 		build = function()
-			-- INstall tries to automatically detect the install method
+			-- Install tries to automatically detect the install method
 			-- If it fails, try calling it with one of these paramaters:
 			--    "curl", "wget", "bitsadmin", "go"
 			require("dbee").install()
 		end,
-		config = true,
+		config = function()
+			require("dbee").setup({
+				sources = {
+					require("dbee.sources").FileSource:new(get_cache_dir() .. "/dbee/persistence.json"),
+					require("dbee.sources").EnvSource:new("DBEE_CONNECTIONS"),
+				},
+			})
+		end,
 	},
 	{
 		"tpope/vim-dadbod",

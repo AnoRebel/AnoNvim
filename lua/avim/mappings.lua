@@ -404,18 +404,27 @@ M.n = {
 	["<leader>tt"] = { ":lua require('toggleterm').float_toggle()<CR>", "Toggle Floating Terminal" },
 	["<leader>bt"] = { ":lua require('toggleterm').bottom_toggle()<CR>", "Toggle Horizontal Terminal" },
 	["<leader>lg"] = { ":lua require('toggleterm').lazygit_toggle()<CR>", "Lazygit" },
-	["<leader>gg"] = { ":lua require('toggleterm').gitui_toggle()<CR>", "Git UI" },
 
 	-- Open file under cursor
 	["gx"] = { require("avim.utils").system_open, "Open the file under cursor with system app" },
 
 	-- Diffview
-	["<leader>d"] = { name = " DiffView" },
-	["<leader>do"] = { ":DiffviewOpen<CR>", "Open" },
-	["<leader>dc"] = { ":DiffviewClose<CR>", "Close" },
-	["<leader>dr"] = { ":DiffviewRefresh<CR>", "Refresh" },
-	["<leader>df"] = { ":DiffviewToggleFiles<CR>", "Toggle Files" },
-	["<leader>dh"] = { ":lua require('avim.utils').toggle_diff()<CR>", "Toggle History" },
+	["<leader>g"] = { name = " Git + DiffView" },
+	["<leader>gg"] = { ":lua require('toggleterm').gitui_toggle()<CR>", "Git UI" },
+	["<leader>go"] = { ":DiffviewOpen<CR>", "Open" },
+	["<leader>gc"] = { ":DiffviewClose<CR>", "Close" },
+	["<leader>gr"] = { ":DiffviewRefresh<CR>", "Refresh" },
+	["<leader>gf"] = { ":DiffviewToggleFiles<CR>", "Toggle Files" },
+	["<leader>gh"] = { ":lua require('avim.utils').toggle_diff()<CR>", "Toggle History" },
+
+	-- Database
+	["<leader>d"] = { name = " Database" },
+	["<leader>do"] = { ":lua require('dbee').open()<CR>", "Dbee Open" },
+	["<leader>dc"] = { ":lua require('dbee').close()<CR>", "Dbee Close" },
+	["<leader>de"] = { ":lua require('avim.utils.dbee').execute()<CR>", "Dbee Execute Query" },
+	["<leader>ds"] = { ":lua require('avim.utils.dbee').save()<CR>", "Dbee Save Output" },
+	["<leader>dp"] = { ":lua require('dbee').prev()<CR>", "Dbee Previous Page" },
+	["<leader>dn"] = { ":lua require('dbee').next()<CR>", "Dbee Next Page" },
 
 	-- Alpha Home
 	["<leader>h"] = { ":Alpha<CR>", " Home" },
