@@ -73,6 +73,7 @@ local M = {
 			dependencies = { "kevinhwang91/promise-async" },
 		},
 		{ "folke/neodev.nvim" },
+		{ "Hoffs/omnisharp-extended-lsp.nvim", enabled = false },
 		{ "microsoft/python-type-stubs" },
 		{
 			"b0o/schemastore.nvim",
@@ -149,6 +150,20 @@ function M.config()
 				command = "lua vim.lsp.buf.clear_references()",
 				group = "LspHighlight",
 			})
+		end
+		-- Fix startup error by modifying/disabling semantic tokens for omnisharp
+		if client.name == "omnisharp" then
+			local function toSnakeCase(str)
+				return string.gsub(str, "%s*[- ]%s*", "_")
+			end
+			local tokenModifiers = client.server_capabilities.semanticTokensProvider.legend.tokenModifiers
+			for i, v in ipairs(tokenModifiers) do
+				tokenModifiers[i] = toSnakeCase(v)
+			end
+			local tokenTypes = client.server_capabilities.semanticTokensProvider.legend.tokenTypes
+			for i, v in ipairs(tokenTypes) do
+				tokenTypes[i] = toSnakeCase(v)
+			end
 		end
 		if require("lspconfig").util.root_pattern("deno.json", "deno.jsonc")(vim.fn.getcwd()) then
 			if client.name == "tsserver" or client.name == "volar" then
@@ -329,6 +344,15 @@ function M.config()
 				handlers = handlers,
 			})
 		end,
+		["elixirls"] = function()
+			lspconfig.elixirls.setup({
+				cmd = { _G.get_runtime_dir() .. "/mason/packages/elixir-ls/language_server.sh" },
+				on_attach = on_attach,
+				capabilities = capabilities,
+				handlers = handlers,
+				filetypes = { "elixir", "eelixir", "heex", "surface", "exs" },
+			})
+		end,
 		["emmet_ls"] = function()
 			lspconfig.emmet_ls.setup({
 				on_attach = on_attach,
@@ -471,6 +495,20 @@ function M.config()
 							preloadFileSize = 10000,
 						},
 					},
+				},
+			})
+		end,
+		["omnisharp"] = function()
+			handlers["textDocument/definition"] = require("omnisharp_extended").handler
+			lspconfig.omnisharp.set({
+				cmd = { "dotnet", _G.get_runtime_dir() .. "/mason/packages/omnisharp/libexec/OmniSharp.dll" },
+				on_attach = on_attach,
+				handlers = handlers,
+				capabilities = capabilities,
+				enable_editorconfig_support = true,
+				sdk_include_prereleases = true,
+				flags = {
+					debounce_text_changes = 150,
 				},
 			})
 		end,

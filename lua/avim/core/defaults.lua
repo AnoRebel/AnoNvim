@@ -15,6 +15,7 @@ M.ui = {
 M.servers = {
 	"bashls",
 	"cssls",
+	-- "csharp_ls",
 	-- "denols",
 	"dotls",
 	"emmet_ls",
@@ -24,6 +25,7 @@ M.servers = {
 	"html",
 	"intelephense",
 	"jsonls",
+	-- "omnisharp",
 	"pyright",
 	"lua_ls",
 	"sourcery",
@@ -37,9 +39,10 @@ M.servers = {
 M.packages = {
 	"astro-language-server",
 	"bash-language-server",
+	"csharpier",
+	"css-lsp",
 	"dot-language-server",
 	"black",
-	"css-lsp",
 	-- "csharp-language-server",
 	-- "vscode-langservers-extracted",
 	-- "delve",

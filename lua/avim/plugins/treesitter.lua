@@ -32,7 +32,7 @@ local M = {
 		{ "JoosepAlviste/nvim-ts-context-commentstring" },
 		{ "HiPhish/nvim-ts-rainbow2" },
 		{ "windwp/nvim-ts-autotag" },
-		{ "andymass/vim-matchup", branch = "master" },
+		{ "andymass/vim-matchup", enabled = false, branch = "master" },
 	},
 	-- :TSUpdate[Sync] doesn't exist until plugin/nvim-treesitter is loaded (i.e. not after first install); call update() directly
 	-- build = ":TSUpdate",
@@ -63,7 +63,7 @@ local options = {
 		enable = true,
 	},
 	matchup = {
-		enable = true, -- mandatory, false will disable the whole extension
+		enable = false, -- mandatory, false will disable the whole extension
 		enable_quotes = true,
 		disable = { "lua", ".lua", "*.lua", "lua_ls" }, -- Buggy AF
 		-- disable = { "c", "ruby" },  -- optional, list of language that will be disabled

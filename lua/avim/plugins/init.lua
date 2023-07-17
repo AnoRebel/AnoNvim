@@ -1,6 +1,5 @@
 return {
 	-- Enhance nvim
-	{ "antoinemadec/FixCursorHold.nvim", lazy = false },
 	{ "nathom/filetype.nvim", lazy = false },
 	{
 		"Tastyep/structlog.nvim",
@@ -99,10 +98,12 @@ return {
 	},
 	{
 		"kosayoda/nvim-lightbulb",
-		lazy = false,
-		config = function()
-			require("nvim-lightbulb").setup({ autocmd = { enabled = true } })
-		end,
+		branch = "master",
+		event = "LspAttach",
+		dependencies = {
+			"antoinemadec/FixCursorHold.nvim",
+		},
+		opts = { autocmd = { enabled = true } },
 	},
 	-- Tests
 	{
