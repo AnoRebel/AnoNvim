@@ -506,6 +506,7 @@ return {
 	},
 	{
 		"jackMort/ChatGPT.nvim",
+		enabled = false,
 		cmd = { "ChatGPT", "ChatGPTActAs", "ChatGPTEditWithInstructions" },
 		config = true,
 		dependencies = {
@@ -516,6 +517,7 @@ return {
 	},
 	{
 		"Bryley/neoai.nvim",
+		enabled = false,
 		dependencies = {
 			"MunifTanjim/nui.nvim",
 		},
