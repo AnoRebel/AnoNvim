@@ -248,7 +248,7 @@ M.n = {
 	-- File System
 	["<leader>e"] = { "<cmd>Neotree toggle <CR>", "Neotree Toggle" },
 	["<C-n>"] = { "<cmd>NvimTreeToggle <CR>", "Nvimtree Toggle" },
-	["-"] = { "<cmd>Oil <CR>", "Open Parent on Oil" },
+	["-"] = { "<cmd>Oil <CR>", "Open Parent on Oil" }, -- vim.cmd("vsplit | wincmd |")
 	["_"] = { "<cmd>Oil --float <CR>", "Open Parent on Floating Oil" },
 
 	-- Rest API

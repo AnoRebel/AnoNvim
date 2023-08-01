@@ -56,15 +56,27 @@ return {
 		cmd = "NoNeckPain",
 		config = function()
 			require("no-neck-pain").setup({
-				buffers = {
+				bufferOptionsColor = {
 					blend = -0.2,
+				},
+				buffers = {
 					scratchPad = {
 						enabled = true,
-						location = "~/Documents/Obsidian Vault/notes/",
+						location = "~/Documents/obsidian/notes/",
 						fileName = "scratch",
 					},
 					bo = {
 						filetype = "md",
+					},
+				},
+				integrations = {
+					NvimTree = {
+						position = "left",
+						reopen = true,
+					},
+					NeoTree = {
+						position = "right",
+						reopen = true,
 					},
 				},
 			})
