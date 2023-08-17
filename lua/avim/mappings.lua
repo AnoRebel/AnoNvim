@@ -421,8 +421,10 @@ M.n = {
 	["<leader>d"] = { name = " Database" },
 	["<leader>do"] = { ":lua require('dbee').open()<CR>", "Dbee Open" },
 	["<leader>dc"] = { ":lua require('dbee').close()<CR>", "Dbee Close" },
+	["<leader>dt"] = { ":lua require('dbee').toggle()<CR>", "Dbee Toggle" },
 	["<leader>de"] = { ":lua require('avim.utils.dbee').execute()<CR>", "Dbee Execute Query" },
 	["<leader>ds"] = { ":lua require('avim.utils.dbee').save()<CR>", "Dbee Save Output" },
+	["<leader>dr"] = { ":lua require('avim.utils.dbee').save(true)<CR>", "Dbee Save Output" },
 	["<leader>dp"] = { ":lua require('dbee').prev()<CR>", "Dbee Previous Page" },
 	["<leader>dn"] = { ":lua require('dbee').next()<CR>", "Dbee Next Page" },
 

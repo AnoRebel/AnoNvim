@@ -139,20 +139,6 @@ function M.config()
 		view = {
 			width = 30,
 			hide_root_folder = false,
-			mappings = {
-				custom_only = false,
-				list = {
-					{ key = "C", action = "cd" },
-					{ key = "v", action = "vsplit" },
-					{ key = "h", action = "split" },
-					{ key = "t", action = "tabnew" },
-					-- { key = "K", action = "toggle_file_info" },
-					{ key = "ga", action = "Toggle git add", action_cb = tree_git },
-					{ key = "<C-Space>", action = "tree actions", action_cb = tree_actions_menu },
-					{ key = "tf", action = "telescope_find_files", action_cb = telescope_find_files },
-					{ key = "tg", action = "telescope_live_grep", action_cb = telescope_live_grep },
-				},
-			},
 		},
 		filters = {
 			custom = { "node_modules", "\\.cache" },
