@@ -87,21 +87,27 @@ return {
 	{
 		"zbirenbaum/neodim",
 		event = "LspAttach",
-		config = function()
-			require("neodim").setup({
-				alpha = 0.75,
-				blend_color = "#000000",
-				update_in_insert = {
-					enable = true,
-					delay = 100,
-				},
-				hide = {
-					virtual_text = false,
-					signs = false,
-					underline = false,
-				},
-			})
-		end,
+		opts = {
+			alpha = 0.75,
+			blend_color = "#000000",
+			refresh_delay = 75,
+			-- update_in_insert = {
+			-- 	enable = true,
+			-- 	delay = 100,
+			-- },
+			regex = {
+				"[uU]nused",
+				"[nN]ever [rR]ead",
+				"[nN]ot [rR]ead",
+			},
+			hide = {
+				virtual_text = false,
+				signs = false,
+				underline = false,
+			},
+			priority = 128,
+			disable = {},
+		},
 	},
 	{
 		"folke/lsp-colors.nvim",
