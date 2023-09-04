@@ -1,6 +1,6 @@
 local M = {}
 
-M.version = "v1.0.0"
+M.version = "v1.5.0"
 
 ---- UI -----
 M.ui = {
@@ -38,6 +38,7 @@ M.servers = {
 
 M.packages = {
 	"astro-language-server",
+	"autopep8",
 	"bash-language-server",
 	"csharpier",
 	"css-lsp",
