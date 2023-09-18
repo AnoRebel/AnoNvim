@@ -208,73 +208,6 @@ return {
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 	},
 	{
-		"Exafunction/codeium.vim",
-		enabled = false,
-		event = "BufRead",
-		config = function()
-			local whichkey_exists, wk = pcall(require, "which-key")
-			if whichkey_exists then
-				wk.register({
-					["<M-p>"] = {
-						function()
-							return vim.fn["codeium#CycleCompletions"](-1)
-						end,
-						"Codeium: Previous Suggestion",
-					},
-				}, { mode = "i" })
-				wk.register({
-					["<M-n>"] = {
-						function()
-							return vim.fn["codeium#CycleCompletions"](1)
-						end,
-						"Codeium: Next Suggestion",
-					},
-				}, { mode = "i" })
-				wk.register({
-					["<M-a>"] = {
-						function()
-							return vim.fn["codeium#Accept"]()
-						end,
-						"Codeium: Accept Suggestion",
-					},
-				}, { mode = "i" })
-				wk.register({
-					["<M-Space>"] = {
-						function()
-							return vim.fn["codeium#Complete"]()
-						end,
-						"Codeium: Trigger Suggestions",
-					},
-				}, { mode = "i" })
-				wk.register({
-					["<M-Bslash>"] = {
-						function()
-							return vim.fn["codeium#Clear"]()
-						end,
-						"Codeium: Clear Suggestions",
-					},
-				}, { mode = "i" })
-			else
-				-- Change '<C-g>' here to any keycode you like.
-				vim.keymap.set("i", "<M-a>", function()
-					return vim.fn["codeium#Accept"]()
-				end, { expr = true, desc = "Codeium: Accept Suggestion" })
-				vim.keymap.set("i", "<M-n>", function()
-					return vim.fn["codeium#CycleCompletions"](1)
-				end, { expr = true, desc = "Codeium: Next Suggestion" })
-				vim.keymap.set("i", "<M-p>", function()
-					return vim.fn["codeium#CycleCompletions"](-1)
-				end, { expr = true, desc = "Codeium: Previous Suggestion" })
-				vim.keymap.set("i", "<M-Space>", function()
-					return vim.fn["codeium#Complete"]()
-				end, { expr = true, desc = "Codeium: Trigger Suggestions" })
-				vim.keymap.set("i", "<M-Bslash>", function()
-					return vim.fn["codeium#Clear"]()
-				end, { expr = true, desc = "Codeium: Clear Suggestions" })
-			end
-		end,
-	},
-	{
 		"metakirby5/codi.vim",
 		cmd = { "Codi", "CodiNew", "CodiSelect" },
 	},
@@ -378,8 +311,60 @@ return {
 	{ "editorconfig/editorconfig-vim", event = "BufReadPre" },
 	{
 		"mg979/vim-visual-multi",
-		enabled = true,
+		enabled = false,
 		branch = "master",
+	},
+	{
+		"smoka7/multicursors.nvim",
+		enabled = true,
+		event = "VeryLazy",
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"smoka7/hydra.nvim",
+		},
+		opts = function()
+			local N = require("multicursors.normal_mode")
+			local I = require("multicursors.insert_mode")
+			return {
+				normal_keys = {
+					-- to change default lhs of key mapping change the key
+					[","] = {
+						-- assigning nil to method exits from multi cursor mode
+						method = N.clear_others,
+						-- you can pass :map-arguments here
+						opts = { desc = "Clear others" },
+					},
+				},
+				insert_keys = {
+					-- to change default lhs of key mapping change the key
+					["<CR>"] = {
+						-- assigning nil to method exits from multi cursor mode
+						method = I.Cr_method,
+						-- you can pass :map-arguments here
+						opts = { desc = "New line" },
+					},
+				},
+				hint_config = {
+					border = "rounded",
+					position = "bottom",
+					-- border = { "┏", "━", "┓", "┃", "┛", "━", "┗", "┃" },
+				},
+				generate_hints = {
+					normal = true,
+					insert = true,
+					extend = true,
+				},
+			}
+		end,
+		cmd = { "MCstart", "MCvisual", "MCclear", "MCpattern", "MCvisualPattern", "MCunderCursor" },
+		keys = {
+			{
+				mode = { "v", "n" },
+				"<Leader>m",
+				"<cmd>MCstart<cr>",
+				desc = "Create a selection for selected text or word under the cursor",
+			},
+		},
 	},
 	-- DB
 	{

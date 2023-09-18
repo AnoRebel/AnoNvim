@@ -23,6 +23,7 @@ local M = {
 		{ "roobert/tailwindcss-colorizer-cmp.nvim", opts = { color_square_width = 2 } },
 		{
 			"jcdickinson/codeium.nvim",
+			enabled = true,
 			dependencies = {
 				"nvim-lua/plenary.nvim",
 				{ "jcdickinson/http.nvim", build = "cargo build --workspace --release" },
@@ -33,6 +34,73 @@ local M = {
 					config_path = _G.get_config_dir() .. "/codeium/config.json",
 					bin_path = _G.get_runtime_dir() .. "/codeium/bin",
 				})
+			end,
+		},
+		{
+			"Exafunction/codeium.vim",
+			enabled = false,
+			event = "BufEnter",
+			config = function()
+				local whichkey_exists, wk = pcall(require, "which-key")
+				if whichkey_exists then
+					wk.register({
+						["<M-p>"] = {
+							function()
+								return vim.fn["codeium#CycleCompletions"](-1)
+							end,
+							"Codeium: Previous Suggestion",
+						},
+					}, { mode = "i" })
+					wk.register({
+						["<M-n>"] = {
+							function()
+								return vim.fn["codeium#CycleCompletions"](1)
+							end,
+							"Codeium: Next Suggestion",
+						},
+					}, { mode = "i" })
+					wk.register({
+						["<M-a>"] = {
+							function()
+								return vim.fn["codeium#Accept"]()
+							end,
+							"Codeium: Accept Suggestion",
+						},
+					}, { mode = "i" })
+					wk.register({
+						["<M-Space>"] = {
+							function()
+								return vim.fn["codeium#Complete"]()
+							end,
+							"Codeium: Trigger Suggestions",
+						},
+					}, { mode = "i" })
+					wk.register({
+						["<M-Bslash>"] = {
+							function()
+								return vim.fn["codeium#Clear"]()
+							end,
+							"Codeium: Clear Suggestions",
+						},
+					}, { mode = "i" })
+				else
+					-- Change '<C-g>' here to any keycode you like.
+					vim.keymap.set("i", "<M-a>", function()
+						return vim.fn["codeium#Accept"]()
+					end, { expr = true, desc = "Codeium: Accept Suggestion" })
+					vim.keymap.set("i", "<M-n>", function()
+						return vim.fn["codeium#CycleCompletions"](1)
+					end, { expr = true, desc = "Codeium: Next Suggestion" })
+					vim.keymap.set("i", "<M-p>", function()
+						return vim.fn["codeium#CycleCompletions"](-1)
+					end, { expr = true, desc = "Codeium: Previous Suggestion" })
+					vim.keymap.set("i", "<M-Space>", function()
+						return vim.fn["codeium#Complete"]()
+					end, { expr = true, desc = "Codeium: Trigger Suggestions" })
+					vim.keymap.set("i", "<M-Bslash>", function()
+						return vim.fn["codeium#Clear"]()
+					end, { expr = true, desc = "Codeium: Clear Suggestions" })
+				end
 			end,
 		},
 	},

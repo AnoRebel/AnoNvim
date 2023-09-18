@@ -378,7 +378,7 @@ M.n = {
 	},
 
 	-- Glow
-	["<leader>m"] = { ":Glow<CR>", "Markdown Preview", opts = { silent = true } },
+	-- ["<leader>m"] = { ":Glow<CR>", "Markdown Preview", opts = { silent = true } },
 
 	-- Refactoring
 	["<leader>r"] = { name = " Refactoring" },
