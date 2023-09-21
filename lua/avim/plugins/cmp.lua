@@ -22,11 +22,15 @@ local M = {
 		},
 		{ "roobert/tailwindcss-colorizer-cmp.nvim", opts = { color_square_width = 2 } },
 		{
-			"jcdickinson/codeium.nvim",
+			"jcdickinson/http.nvim",
+			build = "cargo build --workspace --release",
+		},
+		{
+			"Exafunction/codeium.nvim",
 			enabled = true,
 			dependencies = {
 				"nvim-lua/plenary.nvim",
-				{ "jcdickinson/http.nvim", build = "cargo build --workspace --release" },
+				"jcdickinson/http.nvim",
 				"hrsh7th/nvim-cmp",
 			},
 			config = function()
