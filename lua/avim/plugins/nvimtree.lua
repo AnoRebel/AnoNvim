@@ -138,7 +138,6 @@ function M.config()
 		on_attach = on_attach,
 		view = {
 			width = 30,
-			hide_root_folder = false,
 		},
 		filters = {
 			custom = { "node_modules", "\\.cache" },
