@@ -83,6 +83,9 @@ local options = {
 				-- Config
 				_G.get_config_dir(),
 				utils.join_paths(_G.get_config_dir(), "after"),
+				-- Lua 5.1 Luarocks
+				vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?/init.lua",
+				vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?.lua",
 			}, -- add any custom paths here that you want to indluce in the rtp
 			---@type string[] list any plugins you want to disable here
 			disabled_plugins = {

@@ -51,6 +51,7 @@ return {
 	{ "nvim-lua/plenary.nvim" },
 	{ "nvim-lua/popup.nvim" },
 	{ "DanilaMihailov/beacon.nvim", lazy = false },
+	{ "3rd/image.nvim", opts = { backend = "kitty", integrations = { markdown = { enabled = true } } } },
 	{
 		"shortcuts/no-neck-pain.nvim",
 		cmd = "NoNeckPain",
