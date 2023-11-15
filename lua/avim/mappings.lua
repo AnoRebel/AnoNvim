@@ -71,7 +71,8 @@ M.i = {
 	["<C-k>"] = { termcodes("<C-\\><C-n><C-w>k"), "Move to Top Window", opts = { silent = true } },
 	["<C-l>"] = { termcodes("<C-\\><C-n><C-w>l"), "Move to Right Window", opts = { silent = true } },
 	["kj"] = { "<ESC>", "Escape Insert Mode" }, -- { noremap = true, silent = true }
-	["<C-c>"] = { "<ESC>ggVGy`.i", "Copy All Text" },
+	["<C-c>"] = { "<ESC>gg<S-v>Gy`.i", "Copy All Text" },
+	-- ["<C-c>"] = { "<ESC>ggVGy`.i", "Copy All Text" },
 	-- ["<C-W>"] = { "<ESC>:wa<CR>", "Save All" },
 	-- Notify
 	-- ["<C-c>"] = {
@@ -432,13 +433,18 @@ M.n = {
 	["<leader>h"] = { ":Alpha<CR>", " Home" },
 
 	-- Misc
-	["<C-c>"] = { "ggVG", "Select All Text", opts = { silent = true } },
+	-- ["dw"] = { "vb_d", "Select All Text", opts = { silent = true } },
+	["<C-c>"] = { "gg<S-v>G", "Select All Text", opts = { silent = true } },
+	-- ["<C-c>"] = { "ggVG", "Select All Text", opts = { silent = true } },
 	-- ["<C-A>"] = { "ggVGy`.", "Copy All Text", opts = { silent = true } },
 	-- Resize
 	["<A-Up>"] = { ":resize -2<CR>", "Decrease Window Height", opts = { silent = true } },
 	["<A-Down>"] = { ":resize +2<CR>", "Increase Window Height", opts = { silent = true } },
 	["<A-Left>"] = { ":vertical resize -2<CR>", "Decrease Window Width", opts = { silent = true } },
 	["<A-Right>"] = { ":vertical resize +2<CR>", "Increase Window Width", opts = { silent = true } },
+	-- Increment/decrement
+	-- ["+"] = { "<C-a>", "Increment", opts = {} },
+	-- ["-"] = { "<C-x>", "Decrement", opts = {} },
 
 	-- Plugin Keymap temps
 	["<Esc>"] = {
