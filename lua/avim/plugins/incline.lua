@@ -33,6 +33,9 @@ function M.config()
 	local get_buf_option = vim.api.nvim_buf_get_option
 	require("incline").setup({
 		debounce_threshold = { falling = 500, rising = 250 },
+		-- hide = {
+		-- 	cursorline = true,
+		-- },
 		render = function(props)
 			local bufname = vim.api.nvim_buf_get_name(props.buf)
 			local filename = vim.fn.fnamemodify(bufname, ":t")

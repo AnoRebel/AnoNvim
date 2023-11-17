@@ -469,6 +469,13 @@ return {
 		config = true,
 	},
 	{
+		"smjonas/inc-rename.nvim",
+		cmd = "IncRename",
+		opts = {
+			input_buffer_type = "dressing",
+		},
+	},
+	{
 		"Wansmer/treesj",
 		cmd = { "TSJToggle", "TSJSplit", "TSJJoin" },
 		opts = {

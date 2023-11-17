@@ -50,6 +50,42 @@ autocmd("VimEnter", {
 	end,
 })
 
+-- Fix for filetype setting on persistent restore
+-- local persistent_restore, _ = pcall(vim.api.nvim_get_autocmds, { group = "_persistent_restore" })
+-- if not persistent_restore then
+-- 	augroup("_persistent_restore", { clear = true })
+-- end
+autocmd({ "User" }, {
+	desc = "A temporary fix for persistent not restoring filetype",
+	-- group = "_persistent_restore",
+	group = vim.api.nvim_create_augroup("PersistedHooks", {}),
+	pattern = "PersistedLoadPost",
+	callback = function()
+		local bufnr = vim.api.nvim_get_current_buf()
+		local bufname = vim.api.nvim_buf_get_name(bufnr)
+		local extension = vim.fn.fnamemodify(bufname, ":e")
+		-- TODO: Add more extensions
+		-- local ext_map = {}
+		-- ext_map["js"] = "javascript"
+		-- ext_map["ts"] = "typescript"
+		-- ext_map["py"] = "python"
+		-- ext_map["rs"] = "rust"
+		if extension == "js" then
+			extension = "javascript"
+		end
+		if extension == "ts" then
+			extension = "typescript"
+		end
+		if extension == "py" then
+			extension = "python"
+		end
+		if vim.bo[bufnr].filetype == "" and extension ~= "" then
+			vim.notify("Restored filetype...")
+			vim.bo[bufnr].filetype = extension
+		end
+	end,
+})
+
 autocmd("BufEnter", {
 	desc = "Open Neo-Tree on startup with directory",
 	group = augroup("neotree_start", { clear = true }),
@@ -256,7 +292,7 @@ autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }
 			vim.b.buftype == "messages"
 			or vim.tbl_contains(fts, buf_filetype)
 			or vim.tbl_contains(fts, buf_type)
-			or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(0, "buftype"))
+			or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(bufnr, "buftype"))
 		then
 			return
 		end
