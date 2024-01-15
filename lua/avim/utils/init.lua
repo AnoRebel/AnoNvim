@@ -563,6 +563,7 @@ M.close_buffer = function(bufnr, force)
 	bufnr = bufnr or api.nvim_get_current_buf()
 	local buf_type = vim.bo[bufnr].buftype
 	local buf_filetype = vim.bo[bufnr].filetype
+	local bufhidden = vim.bo.bufhidden
 	-- Skip if the filetype is on the list of exclusions.
 	if
 		vim.b.buftype == "messages"
@@ -571,6 +572,16 @@ M.close_buffer = function(bufnr, force)
 		or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(0, "buftype"))
 	then
 		vim.cmd((force and "bd!" or "confirm bd") .. bufnr)
+		return
+	end
+
+	-- force close floating wins
+	if bufhidden == "wipe" and buf_filetype ~= "alpha" then
+		vim.cmd("bw")
+		return
+	end
+	if not (bufhidden == "delete") and buf_filetype ~= "alpha" then
+		vim.cmd("confirm bd" .. bufnr)
 		return
 	end
 
@@ -684,14 +695,14 @@ end
 
 local diag_enabled = true
 function M.toggle_diagnostics()
-  diag_enabled = not diag_enabled
-  if diag_enabled then
-    vim.diagnostic.enable()
-    vim.notify("Enabled diagnostics", vim.log.levels.INFO, { title = "Diagnostics" })
-  else
-    vim.diagnostic.disable()
-    vim.notify("Disabled diagnostics", vim.log.levels.WARN, { title = "Diagnostics" })
-  end
+	diag_enabled = not diag_enabled
+	if diag_enabled then
+		vim.diagnostic.enable()
+		vim.notify("Enabled diagnostics", vim.log.levels.INFO, { title = "Diagnostics" })
+	else
+		vim.diagnostic.disable()
+		vim.notify("Disabled diagnostics", vim.log.levels.WARN, { title = "Diagnostics" })
+	end
 end
 
 --- Toggle background="dark"|"light"

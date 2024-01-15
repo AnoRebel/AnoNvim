@@ -8,10 +8,10 @@ function M.check()
 
 	if vim.version().prerelease then
 		vim.health.report_warn("Neovim nightly is not officially supported and may have breaking changes")
-	elseif vim.fn.has("nvim-0.8") == 1 then
-		vim.health.report_ok("Using stable Neovim >= 0.8.0")
+	elseif vim.fn.has("nvim-0.9") == 1 then
+		vim.health.report_ok("Using stable Neovim >= 0.9.0")
 	else
-		vim.health.report_error("Neovim >= 0.8.0 is required")
+		vim.health.report_error("Neovim >= 0.9.0 is required")
 	end
 
 	local programs = {

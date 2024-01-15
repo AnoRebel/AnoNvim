@@ -4,6 +4,29 @@ local M = {
 	branch = "master",
 	dependencies = {
 		{
+			"aznhe21/actions-preview.nvim",
+			opts = {
+				diff = {
+					algorithm = "patience",
+					ignore_whitespace = true,
+				},
+				telescope = {
+					sorting_strategy = "ascending",
+					layout_strategy = "vertical",
+					winblend = 10,
+					layout_config = {
+						width = 0.8,
+						height = 0.9,
+						prompt_position = "top",
+						preview_cutoff = 20,
+						preview_height = function(_, _, max_lines)
+							return max_lines - 15
+						end,
+					},
+				},
+			},
+		},
+		{
 			"akinsho/flutter-tools.nvim",
 			dependencies = { "nvim-lua/plenary.nvim" },
 		},
@@ -355,6 +378,35 @@ function M.config()
 		end,
 		["emmet_ls"] = function()
 			lspconfig.emmet_ls.setup({
+				on_attach = on_attach,
+				capabilities = capabilities,
+				handlers = handlers,
+				-- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+				-- **Note:** only the options listed in the table are supported.
+				init_options = {
+					--- @type string[]
+					showAbbreviationSuggestions = true,
+					--- @type "always" | "never" Defaults to `"always"`
+					showExpandedAbbreviation = "always",
+					--- @type boolean Defaults to `false`
+					showSuggestionsAsSnippets = true,
+				},
+				filetypes = {
+					"html",
+					"css",
+					"scss",
+					"htmldjango",
+					"sass",
+					"javascriptreact",
+					"typescriptreact",
+					"vue",
+					"svelte",
+					"astro",
+				},
+			})
+		end,
+		["emmet_language_server"] = function()
+			lspconfig.emmet_language_server.setup({
 				on_attach = on_attach,
 				capabilities = capabilities,
 				handlers = handlers,

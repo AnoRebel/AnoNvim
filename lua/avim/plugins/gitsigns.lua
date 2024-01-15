@@ -36,13 +36,8 @@ local options = {
 			linehl = "GitSignsChangeLn",
 		},
 	},
-	numhl = false,
+	numhl = true,
 	linehl = false,
-	keymaps = {
-		-- Default keymap options
-		noremap = true,
-		buffer = true,
-	},
 	signcolumn = true,
 	word_diff = false,
 	attach_to_untracked = true,
@@ -56,7 +51,6 @@ local options = {
 	current_line_blame_formatter_opts = {
 		relative_time = false,
 	},
-	max_file_length = 40000,
 	preview_config = {
 		-- Options passed to nvim_open_win
 		border = "rounded",
@@ -71,7 +65,6 @@ local options = {
 	},
 	sign_priority = 6,
 	update_debounce = 200,
-	status_formatter = nil, -- Use default
 }
 
 function M.config()

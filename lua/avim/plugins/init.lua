@@ -13,6 +13,7 @@ return {
 		end,
 	},
 	{ "lambdalisue/suda.vim", cmd = { "SudaRead", "SudaWrite" } },
+	{ "lbrayner/vim-rzip", lazy = false },
 	{
 		"jbyuki/instant.nvim",
 		enabled = false,
@@ -84,30 +85,26 @@ return {
 		end,
 	},
 	-- LSP
-	{ "weilbith/nvim-code-action-menu", event = "LspAttach", dependencies = { "neovim/nvim-lspconfig" } },
+	{
+		"weilbith/nvim-code-action-menu",
+		enabled = false,
+		event = "LspAttach",
+		dependencies = { "neovim/nvim-lspconfig" },
+	},
 	{
 		"zbirenbaum/neodim",
+		enabled = false,
 		event = "LspAttach",
 		opts = {
-			alpha = 0.75,
-			blend_color = "#000000",
-			refresh_delay = 75,
 			-- update_in_insert = {
 			-- 	enable = true,
 			-- 	delay = 100,
 			-- },
-			regex = {
-				"[uU]nused",
-				"[nN]ever [rR]ead",
-				"[nN]ot [rR]ead",
-			},
 			hide = {
 				virtual_text = false,
 				signs = false,
 				underline = false,
 			},
-			priority = 128,
-			disable = {},
 		},
 	},
 	{
@@ -292,6 +289,7 @@ return {
 	},
 	{
 		"mattn/emmet-vim",
+		enabled = false,
 		event = "VeryLazy",
 		dependencies = { "mattn/webapi-vim", lazy = false },
 	},

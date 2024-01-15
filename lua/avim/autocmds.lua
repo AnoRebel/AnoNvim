@@ -5,6 +5,16 @@ vim.api.nvim_create_user_command("AvimUpdate", function()
 	require("avim.core.updater")()
 end, { force = true })
 
+-- command to toggle cheatsheet
+vim.api.nvim_create_user_command("AvCheatsheet", function()
+	if vim.g.avcheatsheet_displayed then
+		require("avim.utils").close_buffer()
+	else
+		local config = require("avim.core.defaults").ui
+		require("avim.cheatsheet." .. config.cheat_theme)()
+	end
+end, {})
+
 autocmd({ "FocusGained", "TermClose", "TermLeave" }, { command = "checktime" })
 
 local vim_ui, _ = pcall(vim.api.nvim_get_autocmds, { group = "vim-ui_cmds" })
@@ -275,6 +285,7 @@ local fts = {
 	"prompt",
 	"Prompt",
 	"popup",
+	"avcheatsheet",
 	"code-action-menu-menu",
 	"code-action-menu-diff",
 	"code-action-menu-details",

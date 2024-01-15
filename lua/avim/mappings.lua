@@ -192,9 +192,9 @@ M.n = {
 
 	-- comment
 	["<leader>/"] = { "<cmd> :lua require('Comment.api').toggle.linewise.current()<CR>", "Comment" },
-	-- Cybu
-	-- ["H"] = { "<Plug>(CybuPrev)", "", },
-	-- ["L"] = { "<Plug>(CybuNext)", "", },
+	-- Cheatsheet
+	["<leader>km"] = { "<CMD>lua require('avim.cheatsheet.grid')()<CR>", "Cheatsheet(Grid)" },
+	["<leader>ch"] = { "<CMD>lua require('avim.cheatsheet.simple')()<CR>", "Cheatsheet(Simple)" },
 	-- lspconfig
 	-- LSP Mappings
 	["g"] = { name = "󰏖 LSP" },
@@ -212,7 +212,7 @@ M.n = {
 	},
 	["<leader>D"] = { "<cmd>lua vim.lsp.buf.type_definition()<CR>", "Type Definitions" },
 	["<leader>ra"] = { "<cmd>lua vim.lsp.buf.rename()<CR>", "Rename" },
-	["<leader>la"] = { ":CodeActionMenu<CR>", "Code Actions" },
+	["<leader>la"] = { "<cmd>lua require('actions-preview').code_actions()<CR>", "Code Actions" },
 	-- ["<leader>ca"] = { "<cmd>lua vim.lsp.buf.code_action()<CR>", "Code Actions", },
 	["gr"] = { "<cmd>lua vim.lsp.buf.references()<CR>", "References" },
 	["ge"] = { "<cmd>lua vim.diagnostic.open_float()<CR>", "Floating Diagnostics" },
@@ -227,9 +227,9 @@ M.n = {
 	["<leader>lI"] = { ":Mason<CR>", "Mason" },
 	["<leader>ll"] = { ":lua vim.lsp.codelens.run()<CR>", "Codelens" },
 	["<leader>lp"] = { name = "󰍉 Peek" },
-	["<leader>lpd"] = { ":lua require('avim.lsp.peek').Peek('definition')<CR>", "Peek Definition(s)" },
-	["<leader>lpt"] = { ":lua require('avim.lsp.peek').Peek('typeDefinition')<CR>", "Peek Type Definition(s)" },
-	["<leader>lpi"] = { ":lua require('avim.lsp.peek').Peek('implementation')<CR>", "Peek Implementation(s)" },
+	["<leader>lpd"] = { ":lua require('avim.utils.peek').Peek('definition')<CR>", "Peek Definition(s)" },
+	["<leader>lpt"] = { ":lua require('avim.utils.peek').Peek('typeDefinition')<CR>", "Peek Type Definition(s)" },
+	["<leader>lpi"] = { ":lua require('avim.utils.peek').Peek('implementation')<CR>", "Peek Implementation(s)" },
 
 	-- Package Manager
 	["<leader>p"] = { name = "󰏖 Packages" },

@@ -45,7 +45,7 @@ local options = {
 		enabled = true,
 
 		-- Priority list of preferred vim.select implementations
-		backend = { "telescope", "nui", "fzf", "builtin" },
+		backend = { "telescope", "fzf_lua", "nui", "fzf", "builtin" },
 
 		-- Options for telescope selector
 		telescope = nil, -- {
@@ -63,10 +63,10 @@ local options = {
 
 		-- Options for nui Menu
 		nui = {
-			--position = {
-			--  row = 1,
-			--  col = 0,
-			--},
+			-- position = {
+			-- 	row = 1,
+			-- 	col = 0,
+			-- },
 			position = "50%",
 			size = nil,
 			relative = "cursor", -- "editor"
@@ -113,7 +113,7 @@ local options = {
 		get_config = function(opts)
 			if opts.kind == "codeaction" then
 				return {
-					backend = "nui",
+					backend = "telescope", -- "nui",
 					nui = {
 						relative = "cursor",
 						max_width = 80,

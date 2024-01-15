@@ -91,7 +91,7 @@ end
 local function diagnostic_click(args)
 	if args.button == "l" then
 		d.open_float() -- Open diagnostic float on left click
-	elseif args.button == "m" then
+	elseif args.button == "r" then
 		l.buf.code_action() -- Open code action on middle click
 	end
 end

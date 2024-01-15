@@ -37,13 +37,13 @@ local M = {
 		},
 		{
 			"Exafunction/codeium.vim",
-			enabled = false,
+			enabled = true,
 			event = "BufEnter",
 			config = function()
 				local whichkey_exists, wk = pcall(require, "which-key")
 				if whichkey_exists then
 					wk.register({
-						["<M-p>"] = {
+						["<A-p>"] = {
 							function()
 								return vim.fn["codeium#CycleCompletions"](-1)
 							end,
@@ -51,7 +51,7 @@ local M = {
 						},
 					}, { mode = "i" })
 					wk.register({
-						["<M-n>"] = {
+						["<A-n>"] = {
 							function()
 								return vim.fn["codeium#CycleCompletions"](1)
 							end,
@@ -59,15 +59,20 @@ local M = {
 						},
 					}, { mode = "i" })
 					wk.register({
-						["<M-a>"] = {
+						["<A-a>"] = {
 							function()
-								return vim.fn["codeium#Accept"]()
+								-- NOTE: Hack fix for this mapping always being set to nil
+								-- return vim.fn["codeium#Accept"]()
+								return vim.fn.feedkeys(
+									vim.api.nvim_replace_termcodes(vim.fn["codeium#Accept"](), true, true, true),
+									""
+								)
 							end,
 							"Codeium: Accept Suggestion",
 						},
 					}, { mode = "i" })
 					wk.register({
-						["<M-Space>"] = {
+						["<A-Space>"] = {
 							function()
 								return vim.fn["codeium#Complete"]()
 							end,
@@ -75,7 +80,7 @@ local M = {
 						},
 					}, { mode = "i" })
 					wk.register({
-						["<M-Bslash>"] = {
+						["<A-Bslash>"] = {
 							function()
 								return vim.fn["codeium#Clear"]()
 							end,
@@ -84,21 +89,26 @@ local M = {
 					}, { mode = "i" })
 				else
 					-- Change '<C-g>' here to any keycode you like.
-					vim.keymap.set("i", "<M-a>", function()
-						return vim.fn["codeium#Accept"]()
-					end, { expr = true, desc = "Codeium: Accept Suggestion" })
-					vim.keymap.set("i", "<M-n>", function()
+					vim.keymap.set("i", "<A-a>", function()
+						-- NOTE: Hack fix for this mapping always being set to nil
+						-- return vim.fn["codeium#Accept"]()
+						return vim.fn.feedkeys(
+							vim.api.nvim_replace_termcodes(vim.fn["codeium#Accept"](), true, true, true),
+							""
+						)
+					end, { expr = true, silent = true, desc = "Codeium: Accept Suggestion" })
+					vim.keymap.set("i", "<A-n>", function()
 						return vim.fn["codeium#CycleCompletions"](1)
-					end, { expr = true, desc = "Codeium: Next Suggestion" })
-					vim.keymap.set("i", "<M-p>", function()
+					end, { expr = true, silent = true, desc = "Codeium: Next Suggestion" })
+					vim.keymap.set("i", "<A-p>", function()
 						return vim.fn["codeium#CycleCompletions"](-1)
-					end, { expr = true, desc = "Codeium: Previous Suggestion" })
-					vim.keymap.set("i", "<M-Space>", function()
+					end, { expr = true, silent = true, desc = "Codeium: Previous Suggestion" })
+					vim.keymap.set("i", "<A-Space>", function()
 						return vim.fn["codeium#Complete"]()
-					end, { expr = true, desc = "Codeium: Trigger Suggestions" })
-					vim.keymap.set("i", "<M-Bslash>", function()
+					end, { expr = true, silent = true, desc = "Codeium: Trigger Suggestions" })
+					vim.keymap.set("i", "<A-Bslash>", function()
 						return vim.fn["codeium#Clear"]()
-					end, { expr = true, desc = "Codeium: Clear Suggestions" })
+					end, { expr = true, silent = true, desc = "Codeium: Clear Suggestions" })
 				end
 			end,
 		},
@@ -342,15 +352,15 @@ function M.config()
 	})
 
 	-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-	-- cmp.setup.cmdline(":", {
-	-- 	mapping = cmp.mapping.preset.cmdline(),
-	-- 	sources = cmp.config.sources({
-	-- 		{ name = "path" },
-	-- 		{ name = "cmdline_history" },
-	-- 	}, {
-	-- 		{ name = "cmdline" },
-	-- 	}),
-	-- })
+	cmp.setup.cmdline(":", {
+		mapping = cmp.mapping.preset.cmdline(),
+		sources = cmp.config.sources({
+			{ name = "path" },
+			{ name = "cmdline_history" },
+		}, {
+			{ name = "cmdline" },
+		}),
+	})
 
 	local cmp_autopairs = require("nvim-autopairs.completion.cmp")
 	local auto_pairs = require("nvim-autopairs.completion.handlers")

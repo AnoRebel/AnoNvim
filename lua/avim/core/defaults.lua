@@ -5,6 +5,7 @@ M.version = "v1.5.0"
 ---- UI -----
 M.ui = {
 	theme = "tokyonight", -- default theme
+	cheat_theme = "grid", -- "simple/grid"
 	transparency = false,
 	background = "dark",
 	-- fonts = "Victor Mono:11",
@@ -18,7 +19,8 @@ M.servers = {
 	-- "csharp_ls",
 	-- "denols",
 	"dotls",
-	"emmet_ls",
+	"emmet_language_server",
+	-- "emmet_ls",
 	"eslint",
 	"gopls",
 	-- "graphql",
@@ -50,7 +52,8 @@ M.packages = {
 	"dockerfile-language-server",
 	"dot-language-server",
 	"elixir-ls",
-	"emmet-ls",
+	-- "emmet-ls",
+	-- "emmet_language_server",
 	-- "eslint_d",
 	"gopls",
 	"goimports-reviser",
