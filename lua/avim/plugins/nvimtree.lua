@@ -1,7 +1,7 @@
 local M = {
 	"nvim-tree/nvim-tree.lua",
-	version = "nightly",
-	event = "VeryLazy",
+	version = "*",
+	lazy = false,
 	-- only set "after" if lazy load is disabled and vice versa for "cmd"
 	-- cmd = { "NvimTreeOpen", "NvimTreeToggle", "NvimTreeFocus" },
 	dependencies = { "nvim-tree/nvim-web-devicons" },
