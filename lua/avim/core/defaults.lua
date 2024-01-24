@@ -8,8 +8,7 @@ M.ui = {
 	cheat_theme = "grid", -- "simple/grid"
 	transparency = false,
 	background = "dark",
-	-- fonts = "Victor Mono:11",
-	fonts = "JetBrains:11",
+	fonts = "JetBrainsMono NF:h10",
 	list = false,
 }
 
