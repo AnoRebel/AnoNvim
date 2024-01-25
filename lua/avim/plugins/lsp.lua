@@ -356,6 +356,8 @@ function M.config()
 			end,
 		},
 	})
+	local has_vue = require("avim.utils").is_npm_package_installed("vue")
+		or require("avim.utils").is_npm_package_installed("nuxt")
 	--
 	-- See `:h mason-lspconfig.setup_handlers()`
 	-- @param handlers table<string, fun(server_name: string)>
@@ -552,7 +554,7 @@ function M.config()
 		end,
 		["omnisharp"] = function()
 			handlers["textDocument/definition"] = require("omnisharp_extended").handler
-			lspconfig.omnisharp.set({
+			lspconfig.omnisharp.setup({
 				cmd = { "dotnet", _G.get_runtime_dir() .. "/mason/packages/omnisharp/libexec/OmniSharp.dll" },
 				on_attach = on_attach,
 				handlers = handlers,
@@ -606,14 +608,84 @@ function M.config()
 			})
 		end,
 		["tsserver"] = function()
-			lspconfig.tsserver.setup({
-				capabilities = capabilities,
+			if not has_vue then
+				lspconfig.tsserver.setup({
+					capabilities = capabilities,
+					on_attach = function(client, bufnr)
+						client.server_capabilities.documentFormattingProvider = false
+						client.server_capabilities.documentRangeFormattingProvider = false
+						on_attach(client, bufnr)
+					end,
+					handlers = handlers,
+					settings = {
+						typescript = {
+							inlayHints = {
+								includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+								includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+								includeInlayFunctionParameterTypeHints = true,
+								includeInlayVariableTypeHints = true, -- false
+								includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+								includeInlayPropertyDeclarationTypeHints = true,
+								includeInlayFunctionLikeReturnTypeHints = true,
+								includeInlayEnumMemberValueHints = true,
+							},
+							format = {
+								indentSize = vim.o.shiftwidth,
+								convertTabsToSpaces = vim.o.expandtab,
+								tabSize = vim.o.tabstop,
+							},
+						},
+						javascript = {
+							inlayHints = {
+								includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+								includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+								includeInlayFunctionParameterTypeHints = true,
+								includeInlayVariableTypeHints = true, -- false
+								includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+								includeInlayPropertyDeclarationTypeHints = true,
+								includeInlayFunctionLikeReturnTypeHints = true,
+								includeInlayEnumMemberValueHints = true,
+							},
+							format = {
+								indentSize = vim.o.shiftwidth,
+								convertTabsToSpaces = vim.o.expandtab,
+								tabSize = vim.o.tabstop,
+							},
+						},
+						completions = {
+							completeFunctionCalls = true,
+						},
+					},
+				})
+			end
+		end,
+		["volar"] = function()
+			lspconfig.volar.setup({
 				on_attach = function(client, bufnr)
 					client.server_capabilities.documentFormattingProvider = false
 					client.server_capabilities.documentRangeFormattingProvider = false
 					on_attach(client, bufnr)
 				end,
+				capabilities = capabilities,
 				handlers = handlers,
+				-- filetypes = { "vue" },
+				filetypes = has_vue
+						and { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" }
+					or { "vue" },
+				documentFeatures = {
+					documentColor = true,
+				},
+				languageFeatures = {
+					semanticTokens = true,
+				},
+				init_options = {
+					documentFeatures = {
+						documentColor = true,
+					},
+					languageFeatures = {
+						semanticTokens = true,
+					},
+				},
 				settings = {
 					typescript = {
 						inlayHints = {
@@ -653,18 +725,6 @@ function M.config()
 						completeFunctionCalls = true,
 					},
 				},
-			})
-		end,
-		["volar"] = function()
-			lspconfig.volar.setup({
-				on_attach = function(client, bufnr)
-					client.server_capabilities.documentFormattingProvider = false
-					client.server_capabilities.documentRangeFormattingProvider = false
-					on_attach(client, bufnr)
-				end,
-				capabilities = capabilities,
-				handlers = handlers,
-				filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
 			})
 		end,
 	})

@@ -83,11 +83,14 @@ else
 	set.splitright = true -- Put new windows right of current
 	-- set.termguicolors = true -- True color support
 	if vim.fn.has("termguicolors") == 1 then
-		vim.go.t_8f = "[[38;2;%lu;%lu;%lum"
-		vim.go.t_8b = "[[48;2;%lu;%lu;%lum"
+		g.t_8f = "[[38;2;%lu;%lu;%lum"
+		g.t_8b = "[[48;2;%lu;%lu;%lum"
+		-- vim.go.t_8f = "[[38;2;%lu;%lu;%lum"
+		-- vim.go.t_8b = "[[48;2;%lu;%lu;%lum"
 		set.termguicolors = true
 	end
-	vim.o.t_Co = 256
+	-- vim.o.t_Co = 256
+	g.t_co = 256
 	set.guifont = require("avim.core.defaults").ui.fonts
 	-- set.guicursor = "n-v-c:block-Cursor/lCursor-blinkon0,i-ci:ver25-Cursor/lCursor,r-cr:hor20-Cursor/lCursor"
 	set.mouse = "a" -- Use the mouse in all modes

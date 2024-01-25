@@ -1,6 +1,6 @@
 local M = {
-	"jose-elias-alvarez/null-ls.nvim",
-	-- "nvimtools/none-ls.nvim",
+	-- "jose-elias-alvarez/null-ls.nvim",
+	"nvimtools/none-ls.nvim",
 	event = "BufReadPre",
 	dependencies = { "nvim-lua/plenary.nvim" },
 }
@@ -12,14 +12,13 @@ function M.config()
 	local sources = {
 		-- Diagnostics
 		b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
-		b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
+		-- b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
 		b.diagnostics.markdownlint,
-		b.diagnostics.php,
+		-- b.diagnostics.php,
 		b.diagnostics.todo_comments,
 		b.diagnostics.revive,
 		-- b.diagnostics.tsc,
 		-- b.diagnostics.eslint_d,
-		-- b.diagnostics.zsh,
 		-- Formatting
 		b.formatting.stylua,
 		b.formatting.shfmt,
@@ -31,7 +30,7 @@ function M.config()
 		b.formatting.golines,
 		b.formatting.tidy,
 		b.formatting.isort,
-		b.formatting.jq,
+		-- b.formatting.jq,
 		b.formatting.prettierd.with({
 			env = {
 				PRETTIERD_DEFAULT_CONFIG = vim.fn.expand(
