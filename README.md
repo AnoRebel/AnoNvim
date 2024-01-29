@@ -103,6 +103,7 @@ bash <(curl -s https://raw.githubusercontent.com/AnoRebel/AnoNvim/main/.install/
 - [Barbecue](https://github.com/utilyre/barbecue.nvim)
 - [Bufferline](https://github.com/akinsho/bufferline.nvim)
 - [Codeium.vim](https://github.com/Exafunction/codeium.vim)
+- [CodyAI](https://github.com/sourcegraph/sg.nvim)
 - [Codeium.nvim](https://github.com/Exafunction/codeium.nvim)
 - [Completions(Cmp)](https://github.com/hrsh7th/nvim-cmp)
 - [Colorizer](https://github.com/NvChad/nvim-colorizer.lua)

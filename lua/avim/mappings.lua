@@ -261,6 +261,10 @@ M.n = {
 	-- telescope
 	["<leader>f"] = { name = "󰍉 Telescope" },
 	["<leader>te"] = { ":Telescope <CR>", "Telescope" },
+	["<leader>fs"] = {
+		"<cmd>lua require('sg.extensions.telescope').fuzzy_search_results()<CR>",
+		"Sourcegraph Fuzzy Search",
+	},
 	["<leader>fb"] = { "<cmd>Telescope buffers <CR>", "Buffer List" },
 	["<leader>fB"] = { "<cmd>Telescope current_buffer_fuzzy_find <CR>", "Fuzzy Buffer List" },
 	["<leader>ff"] = { "<cmd>Telescope find_files <CR>", "Find Files" },
