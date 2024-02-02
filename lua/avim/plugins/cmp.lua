@@ -16,6 +16,11 @@ local M = {
 		{ "dmitmel/cmp-cmdline-history" },
 		{ "David-Kunz/cmp-npm" },
 		{
+			"MattiasMTS/cmp-dbee",
+			enabled = false,
+			ft = "sql",
+		},
+		{
 			"tzachar/cmp-tabnine",
 			build = "./install.sh",
 			enabled = require("avim.utils").get_os()[2] ~= "arm",
@@ -169,6 +174,7 @@ function M.config()
 		path = "[PTH]", -- icons.folderOpen2 .. "[PTH]",
 		treesitter = "[TST]", -- icons.tree .. "[TST]",
 		zsh = "[ZSH]", -- icons.terminal .. "[ZSH]",
+		-- cmp_dbee = "[DBEE]", -- icons.db .. "[DBEE]",
 	}
 
 	local options = {
@@ -222,6 +228,7 @@ function M.config()
 			cmp_tabnine = 1,
 			codeium = 1,
 			treesitter = 1,
+			-- cmp_dbee = 1,
 		},
 		duplicates_default = 0,
 		mapping = cmp.mapping.preset.insert({
@@ -293,6 +300,7 @@ function M.config()
 			{ name = "luasnip" },
 			{ name = "buffer", keyword_length = 3 },
 			{ name = "path" },
+			-- { name = "cmp-dbee" },
 			{ name = "cmp_tabnine" }, -- max_item_count = 3
 			{ name = "nvim_lua" },
 			{ name = "calc" },

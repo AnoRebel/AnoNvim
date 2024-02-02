@@ -383,7 +383,7 @@ return {
 		config = function()
 			require("dbee").setup({
 				sources = {
-					require("dbee.sources").FileSource:new(get_cache_dir() .. "/dbee/persistence.json"),
+					require("dbee.sources").FileSource:new(get_config_dir() .. "/dbee/persistence.json"),
 					require("dbee.sources").EnvSource:new("DBEE_CONNECTIONS"),
 				},
 			})
