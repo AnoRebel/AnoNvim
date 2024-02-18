@@ -486,7 +486,11 @@ return {
 	{
 		"numToStr/Comment.nvim",
 		event = "BufRead",
-		dependencies = { "JoosepAlviste/nvim-ts-context-commentstring" },
+		dependencies = {
+      "JoosepAlviste/nvim-ts-context-commentstring",
+      { "s1n7ax/nvim-comment-frame", opts = { disable_default_keymap = true, }, },
+      { "LudoPinelli/comment-box.nvim", config = true, },
+    },
 		config = function()
 			require("Comment").setup({
 				mappings = {
