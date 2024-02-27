@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-#Set branch to main unless specified by the user
-declare AV_BRANCH="${AV_BRANCH:-"main"}"
 declare -r AV_REMOTE="${AV_REMOTE:-AnoRebel/AnoNvim.git}"
 declare -r INSTALL_PREFIX="${INSTALL_PREFIX:-"$HOME/.local"}"
 
@@ -27,7 +25,8 @@ readonly BASEDIR
 declare ARGS_LOCAL=0
 declare ARGS_OVERWRITE=0
 declare ARGS_INSTALL_DEPENDENCIES=1
-declare INSTALL_GUI=${INSTALL_GUI:-0}
+declare INSTALL_NEORAY=${INSTALL_NEORAY:-0}
+declare INSTALL_NEOVIDE=${INSTALL_NEOVIDE:-0}
 declare INTERACTIVE_MODE=${INTERACTIVE_MODE:-1}
 declare ADDITIONAL_WARNINGS=""
 
@@ -53,7 +52,8 @@ function usage() {
 	echo ""
 	echo "Options:"
 	echo "    -h, --help                               Print this help message"
-	echo "    -g, --gui                                Install \`neovide\` GUI"
+	echo "    --neovide                                Install \`neovide\` GUI"
+	echo "    --neoray                                 Install \`neoray\` GUI"
 	echo "    -l, --local                              Install local copy of AnoNvim"
 	echo "    -y, --yes                                Disable confirmation prompts (answer yes to all questions)"
 	echo "    --overwrite                              Overwrite previous AnoNvim configuration (a backup is always performed first)"
@@ -66,8 +66,11 @@ function parse_arguments() {
 		-l | --local)
 			ARGS_LOCAL=1
 			;;
-		-g | --gui)
-			INSTALL_GUI=1
+		--neoray)
+			INSTALL_NEORAY=1
+			;;
+		--neovide)
+			INSTALL_NEOVIDE=1
 			;;
 		--overwrite)
 			ARGS_OVERWRITE=1
@@ -302,29 +305,53 @@ function install_gui() {
 	OS="$(uname -s)"
 	case "$OS" in
 	Linux)
-		# if command -v go &>/dev/null; then
-		# 	echo "Installing \`neoray\` as the GUI"
-		# 	go install github.com/hismailbulut/Neoray/cmd/neoray@latest
-		# else
-		# 	echo "[WARN]: Unable to find go. It's needed to install \`neoray\`, check \`https://github.com/hismailbulut/Neoray\`"
-		# 	return 1
-		# fi
-		if command -v cargo &>/dev/null; then
-			echo "Installing \`neovide\` as the GUI"
-			cargo install --git https://github.com/neovide/neovide
-		else
-			echo "[WARN]: Unable to find cargo. It's needed to install \`neovide\`, check \`https://neovide.dev\`"
-			return 1
-		fi
+    if [ "$INSTALL_NEORAY" -eq 1 ]; then
+		  if command -v go &>/dev/null; then
+			  echo "Installing \`neoray\` as the GUI"
+          if ! command -v neoray &>/dev/null; then
+            go install github.com/hismailbulut/Neoray/cmd/neoray@latest
+          fi
+		  else
+			  echo "[WARN]: Unable to find go. It's needed to install \`neoray\`, check \`https://github.com/hismailbulut/Neoray#from-source\`"
+			  return 1
+		  fi
+    fi
+    if [ "$INSTALL_NEOVIDE" -eq 1 ]; then
+		  if command -v cargo &>/dev/null; then
+			  echo "Installing \`neovide\` as the GUI"
+          if ! command -v neovide &>/dev/null; then
+            cargo install --git https://github.com/neovide/neovide
+          fi
+		  else
+			  echo "[WARN]: Unable to find cargo. It's needed to install \`neovide\`, check \`https://neovide.dev\`"
+			  return 1
+		  fi
+    fi
 		;;
 	Darwin)
-		if command -v brew &>/dev/null; then
-			echo "Installing \`neovide\` as the GUI"
-			brew install --cask neovide
-		else
-			echo "[WARN]: Unable to find brew. It's needed to install \`neovide\`, check \`https://neovide.dev\`"
-			return 1
-		fi
+    if [ "$INSTALL_NEOVIDE" -eq 1 ]; then
+		  if command -v brew &>/dev/null; then
+			  echo "Installing \`neovide\` as the GUI"
+          if ! command -v neovide &>/dev/null; then
+			      brew install --cask neovide
+            # cargo install --git https://github.com/neovide/neovide
+          fi
+		  else
+			  echo "[WARN]: Unable to find brew. It's needed to install \`neovide\`, check \`https://neovide.dev\`"
+			  return 1
+		  fi
+    fi
+    if [ "$INSTALL_NEORAY" -eq 1 ]; then
+		  if command -v go &>/dev/null; then
+			  echo "Installing \`neoray\` as the GUI"
+          if ! command -v neoray &>/dev/null; then
+            go install github.com/hismailbulut/Neoray/cmd/neoray@latest
+          fi
+		  else
+			  echo "[WARN]: Unable to find go. It's needed to install \`neoray\`, check \`https://github.com/hismailbulut/Neoray#from-source\`"
+			  return 1
+		  fi
+    fi
 		;;
 	*)
 		echo "OS :$OS is not currently supported."
@@ -374,8 +401,7 @@ function backup_old_config() {
 
 function clone_avim() {
 	msg "Cloning AnoNvim configuration"
-	if ! git clone --branch "$AV_BRANCH" \
-		--depth 1 "https://github.com/${AV_REMOTE}" "$ANONVIM_BASE_DIR"; then
+	if ! git clone --depth 1 "https://github.com/${AV_REMOTE}" "$ANONVIM_BASE_DIR"; then
 		echo "Failed to clone repository. Installation failed."
 		exit 1
 	fi
@@ -406,7 +432,7 @@ function setup_shim() {
 	chmod u+x "$dstdir/avim"
 	echo "Adding desktop files"
 	if [ "$INSTALL_GUI" -eq 1 ]; then
-    rm -f "$dstdir/gavim"
+		rm -f "$dstdir/gavim"
 		cp "$srcdir/gavim" "$dstdir/gavim"
 		chmod u+x "$dstdir/gavim"
 	fi
@@ -432,7 +458,7 @@ function create_desktop_file() {
 	echo "Creating desktop file"
 
 	xdg-desktop-menu install --novendor "$ANONVIM_BASE_DIR/.install/avim.desktop"
-	if [ "$INSTALL_GUI" -eq 1 ]; then
+	if [ "$INSTALL_NEORAY" -eq 1 ] || [ "$INSTALL_NEOVIDE" -eq 1 ]; then
 		xdg-desktop-menu install --novendor "$ANONVIM_BASE_DIR/.install/gavim.desktop"
 	fi
 }
@@ -442,12 +468,12 @@ function setup_avim() {
 	msg "Installing AnoNvim shim"
 	setup_shim
 	create_desktop_file
-  msg "AnoNvim installed"
-  echo "Make sure \`$INSTALL_PREFIX/bin\` is in your path, then run \`avim\`"
-  echo ""
-	echo "Opening AnoNvim for initial setup in a second"
-  sleep 1
-  $INSTALL_PREFIX/bin/avim
+	msg "AnoNvim installed"
+	echo "Make sure \`$INSTALL_PREFIX/bin\` is in your path, then run \`avim\`"
+	echo ""
+	echo "Opening AnoNvim for initial setup in 3 seconds"
+	sleep 3
+	"$INSTALL_PREFIX"/bin/avim
 }
 
 function print_logo() {
@@ -489,20 +515,17 @@ function main() {
 		fi
 	fi
 
-	if [ "$INSTALL_GUI" -eq 1 ]; then
-		# if ! command -v neoray &>/dev/null; then
-		if ! command -v neovide &>/dev/null; then
-			if [ "$INTERACTIVE_MODE" -eq 1 ]; then
-				# if confirm "Would you like to install the GUI(neoray)?"; then
-				if confirm "Would you like to install the GUI(neovide)?"; then
-					install_gui
-				fi
-			else
+	if [ "$INSTALL_NEORAY" -eq 1 ] || [ "$INSTALL_NEOVIDE" -eq 1 ]; then
+		if [ "$INTERACTIVE_MODE" -eq 1 ]; then
+			# if confirm "Would you like to install the GUI(neoray)?"; then
+			if confirm "Would you like to install a GUI?"; then
 				install_gui
 			fi
 		else
-			return 1
+			install_gui
 		fi
+	else
+		return 1
 	fi
 
 	backup_old_config

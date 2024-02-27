@@ -13,10 +13,9 @@ RUN sudo pacman-key --init && \
 
 WORKDIR /root
 
-RUN git clone https://github.com/neovim/neovim && \
-    cd neovim && \
-    make CMAKE_BUILD_TYPE=RelWithDebInfo && \
-    make install
+RUN wget https://github.com/neovim/neovim/releases/download/stable/nvim.appimage && \
+    chmod +x nvim.appimage && \
+    mv nvim.appimage /root/.local/bin/nvim
 
 RUN curl -s https://raw.githubusercontent.com/AnoRebel/AnoNvim/main/.install/installer.sh | bash
 
