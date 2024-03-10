@@ -82,7 +82,7 @@ local options = {
     end,
     themable = true,
     hover = {
-      enabled = true, -- requires nvim 0.8+
+      enabled = false, -- requires nvim 0.8+
       delay = 200,
       reveal = { "close" },
     },

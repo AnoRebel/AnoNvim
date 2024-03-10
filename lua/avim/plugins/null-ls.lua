@@ -14,16 +14,13 @@ function M.config()
     b.diagnostics.selene,
     -- b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
     -- b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
-    b.diagnostics.markdownlint,
     -- b.diagnostics.php,
     b.diagnostics.todo_comments,
     b.diagnostics.revive,
-    -- b.diagnostics.tsc,
     -- b.diagnostics.eslint_d,
     -- Formatting
     b.formatting.stylua,
     b.formatting.shfmt,
-    -- b.formatting.autopep8,
     b.formatting.black,
     b.formatting.dart_format,
     b.formatting.gofmt,
@@ -31,7 +28,6 @@ function M.config()
     b.formatting.golines,
     b.formatting.tidy,
     b.formatting.isort,
-    -- b.formatting.jq,
     b.formatting.prettierd.with({
       env = {
         PRETTIERD_DEFAULT_CONFIG = vim.fn.expand(_G.get_avim_base_dir() .. "/.configs/formatters/.prettierrc.json"),
@@ -39,7 +35,6 @@ function M.config()
     }),
     -- b.formatting.prettierd.with { filetypes = { "html", "markdown", "css" } },
     -- b.formatting.deno_fmt,
-    -- b.formatting.markdownlint,
     -- b.formatting.eslint_d,
     -- Code Actions
     b.code_actions.gitsigns,

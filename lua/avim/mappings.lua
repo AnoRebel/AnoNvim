@@ -477,6 +477,13 @@ M.n = {
   -- Sessions
   ["<A-s>"] = { ":lua require('avim.utils').loadsession()<CR>", "Load Sessions" },
 
+  -- No Neck Pain
+  ["<leader>n"] = { name = "NoNeckPain" },
+  ["<leader>nn"] = { ":NoNeckPain<CR>", "No Neck Pain" },
+  ["<leader>nl"] = { ":NoNeckPainToggleLeftSide<CR>", "Toggle Left Pane" },
+  ["<leader>nr"] = { ":NoNeckPainToggleRightSide<CR>", "Toggle Right Pain" },
+  ["<leader>ns"] = { ":NoNeckPainScratchPad<CR>", "Scratchpad" },
+
   -- Notify
   -- ["<C-c>"] = {
   -- 	":lua require('notify').dismiss()<CR>",
