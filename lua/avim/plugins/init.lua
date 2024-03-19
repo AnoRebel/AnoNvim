@@ -61,6 +61,8 @@ return {
       "NoNeckPainToggleRightSide",
       "NoNeckPainResize",
       "NoNeckPainScratchPad",
+      "NoNeckPainWidthUp",
+      "NoNeckPainWidthDown",
     },
     opts = {
       bufferOptionsColor = {
@@ -118,28 +120,6 @@ return {
     },
   },
   -- LSP
-  {
-    "weilbith/nvim-code-action-menu",
-    enabled = false,
-    event = "LspAttach",
-    dependencies = { "neovim/nvim-lspconfig" },
-  },
-  {
-    "zbirenbaum/neodim",
-    enabled = false,
-    event = "LspAttach",
-    opts = {
-      -- update_in_insert = {
-      -- 	enable = true,
-      -- 	delay = 100,
-      -- },
-      hide = {
-        virtual_text = false,
-        signs = false,
-        underline = false,
-      },
-    },
-  },
   {
     "folke/lsp-colors.nvim",
     event = "LspAttach",
@@ -224,8 +204,12 @@ return {
       },
       -- Deleted files will be removed with the trash_command (below).
       delete_to_trash = true,
-      -- Change this to customize the command used when deleting to trash
-      trash_command = "trash-put",
+      -- Skip the confirmation popup for simple operations (:help oil.skip_confirm_for_simple_edits)
+      skip_confirm_for_simple_edits = false,
+      view_options = {
+        -- Show files and directories that start with "."
+        show_hidden = false,
+      },
       keymaps = {
         ["-"] = false,
         ["g."] = false,
@@ -385,6 +369,7 @@ return {
   },
   {
     "ggandor/flit.nvim",
+    dependencies = { "ggandor/leap.nvim" },
     keys = function()
       local ret = {}
       for _, key in ipairs({ "f", "F", "t", "T" }) do
@@ -421,7 +406,7 @@ return {
   },
   {
     "barrett-ruth/import-cost.nvim",
-    enabled = false, -- NOTE: Seems resource intensive
+    enabled = true, -- NOTE: Seems resource intensive
     event = "VeryLazy",
     build = "sh install.sh yarn",
     opts = {
@@ -433,12 +418,6 @@ return {
         "vue",
       },
     },
-  },
-  {
-    "mattn/emmet-vim",
-    enabled = false,
-    event = "VeryLazy",
-    dependencies = { "mattn/webapi-vim", lazy = false },
   },
   {
     "kylechui/nvim-surround",
@@ -458,11 +437,6 @@ return {
     opts = { show_numbers = true, show_relative_numbers = true, auto_preview = true },
   },
   { "editorconfig/editorconfig-vim", event = "BufReadPre" },
-  {
-    "mg979/vim-visual-multi",
-    enabled = false,
-    branch = "master",
-  },
   {
     "smoka7/multicursors.nvim",
     enabled = true,
@@ -521,6 +495,7 @@ return {
     dependencies = {
       "MunifTanjim/nui.nvim",
     },
+    event = "VeryLazy",
     build = function()
       -- Install tries to automatically detect the install method
       -- If it fails, try calling it with one of these paramaters:
@@ -530,20 +505,11 @@ return {
     config = function()
       require("dbee").setup({
         sources = {
-          require("dbee.sources").FileSource:new(get_config_dir() .. "/dbee/persistence.json"),
+          require("dbee.sources").FileSource:new(_G.get_config_dir() .. "/dbee/persistence.json"),
           require("dbee.sources").EnvSource:new("DBEE_CONNECTIONS"),
         },
       })
     end,
-  },
-  {
-    "tpope/vim-dadbod",
-    enabled = false,
-    dependencies = {
-      "kristijanhusak/vim-dadbod-ui",
-      "kristijanhusak/vim-dadbod-completion",
-    },
-    cmd = { "DB", "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer", "DBUIRenameBuffer" },
   },
   -- Session Management
   {
@@ -668,38 +634,6 @@ return {
     config = true,
   },
   {
-    "jackMort/ChatGPT.nvim",
-    enabled = false,
-    cmd = { "ChatGPT", "ChatGPTActAs", "ChatGPTEditWithInstructions" },
-    config = true,
-    dependencies = {
-      "MunifTanjim/nui.nvim",
-      "nvim-lua/plenary.nvim",
-      "nvim-telescope/telescope.nvim",
-    },
-  },
-  {
-    "Bryley/neoai.nvim",
-    enabled = false,
-    dependencies = {
-      "MunifTanjim/nui.nvim",
-    },
-    cmd = {
-      "NeoAI",
-      "NeoAIOpen",
-      "NeoAIClose",
-      "NeoAIToggle",
-      "NeoAIContext",
-      "NeoAIContextOpen",
-      "NeoAIContextClose",
-      "NeoAIInject",
-      "NeoAIInjectCode",
-      "NeoAIInjectContext",
-      "NeoAIInjectContextCode",
-    },
-    config = true,
-  },
-  {
     "RishabhRD/nvim-cheat.sh",
     dependencies = { "RishabhRD/popfix" },
     cmd = { "Cheat", "CheatWithoutComments", "CheatList", "CheatListWithoutComments" },
@@ -714,7 +648,7 @@ return {
   { "eandrju/cellular-automaton.nvim", cmd = "CellularAutomaton" },
   {
     "tamton-aquib/zone.nvim",
-    enabled = false,
+    enabled = true,
     opts = {
       style = "vanish",
       after = 60,

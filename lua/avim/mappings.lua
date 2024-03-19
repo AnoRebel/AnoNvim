@@ -254,9 +254,8 @@ M.n = {
 
   -- Rest API
   ["<leader>a"] = { name = " Rest APIs" },
-  ["<leader>ar"] = { "<CMD><Plug>RestNvim<CR>", "Run Request" },
-  ["<leader>ap"] = { "<CMD><Plug>RestNvimPreview<CR>", "Preview Rest Command" },
-  ["<leader>al"] = { "<CMD><Plug>RestNvimLast<CR>", "Run Last Request" },
+  ["<leader>ar"] = { "<CMD>Rest run<CR>", "Run Request Under the Cursor" },
+  ["<leader>al"] = { "<CMD>Rest run last<CR>", "Re-run Latest Request" },
 
   -- telescope
   ["<leader>f"] = { name = "󰍉 Telescope" },
@@ -482,6 +481,8 @@ M.n = {
   ["<leader>nn"] = { ":NoNeckPain<CR>", "No Neck Pain" },
   ["<leader>nl"] = { ":NoNeckPainToggleLeftSide<CR>", "Toggle Left Pane" },
   ["<leader>nr"] = { ":NoNeckPainToggleRightSide<CR>", "Toggle Right Pain" },
+  ["<leader>n-"] = { ":NoNeckPainWidthUp<CR>", "Increase Pane Width" },
+  ["<leader>n="] = { ":NoNeckPainWidthDown<CR>", "Decrease Pane Width" },
   ["<leader>ns"] = { ":NoNeckPainScratchPad<CR>", "Scratchpad" },
 
   -- Notify

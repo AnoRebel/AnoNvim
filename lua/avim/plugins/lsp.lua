@@ -633,7 +633,7 @@ function M.config()
             {
               name = "@vue/typescript-plugin",
               location = vim.fn.expand("$HOME")
-                .. "/.nvm/versions/node/v18.19.0/lib/node_modules/@vue/typescript-plugin",
+                .. "/.nvm/versions/node/v20.11.1/lib/node_modules/@vue/typescript-plugin",
               languages = { "javascript", "typescript", "vue" },
             },
           },
