@@ -176,6 +176,21 @@ return {
   },
   -- Git
   {
+    "SuperBo/fugit2.nvim",
+    enabled = false,
+    opts = {},
+    dependencies = {
+      "MunifTanjim/nui.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "nvim-lua/plenary.nvim",
+      {
+        "chrisgrieser/nvim-tinygit", -- Optional: For Github PR view
+        dependencies = "stevearc/dressing.nvim",
+      },
+    },
+    cmd = { "Fugit2", "Fugit2Graph" },
+  },
+  {
     "akinsho/git-conflict.nvim",
     cmd = {
       "GitConflictChooseOurs",
