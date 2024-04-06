@@ -667,6 +667,19 @@ return {
       disable_legacy_commands = true,
     },
   },
+  {
+    "mistricky/codesnap.nvim",
+    build = "make",
+    cmd = { "CodeSnap", "CodeSnapSave" },
+    opts = {
+      save_path = "~/Pictures",
+      has_breadcrumbs = true,
+      bg_theme = "grape",
+      code_font_family = "Iosevka Nerd Font",
+      watermark_font_family = "FiraCode Nerd Font",
+      watermark = "AnoRebel",
+    },
+  },
   { "eandrju/cellular-automaton.nvim", cmd = "CellularAutomaton" },
   {
     "tamton-aquib/zone.nvim",
