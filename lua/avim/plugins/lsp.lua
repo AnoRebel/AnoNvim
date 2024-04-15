@@ -27,6 +27,20 @@ local M = {
       },
     },
     {
+      "folke/lsp-colors.nvim",
+      event = "LspAttach",
+      config = true,
+    },
+    {
+      "kosayoda/nvim-lightbulb",
+      branch = "master",
+      event = "LspAttach",
+      dependencies = {
+        "antoinemadec/FixCursorHold.nvim",
+      },
+      opts = { autocmd = { enabled = true } },
+    },
+    {
       "pmizio/typescript-tools.nvim",
       enabled = false,
       dependencies = { "nvim-lua/plenary.nvim" },
