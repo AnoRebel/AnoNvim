@@ -734,7 +734,16 @@ function M.config()
     end,
   })
 
-  require("ufo").setup({ fold_virt_text_handler = require("avim.utils").fold_handler })
+  local ftMap = {
+    vim = "indent",
+    vue = { "treesitter", "indent" },
+  }
+  require("ufo").setup({
+    provider_selector = function(bufnr, filetype, buftype)
+      return ftMap[filetype] or { "lsp", "indent" } -- 'lsp' | 'treesitter' | 'indent'
+    end,
+    fold_virt_text_handler = require("avim.utils").fold_handler,
+  })
   require("telescope").load_extension("flutter")
 
   -- This setup() function is exactly the same as lspconfig's setup function (:help lspconfig-quickstart)

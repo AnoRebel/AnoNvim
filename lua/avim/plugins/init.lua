@@ -324,7 +324,10 @@ return {
     "nvim-pack/nvim-spectre",
     dependencies = { "nvim-lua/plenary.nvim" },
     cmd = "Spectre",
-    opts = { open_cmd = "noswapfile vnew" },
+    opts = {
+      live_update = true, -- auto execute search again when you write to any file in vim
+      open_cmd = "noswapfile vnew",
+    },
   },
   {
     "AckslD/muren.nvim",
