@@ -15,7 +15,9 @@ function M.config()
     -- b.diagnostics.luacheck.with({ extra_args = { "--global vim" } }),
     -- b.diagnostics.shellcheck.with({ diagnostics_format = "#{m} [#{c}]" }),
     -- b.diagnostics.php,
-    b.diagnostics.todo_comments,
+    b.diagnostics.todo_comments.with({
+      disabled_filetypes = { "NvimTree" },
+    }),
     b.diagnostics.revive,
     -- b.diagnostics.eslint_d,
     -- Formatting
@@ -37,7 +39,9 @@ function M.config()
     -- b.formatting.deno_fmt,
     -- b.formatting.eslint_d,
     -- Code Actions
-    b.code_actions.gitsigns,
+    b.code_actions.gitsigns.with({
+      disabled_filetypes = { "NvimTree" },
+    }),
     b.code_actions.refactoring,
     -- b.code_actions.eslint_d,
     -- Hover
