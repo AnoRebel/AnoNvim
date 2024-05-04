@@ -4,7 +4,6 @@
 stds.nvim = {
   globals = {
     "avim",
-    "reload",
     vim = { fields = { "g" } },
     "TERMINAL",
     "USER",
@@ -24,7 +23,6 @@ stds.nvim = {
     "get_config_dir",
     "get_cache_dir",
     "get_avim_base_dir",
-    "require_clean",
   },
 }
 --std = "lua51+nvim"
