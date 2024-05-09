@@ -291,8 +291,8 @@ M.n = {
   -- Todo-comments
   ["<leader>tq"] = { ":TodoQuickFix<CR>", "Todo Quickfix" },
   ["<leader>td"] = { ":TodoTelescope<CR>", "Telescope Todo" },
-  ["<leader>ts"] = { ":TodoTelescope keywords=TODO,FIX,FIXME<CR>", desc = "Todo/Fix/Fixme" },
-  ["<leader>tS"] = { ":TodoTrouble keywords=TODO,FIX,FIXME<CR>", desc = "Todo/Fix/Fixme (Trouble)" },
+  ["<leader>ts"] = { ":TodoTelescope keywords=TODO,FIX,FIXME<CR>", "Todo/Fix/Fixme" },
+  ["<leader>tS"] = { ":TodoTrouble keywords=TODO,FIX,FIXME<CR>", "Todo/Fix/Fixme (Trouble)" },
 
   -- Spectre
   -- run command :Spectre
