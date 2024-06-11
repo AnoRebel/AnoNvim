@@ -40,22 +40,22 @@ autocmd("VimEnter", {
     local _time = os.date("*t")
     if (_time.hour >= 21 and _time.hour < 24) or (_time.hour >= 0 and _time.hour < 1) then
       vim.cmd([[colorscheme catppuccin]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     elseif (_time.hour >= 16 and _time.hour < 21) or (_time.hour >= 0 and _time.hour < 1) then
       vim.cmd([[colorscheme rose-pine]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     elseif _time.hour >= 1 and _time.hour < 5 then
       vim.cmd([[colorscheme kanagawa]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     elseif _time.hour >= 5 and _time.hour < 11 then
       vim.cmd([[colorscheme tokyodark]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     elseif _time.hour >= 11 and _time.hour < 16 then
       vim.cmd([[colorscheme oxocarbon]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     else
       vim.cmd([[colorscheme tokyodark]])
-      avim.theme = vim.g.colors_name
+      _G.avim.theme = vim.g.colors_name
     end
   end,
 })
@@ -133,6 +133,7 @@ autocmd("VimEnter", {
 
 -- Disable statusline in dashboard
 ---- Hmmm, with winbar, i doubt that i need this though 🤔
+-- https://github.com/goolord/alpha-nvim/issues/42
 local dash, _ = pcall(vim.api.nvim_get_autocmds, { group = "_dashboard_settings" })
 if not dash then
   augroup("_dashboard_settings", {})
@@ -143,26 +144,6 @@ autocmd("FileType", {
   pattern = "alpha",
   -- command = "set showtabline=0 | autocmd BufLeave <buffer> set showtabline=" .. vim.opt.showtabline._value,
   command = "set laststatus=0 | autocmd BufUnload <buffer> set laststatus=" .. vim.opt.laststatus._value,
-})
-
--- Inlay hints
-local inlayhints, _ = pcall(vim.api.nvim_get_autocmds, { group = "LspAttach_inlayhints" })
-if not inlayhints then
-  augroup("LspAttach_inlayhints", {})
-end
-autocmd("LspAttach", {
-  group = "LspAttach_inlayhints",
-  desc = "Add inlay hints for supported LSP on attach",
-  callback = function(args)
-    if not (args.data and args.data.client_id) then
-      return
-    end
-    local bufnr = args.buf
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    vim.cmd("hi link LspInlayHint Comment")
-    -- vim.cmd("hi LspInlayHint guifg=#d8d8d8 guibg=#3a3a3a")
-    require("lsp-inlayhints").on_attach(client, bufnr)
-  end,
 })
 
 -- Dim Windows
@@ -246,6 +227,7 @@ autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }
     if vim.o.nu and vim.api.nvim_get_mode().mode ~= "i" then
       vim.opt.relativenumber = true
       vim.cmd("redraw")
+      -- vim.cmd.redrawtabline()
     end
   end,
 })
@@ -257,16 +239,15 @@ autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, 
     local buf_type = vim.bo[bufnr].buftype
     local buf_filetype = vim.bo[bufnr].filetype
     -- Skip if the filetype is on the list of exclusions.
-    if vim.tbl_contains(fts, buf_filetype) then
+    if
+      vim.b.buftype == "messages"
+      or vim.tbl_contains(fts, buf_filetype)
+      or vim.tbl_contains(fts, buf_type)
+      or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(0, "buftype"))
+    then
       return
     end
-    if vim.tbl_contains(fts, buf_type) then
-      return
-    end
-    if vim.tbl_contains(fts, vim.api.nvim_buf_get_option(0, "buftype")) then
-      return
-    end
-    if vim.o.nu then
+    if vim.o.nu ~= true and vim.api.nvim_get_mode().mode == "i" then
       vim.opt.relativenumber = false
       vim.cmd("redraw")
     end
@@ -315,12 +296,6 @@ autocmd("BufDelete", {
   end,
 })
 
--- Add DB Completions
-autocmd("FileType", {
-  pattern = { "sql", "mysql", "plsql" },
-  command = "lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} })",
-})
-
 -- Autopairs
 autocmd("FileType", {
   pattern = { "guihua", "guihua_rust" },
@@ -348,43 +323,14 @@ autocmd({
   end,
 })
 
--- vim-multi-visual and hlslens
--- vim.cmd([[
---   aug VMlens
---     au!
---     au User visual_multi_start lua require('avim.utils.vmlens').start()
---     au User visual_multi_exit lua require('avim.utils.vmlens').exit()
---   aug END
--- ]])
--- local vml_ok, _ = pcall(vim.api.nvim_get_autocmds, { group = "VMlens" })
--- if not vml_ok then
---   augroup("VMlens", { clear = true })
--- end
--- autocmd("visual_multi_start", {
---   group = "VMlens",
---   command = "lua require('avim.utils.vmlens').start()"
--- })
--- autocmd("visual_multi_exit", {
---   group = "VMlens",
---   command = "lua require('avim.utils.vmlens').exit()"
--- })
-
 -- Luasnip
 autocmd("InsertLeave", {
   callback = function()
-    if
-      require("luasnip").session.current_nodes[vim.api.nvim_get_current_buf()]
-      and not require("luasnip").session.jump_active
-    then
-      require("luasnip").unlink_current()
+    local luasnip = require("luasnip")
+    if luasnip.session.current_nodes[vim.api.nvim_get_current_buf()] and not luasnip.session.jump_active then
+      luasnip.unlink_current()
     end
   end,
-})
-
--- Trying to fix ufo closing all folds on escape insert mode
-autocmd("BufEnter", {
-  pattern = "*",
-  command = "silent! setlocal foldlevel=99",
 })
 
 -- Don't autocomment new lines
@@ -507,15 +453,39 @@ local auto_create, _ = pcall(vim.api.nvim_get_autocmds, { group = "auto_create_d
 if not auto_create then
   augroup("auto_create_dir", {})
 end
-autocmd({ "BufWritePre" }, {
-  group = "auto_create_dir",
-  callback = function(event)
-    if event.match:match("^%w%w+://") then
-      return
+-- autocmd({ "BufWritePre" }, {
+--   group = "auto_create_dir",
+--   callback = function(event)
+--     if event.match:match("^%w%w+://") then
+--       return
+--     end
+--     local file = vim.loop.fs_realpath(event.match) or event.match
+--     vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
+--   end,
+-- })
+autocmd({ "BufWritePre", "FileWritePre" }, {
+  desc = "Create missing parent directories on write",
+  callback = function(args)
+    local status, result = pcall(function()
+      -- this is a remote url
+      if args.file:find("://") then
+        return
+      end
+      local dir = assert(vim.fn.fnamemodify(args.file, ":h"), ("could not get dirname: %s"):format(args.file))
+      -- dir already exists
+      if vim.uv.fs_stat(dir) then
+        return
+      end
+      assert(vim.fn.mkdir(dir, "p") == 1, ("could not mkdir: %s"):format(dir))
+      return assert(vim.fn.fnamemodify(dir, ":p:~"), ("could not resolve full path: %s"):format(dir))
+    end)
+    if type(result) == "string" then
+      vim.notify(result, vim.log.levels[status and "INFO" or "ERROR"], {
+        title = "Create dir on write",
+      })
     end
-    local file = vim.loop.fs_realpath(event.match) or event.match
-    vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
   end,
+  group = "auto_create_dir",
 })
 
 -- TODO: This looks good, needs a rewrite to make it work

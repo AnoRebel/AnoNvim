@@ -51,6 +51,7 @@ local M = {
   "Wansmer/symbol-usage.nvim",
   -- "VidocqH/lsp-lens.nvim",
   event = "BufReadPre",
+  enabled = false,
   opts = {
     vt_position = "above", -- 'above'|'end_of_line'|'textwidth'|'signcolumn'
     text_format = text_format,

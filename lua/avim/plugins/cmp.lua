@@ -1,5 +1,6 @@
 local M = {
   "hrsh7th/nvim-cmp",
+  commit = "b356f2c", -- TODO: Temporary fix
   event = "InsertEnter",
   dependencies = {
     { "rafamadriz/friendly-snippets" },
@@ -17,8 +18,11 @@ local M = {
     { "David-Kunz/cmp-npm" },
     {
       "MattiasMTS/cmp-dbee",
-      enabled = false,
+      dependencies = {
+        { "kndndrj/nvim-dbee" },
+      },
       ft = "sql",
+      opts = {},
     },
     {
       "tzachar/cmp-tabnine",
@@ -26,6 +30,21 @@ local M = {
       enabled = require("avim.utils").get_os()[2] ~= "arm",
     },
     { "roobert/tailwindcss-colorizer-cmp.nvim", opts = { color_square_width = 2 } },
+    {
+      "supermaven-inc/supermaven-nvim",
+      enabled = true,
+      config = function()
+        require("supermaven-nvim").setup({
+          keymaps = {
+            accept_suggestion = "<A-.>",
+            clear_suggestion = "<A-c>",
+            accept_word = "<A-w>",
+          },
+          disable_inline_completion = false, -- disables inline completion for use with cmp
+          disable_keymaps = false, -- disables built in keymaps for more manual control
+        })
+      end,
+    },
     {
       "Exafunction/codeium.nvim",
       enabled = true,
@@ -111,14 +130,6 @@ local M = {
         end
       end,
     },
-    {
-      "sourcegraph/sg.nvim",
-      enabled = false,
-      dependencies = { "nvim-lua/plenary.nvim", "nvim-telescope/telescope.nvim" },
-      -- If you have a recent version of lazy.nvim, you don't need to add this!
-      build = "nvim -l build/init.lua",
-      config = true,
-    },
   },
 }
 
@@ -161,14 +172,16 @@ function M.config()
     calc = "[CLC]", -- icons.calculator .. "[CLC]",
     cmp_tabnine = "[TB9]", -- icons.light .. "[TB9]",
     codeium = "[CODE]", -- icons.rocket .. "[CODE]",
+    supermaven = "[SPRMVN]", -- icons.rocket .. "[SPRMVN]",
     luasnip = "[SNP]", -- icons.snippet .. "[SNP]",
     npm = "[NPM]", -- icons.terminal .. "[NPM]",
     nvim_lsp = "[LSP]", -- icons.paragraph .. "[LSP]",
     nvim_lua = "[LUA]", -- icons.bomb .. "[LUA]",
+    lazydev = "[LLS]", -- icons.bomb .. "[LLS]",
     path = "[PTH]", -- icons.folderOpen2 .. "[PTH]",
     treesitter = "[TST]", -- icons.tree .. "[TST]",
     zsh = "[ZSH]", -- icons.terminal .. "[ZSH]",
-    -- cmp_dbee = "[DBEE]", -- icons.db .. "[DBEE]",
+    cmp_dbee = "[DBEE]", -- icons.db .. "[DBEE]",
   }
 
   local options = {
@@ -177,7 +190,7 @@ function M.config()
         winhighlight = "Normal:NormalFloat,NormalFloat:Pmenu,Pmenu:NormalFloat", -- "Normal:Pmenu,FloatBorder:Pmenu,Search:None",
         col_offset = -3,
         side_padding = 1,
-        border = "none", -- require("avim.core.defaults").options.border_chars,
+        border = "rounded", -- "none", -- require("avim.core.defaults").options.border_chars,
       },
       documentation = {
         border = require("avim.core.defaults").options.border_chars,
@@ -218,11 +231,13 @@ function M.config()
       buffer = 1,
       path = 1,
       nvim_lsp = 1,
+      lazydev = 1,
       luasnip = 1,
       cmp_tabnine = 1,
       codeium = 1,
+      supermaven = 1,
       treesitter = 1,
-      -- cmp_dbee = 1,
+      cmp_dbee = 1,
     },
     duplicates_default = 0,
     mapping = cmp.mapping.preset.insert({
@@ -253,8 +268,11 @@ function M.config()
           local line, col = unpack(vim.api.nvim_win_get_cursor(0))
           return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
         end
+        -- local suggestion = require('supermaven-nvim.completion_preview')
         if cmp.visible() then
           cmp.select_next_item()
+        -- elseif suggestion.has_suggestion() then
+        --   suggestion.on_accept_suggestion()
         elseif luasnip.expandable() then
           luasnip.expand()
         elseif luasnip.expand_or_jumpable() then
@@ -290,12 +308,14 @@ function M.config()
       { name = "nvim_lsp" },
       { name = "nvim_lsp_signature_help" },
       { name = "codeium" },
+      { name = "supermaven" },
       { name = "luasnip" },
       { name = "buffer", keyword_length = 3 },
       { name = "path" },
-      -- { name = "cmp-dbee" },
+      { name = "cmp-dbee" },
       { name = "cmp_tabnine" }, -- max_item_count = 3
       { name = "nvim_lua" },
+      { name = "lazydev", group_index = 0 }, -- set group index to 0 to skip loading LuaLS completions
       { name = "calc" },
       { name = "npm", keyword_length = 3 },
     },
@@ -338,6 +358,7 @@ function M.config()
   end
 
   cmp.setup(options)
+  vim.api.nvim_set_hl(0, "CmpItemKindSupermaven", { fg = "#6CC644" })
 
   if require("avim.utils").get_os()[2] ~= "arm" then
     require("cmp_tabnine.config"):setup({
@@ -364,6 +385,8 @@ function M.config()
   cmp.setup.cmdline(":", {
     mapping = cmp.mapping.preset.cmdline(),
     sources = cmp.config.sources({
+      { name = "nvim_lsp" },
+      { name = "nvim_lua" },
       { name = "path" },
       { name = "cmdline_history" },
     }, {

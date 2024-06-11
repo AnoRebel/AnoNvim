@@ -2,7 +2,7 @@ local M = {
   "akinsho/bufferline.nvim",
   lazy = false,
   event = "VeryLazy",
-  version = "v3.*",
+  version = "*",
   dependencies = { "nvim-tree/nvim-web-devicons" },
 }
 

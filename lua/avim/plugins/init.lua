@@ -495,20 +495,14 @@ return {
     config = true,
   },
   {
-    "kensyo/nvim-scrlbkun",
-    -- "petertriho/nvim-scrollbar",
-    -- dependencies = { "kevinhwang91/nvim-hlslens" },
+    "lewis6991/satellite.nvim",
+    -- "kensyo/nvim-scrlbkun",
+    -- "dstein64/nvim-scrollview",
     event = "VeryLazy",
-    -- config = function()
-    -- local scroll_ok, scrollbar = pcall(require, "scrollbar")
-    -- scrollbar.setup()
-    -- require("scrlbkun").setup({
-    -- 	width = 1,
-    -- })
-    -- If you also want to configure `hlslens`
-    -- require("scrollbar.handlers.search").setup()
-    -- end,
-    opts = { width = 1 },
+    -- opts = { width = 1 },
+    opts = {
+      excluded_filetypes = { "neotree", "nerdtree" },
+    },
   },
   { "RRethy/vim-illuminate", event = "BufReadPost" },
   -- Misc

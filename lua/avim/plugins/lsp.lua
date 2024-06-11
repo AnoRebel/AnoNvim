@@ -107,15 +107,23 @@ local M = {
     },
     { "ray-x/lsp_signature.nvim" },
     {
-      "lvimuser/lsp-inlayhints.nvim",
-      branch = "main", -- "anticonceal"
-      config = true,
-    },
-    {
       "kevinhwang91/nvim-ufo",
       dependencies = { "kevinhwang91/promise-async" },
     },
-    { "folke/neodev.nvim" },
+    { "folke/neodev.nvim", enabled = false },
+    {
+      "folke/lazydev.nvim",
+      ft = "lua",
+      dependencies = { "Bilal2453/luvit-meta", lazy = true },
+      opts = {
+        library = {
+          _G.get_runtime_dir() .. "/lazy/luvit-meta/library", -- see below
+          -- You can also add plugins you always want to have loaded.
+          -- Useful if the plugin has globals or types you want to use
+          -- vim.env.LAZY .. "/LazyVim", -- see below
+        },
+      },
+    },
     { "Hoffs/omnisharp-extended-lsp.nvim", enabled = false },
     { "microsoft/python-type-stubs" },
     {
@@ -188,13 +196,19 @@ function M.config()
     if client.server_capabilities.documentHighlightProvider then
       api.nvim_create_autocmd("CursorHold", {
         buffer = bufnr,
-        command = "lua vim.lsp.buf.document_highlight()",
-        group = "LspHighlight",
+        -- command = "lua vim.lsp.buf.document_highlight()",
+        callback = vim.lsp.buf.document_highlight,
+        -- group = vim.g.colors_name ~= "oxocarbon" and "LspHighlight" or nil,
+        -- group = "lsp_document_highlight",
+        desc = "Document Highlight",
       })
       api.nvim_create_autocmd("CursorMoved", {
         buffer = bufnr,
-        command = "lua vim.lsp.buf.clear_references()",
-        group = "LspHighlight",
+        -- command = "lua vim.lsp.buf.clear_references()",
+        callback = vim.lsp.buf.clear_references,
+        -- group = vim.g.colors_name ~= "oxocarbon" and "LspHighlight" or nil,
+        -- group = "lsp_document_highlight",
+        desc = "Clear All the References",
       })
     end
     -- Fix startup error by modifying/disabling semantic tokens for omnisharp
@@ -444,6 +458,10 @@ function M.config()
       lspconfig.eslint.setup({
         settings = {
           packageManager = "yarn",
+          experimental = {
+            useFlatConfig = true,
+          },
+          useFlatConfig = true,
         },
         -- on_attach = function(client, bufnr)
         -- 	if client.server_capabilities.documentFormattingProvider then
@@ -550,7 +568,6 @@ function M.config()
     -- 	})
     -- end,
     ["lua_ls"] = function()
-      require("neodev").setup()
       lspconfig.lua_ls.setup({
         on_attach = on_attach,
         capabilities = capabilities,
@@ -647,7 +664,7 @@ function M.config()
             {
               name = "@vue/typescript-plugin",
               location = vim.fn.expand("$HOME")
-                .. "/.nvm/versions/node/v20.11.1/lib/node_modules/@vue/typescript-plugin",
+                .. "/.local/share/mise/installs/node/20.13.1/lib/node_modules/@vue/typescript-plugin",
               languages = { "javascript", "typescript", "vue" },
             },
           },
@@ -672,7 +689,7 @@ function M.config()
           typescript = {
             inlayHints = {
               includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
-              includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+              includeInlayParameterNameHintsWhenArgumentMatchesName = true, -- false,
               includeInlayFunctionParameterTypeHints = true,
               includeInlayVariableTypeHints = true, -- false
               includeInlayVariableTypeHintsWhenTypeMatchesName = false,

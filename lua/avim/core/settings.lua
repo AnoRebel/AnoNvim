@@ -22,6 +22,7 @@ else
   g.background = require("avim.core.defaults").ui.background
   g.dashboard_footer_icon = "🐬 "
 
+  set.jumpoptions = "stack,view"
   set.confirm = true
   set.fileencoding = "utf-8" -- the encoding written to a file
   set.conceallevel = 0 -- so that `` is visible in markdown files
@@ -31,7 +32,7 @@ else
   set.clipboard = "unnamedplus" -- { "unnamedplus" } -- Use the system clipboard
   set.cmdheight = 1
   set.cul = true -- cursor line
-  set.completeopt = { "menuone", "noinsert", "noselect" } -- Completion opions for code completion
+  set.completeopt = { "menu", "menuone", "noinsert", "noselect" } -- Completion opions for code completion
   set.cursorline = true
   set.cursorlineopt = "screenline,number" -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
   set.emoji = true -- Turn on emojis
@@ -78,6 +79,10 @@ else
     foldclose = "",
   }
 
+  -- reveal already opened files from the quickfix window instead of opening new
+-- buffers
+vim.o.switchbuf = "useopen"
+
   set.hidden = true
   set.ignorecase = true -- Ignore case
   set.infercase = true -- Infer cases in keyword completion
@@ -101,6 +106,7 @@ else
 
   -- Misc
   set.showmatch = true -- Show matching brackets by flickering
+  set.showcmd = false -- Do not show the mode
   set.showmode = false -- Do not show the mode
   set.scrolloff = 4 -- minimal number of screen lines to keep above and below the cursor.
   set.sidescrolloff = 3 -- The minimal number of columns to keep to the left and to the right of the cursor if 'nowrap' is set
@@ -112,14 +118,24 @@ else
   set.numberwidth = 4
   set.relativenumber = false
   set.ruler = false
-  set.colorcolumn = "120" -- "80,120" -- Make a ruler at 80px and 120px
+  -- the line will be right after column 80, &tw+3
+  set.colorcolumn = { "+3", "120" }
+  -- set.colorcolumn = "120" -- "80,120" -- Make a ruler at 80px and 120px
   set.list = require("avim.core.defaults").ui.list -- Show some invisible characters like tabs etc
   set.listchars = { tab = ">>>", trail = "·", precedes = "←", extends = "→", eol = "↲", nbsp = "␣" }
   -- set.wrapmargin = 1
   -- set.wrap = false -- Do not display text over multiple lines
 
   -- disable nvim intro
-  set.shortmess:append("csSI")
+  -- set.shortmess:append("csSI")
+  set.shortmess:append({
+  c = true, -- Disable "Pattern not found" messages
+  m = true, -- use "[+]" instead of "[Modified]"
+  r = true, -- use "[RO]" instead of "[readonly]"
+  I = true, -- don't give the intro message when starting Vim |:intro|.
+  S = true, -- hide search info echoing (i have a statusline for that)
+  W = true, -- don't give "written" or "[w]" when writing a file
+})
   -- vim.opt.shortmess = {
   --   A = true, -- ignore annoying swap file messages
   --   c = true, -- Do not show completion messages in command line
@@ -131,7 +147,9 @@ else
   set.textwidth = 120 -- Total allowed width on the screen
   set.sessionoptions = "globals,buffers,curdir,folds,tabpages,winpos,winsize,terminal" -- Session options to store in the session
 
-  set.signcolumn = "yes" -- Show information next to the line numbers
+  -- min 1, max 4 signs
+  vim.o.signcolumn = "auto:1-4"
+  -- set.signcolumn = "yes" -- Show information next to the line numbers
   set.tabstop = 2
   set.timeoutlen = 250
   -- set.swapfile = false
@@ -145,6 +163,35 @@ else
   -- go to previous/next line with h,l,left arrow and right arrow
   -- when cursor reaches end/beginning of line
   set.whichwrap:append("<>[]hl")
+
+  ----------------------------------------------------------------
+  -- Custom missing filetypes
+  ----------------------------------------------------------------
+  vim.filetype.add({
+  extension = {
+    conf = "conf",
+    env = "dotenv",
+    tiltfile = "tiltfile",
+    Tiltfile = "tiltfile",
+  },
+  filename = {
+    [".env"] = "dotenv",
+    [".eslintrc.json"] = "jsonc", -- assuming nx project.json
+    ["project.json"] = "jsonc", -- assuming nx project.json
+    [".yamlfmt"] = "yaml",
+  },
+  pattern = {
+    ["docker%-compose%.y.?ml"] = "yaml.docker-compose",
+    ["%.env%.[%w_.-]+"] = "dotenv",
+    ["tsconfig%."] = "jsonc",
+    -- ["env%.(%a+)"] = function(_path, _bufnr, ext)
+    --   vim.print(ext)
+    --   if vim.tbl_contains({ "local", "example", "dev", "prod" }, ext) then
+    --     return "dotenv"
+    --   end
+    -- end,
+  },
+})
 
   ----------------------------------------------------------------
   -- Plugin Specific Options

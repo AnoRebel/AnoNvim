@@ -19,10 +19,10 @@ local M = {}
 M.v = {
   -- Don't copy the replaced text after pasting in visual mode
   ["p"] = { "p:let @+=@0<CR>", "Paste" },
-  ["<leader>/"] = { "<esc><cmd> :lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>", "Comment" },
+  ["<leader>/"] = { "<esc><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<CR>", "Comment" },
   ["<leader>s"] = { ":lua require('spectre').open_visual()<CR>", "Spectre" },
-  ["E"] = { "<end>", "End" },
-  ["H"] = { "<home>", "Home" },
+  -- ["E"] = { "<end>", "End" },
+  -- ["H"] = { "<home>", "Home" },
   ["<C-s>"] = { "<ESC> :w<CR>", "Save File" },
   -- ["<C-W>"] = { "<ESC>:wa<CR>", "Save All" },
   -- ["<A-k>"] = { ":move '<-2<CR>gv-gv", opts = { noremap = true, silent = true } },
@@ -225,6 +225,7 @@ M.n = {
   ["<leader>l"] = { name = " System" },
   ["<leader>li"] = { ":LspInfo<CR>", "Lsp Info" },
   ["<leader>lI"] = { ":Mason<CR>", "Mason" },
+  ["<leader>lh"] = { ":lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<CR>", "Inlay Hints" },
   ["<leader>ll"] = { ":lua vim.lsp.codelens.run()<CR>", "Codelens" },
   ["<leader>lp"] = { name = "󰍉 Peek" },
   ["<leader>lpd"] = { ":lua require('avim.utils.peek').Peek('definition')<CR>", "Peek Definition(s)" },
@@ -260,10 +261,10 @@ M.n = {
   -- telescope
   ["<leader>f"] = { name = "󰍉 Telescope" },
   ["<leader>te"] = { ":Telescope <CR>", "Telescope" },
-  ["<leader>fs"] = {
-    "<cmd>lua require('sg.extensions.telescope').fuzzy_search_results()<CR>",
-    "Sourcegraph Fuzzy Search",
-  },
+  -- ["<leader>fs"] = {
+  --   "<cmd>lua require('sg.extensions.telescope').fuzzy_search_results()<CR>",
+  --   "Sourcegraph Fuzzy Search",
+  -- },
   ["<leader>fb"] = { "<cmd>Telescope buffers <CR>", "Buffer List" },
   ["<leader>fB"] = { "<cmd>Telescope current_buffer_fuzzy_find <CR>", "Fuzzy Buffer List" },
   ["<leader>ff"] = { "<cmd>Telescope find_files <CR>", "Find Files" },
@@ -311,19 +312,30 @@ M.n = {
 
   -- Trouble (Better Diagnostics and Errors)
   ["<leader>x"] = { name = " Trouble" },
-  ["<leader>xx"] = { ":Trouble<CR>", "Trouble" },
-  ["<leader>xw"] = { ":Trouble workspace_diagnostics<CR>", "Trouble Workspace Diagnostics" },
-  ["<leader>xd"] = { ":Trouble document_diagnostics<CR>", "Trouble Document Diagnostics" },
-  ["<leader>xl"] = { ":Trouble loclist<CR>", "Trouble Loclist" },
-  ["<leader>xq"] = { ":Trouble quickfix<CR>", "Trouble Quickfix" },
-  ["gR"] = { ":Trouble lsp_references<CR>", "Trouble Lsp Reference(s)" },
+  ["<leader>xd"] = { ":Trouble diagnostics toggle<CR>", "Diagnostics (Trouble)" },
+  ["<leader>xb"] = { ":Trouble diagnostics toggle filter.buf=0<CR>", "Buffer Diagnostics (Trouble)" },
+  ["<leader>xf"] = { ":Trouble lsp_definitions toggle<CR>", "LSP Definitions (Trouble)" },
+  ["<leader>xc"] = { ":Trouble lsp_declarations toggle<CR>", "LSP Declarations (Trouble)" },
+  ["<leader>xi"] = { ":Trouble lsp_implementations toggle<CR>", "LSP Implementations (Trouble)" },
+  ["<leader>xr"] = { ":Trouble lsp_references toggle<CR>", "LSP References (Trouble)" },
+  ["<leader>xt"] = { ":Trouble lsp_type_definitions toggle<CR>", "LSP Type Definitions (Trouble)" },
+  ["<leader>xx"] = { ":Trouble lsp_document_symbols toggle<CR>", "LSP Document Symbols (Trouble)" },
+  ["<leader>xs"] = {
+    ":Trouble symbols toggle pinned=true results.win.relative=win results.win.position=right<CR>",
+    "Symbols (Trouble)",
+  },
+  ["<leader>xS"] = { ":Trouble symbols toggle focus=false<CR>", "Symbols (Trouble)" },
+  ["<leader>xl"] = { ":Trouble loclist toggle<CR>", "Location List (Trouble)" },
+  ["<leader>xq"] = { ":Trouble qflist toggle<CR>", "Quickfix List (Trouble)" },
+  ["<leader>tx"] = { ":Trouble telescope toggle<CR>", "Telescope (Trouble)" },
+  ["gR"] = { ":Trouble lsp toggle focus=false win.position=right<CR>", "LSP Definitions / references / ... (Trouble)" },
 
   -- Toggle Line Blame
   ["<leader>lb"] = { ":Gitsigns toggle_current_line_blame<CR>", "Blame Current Line" },
 
   -- Home and End
-  ["E"] = { "<end>", "End" },
-  ["H"] = { "<home>", "Home" },
+  -- ["E"] = { "<end>", "End" },
+  -- ["H"] = { "<home>", "Home" },
 
   -- Cellular Automaton
   ["<A-;>"] = { "<CMD>CellularAutomaton make_it_rain<CR>", "Make it Rain" },
@@ -352,9 +364,6 @@ M.n = {
   -- Move lines Up and Down
   ["<A-j>"] = { ":move .+1<CR>==", "Move Line Up" },
   ["<A-k>"] = { ":move .-2<CR>==", "Move Line Down" },
-
-  -- Save file by CTRL-S
-  -- ["<C-s>"] = { ":w<CR>", "Save File", opts = { noremap = true, silent = true }, },
 
   -- Keep visual mode indenting
   [">"] = { ":><CR>", "Tab Forwards" },
@@ -461,6 +470,8 @@ M.n = {
     "Clear Shit",
     opts = { silent = true },
   },
+  -- Save file by CTRL-S
+  -- ["<C-s>"] = { ":w<CR>", "Save File", opts = { noremap = true, silent = true }, },
   ["<C-s>"] = { ":w<CR>", "Save File", opts = { silent = true } },
   -- ["<C-W>"] = { ":wa<CR>", "Save All Files", opts = { silent = true } },
 

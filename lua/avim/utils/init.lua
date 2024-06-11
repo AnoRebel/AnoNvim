@@ -490,10 +490,12 @@ M.close_buffer = function(bufnr, force)
 
   -- force close floating wins
   if bufhidden == "wipe" and buf_filetype ~= "alpha" then
+    vim.cmd("SatelliteDisable")
     vim.cmd("bw")
     return
   end
   if not (bufhidden == "delete") and buf_filetype ~= "alpha" then
+    vim.cmd("SatelliteDisable")
     vim.cmd("confirm bd" .. bufnr)
     return
   end
@@ -511,12 +513,17 @@ M.close_buffer = function(bufnr, force)
       prompt = "You have unsaved changes. Quit anyway? (y/n) ",
     }, function(input)
       if input == "y" then
+        vim.cmd("SatelliteDisable")
         vim.cmd("q!")
       end
     end)
   end
 
+  vim.cmd("SatelliteDisable")
   vim.cmd("bp | bd" .. bufnr)
+  if #vim.t.bufs >= 1 then
+    vim.cmd("SatelliteEnable")
+  end
 end
 
 M.close_all = function(keep_current, type, force)
