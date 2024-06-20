@@ -1,12 +1,26 @@
-local M = {
+local defaults = require("avim.core.defaults")
+local utils = require("avim.utils")
+
+return {
   "rest-nvim/rest.nvim",
+  enabled = defaults.features.api,
   ft = "http",
   dependencies = {
-    "vhyrro/luarocks.nvim",
+    {
+      "vhyrro/luarocks.nvim",
+      priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
+      opts = {
+        rocks = defaults.rocks, -- Specify LuaRocks packages to install
+      },
+    },
   },
   cmd = { "Rest" },
-  config = function()
+  config = function(_, opts)
     require("rest-nvim").setup()
+    -- Rest API
+    utils("n", "<leader>r", nil, { name = " Rest APIs" })
+    utils("n", "<leader>rr", "<CMD>Rest run<CR>", { desc = "Run Request Under the Cursor" })
+    utils("n", "<leader>rl", "<CMD>Rest run last<CR>", { desc = "Re-run Latest Request" })
   end,
   -- opts = {
   --   client = "curl",
@@ -91,5 +105,3 @@ local M = {
   --   keybinds = {},
   -- },
 }
-
-return M

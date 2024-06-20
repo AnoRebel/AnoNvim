@@ -29,7 +29,7 @@ else
   set.laststatus = 3 -- global statusline
   set.title = true
   -- set.titlestring = "AnoNvim" -- "%<%F%=%l/%L - nvim" -- what the title of the window will be set to
-  set.clipboard = "unnamedplus" -- { "unnamedplus" } -- Use the system clipboard
+  set.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
   set.cmdheight = 1
   set.cul = true -- cursor line
   set.completeopt = { "menu", "menuone", "noinsert", "noselect" } -- Completion opions for code completion
@@ -80,8 +80,8 @@ else
   }
 
   -- reveal already opened files from the quickfix window instead of opening new
--- buffers
-vim.o.switchbuf = "useopen"
+  -- buffers
+  vim.o.switchbuf = "useopen"
 
   set.hidden = true
   set.ignorecase = true -- Ignore case
@@ -129,13 +129,13 @@ vim.o.switchbuf = "useopen"
   -- disable nvim intro
   -- set.shortmess:append("csSI")
   set.shortmess:append({
-  c = true, -- Disable "Pattern not found" messages
-  m = true, -- use "[+]" instead of "[Modified]"
-  r = true, -- use "[RO]" instead of "[readonly]"
-  I = true, -- don't give the intro message when starting Vim |:intro|.
-  S = true, -- hide search info echoing (i have a statusline for that)
-  W = true, -- don't give "written" or "[w]" when writing a file
-})
+    c = true, -- Disable "Pattern not found" messages
+    m = true, -- use "[+]" instead of "[Modified]"
+    r = true, -- use "[RO]" instead of "[readonly]"
+    I = true, -- don't give the intro message when starting Vim |:intro|.
+    S = true, -- hide search info echoing (i have a statusline for that)
+    W = true, -- don't give "written" or "[w]" when writing a file
+  })
   -- vim.opt.shortmess = {
   --   A = true, -- ignore annoying swap file messages
   --   c = true, -- Do not show completion messages in command line
@@ -154,7 +154,7 @@ vim.o.switchbuf = "useopen"
   set.timeoutlen = 250
   -- set.swapfile = false
   set.undofile = true
-  set.undodir = _G.UNDODIR
+  set.undodir = _G.avim.UNDODIR
   set.undolevels = 100 -- Ensure we can undo a lot!
 
   -- interval for writing swap file to disk, also used by gitsigns
@@ -167,109 +167,59 @@ vim.o.switchbuf = "useopen"
   ----------------------------------------------------------------
   -- Custom missing filetypes
   ----------------------------------------------------------------
+  -- Custom Filetypes
   vim.filetype.add({
-  extension = {
-    conf = "conf",
-    env = "dotenv",
-    tiltfile = "tiltfile",
-    Tiltfile = "tiltfile",
-  },
-  filename = {
-    [".env"] = "dotenv",
-    [".eslintrc.json"] = "jsonc", -- assuming nx project.json
-    ["project.json"] = "jsonc", -- assuming nx project.json
-    [".yamlfmt"] = "yaml",
-  },
-  pattern = {
-    ["docker%-compose%.y.?ml"] = "yaml.docker-compose",
-    ["%.env%.[%w_.-]+"] = "dotenv",
-    ["tsconfig%."] = "jsonc",
-    -- ["env%.(%a+)"] = function(_path, _bufnr, ext)
-    --   vim.print(ext)
-    --   if vim.tbl_contains({ "local", "example", "dev", "prod" }, ext) then
-    --     return "dotenv"
-    --   end
-    -- end,
-  },
-})
+    extension = {
+      conf = "dosini",
+      env = "dotenv",
+      tiltfile = "tiltfile",
+      Tiltfile = "tiltfile",
+      jinja = "jinja",
+      jinja2 = "jinja",
+      j2 = "jinja",
+      ejs = "html",
+      sh = "sh",
+      rasi = "rasi",
+      rofi = "rasi",
+      wofi = "rasi",
+    },
+    filename = {
+      [".env"] = "dotenv",
+      [".eslintrc.json"] = "jsonc", -- assuming nx project.json
+      ["project.json"] = "jsonc", -- assuming nx project.json
+      [".yamlfmt"] = "yaml",
+      ["vifmrc"] = "vim",
+    },
+    pattern = {
+      ["docker%-compose%.y.?ml"] = "yaml.docker-compose",
+      ["%.env%.[%w_.-]+"] = "dotenv",
+      ["tsconfig%."] = "jsonc",
+      [".*/waybar/config"] = "jsonc",
+      [".*/mako/config"] = "dosini",
+      [".*/kitty/.+%.conf"] = "bash",
+      [".*/hypr/.+%.conf"] = "hyprlang",
+      -- ["%.env%.[%w_.-]+"] = "sh",
+      -- ["env%.(%a+)"] = function(_path, _bufnr, ext)
+      --   vim.print(ext)
+      --   if vim.tbl_contains({ "local", "example", "dev", "prod" }, ext) then
+      --     return "dotenv"
+      --   end
+      -- end,
+    },
+  })
 
   ----------------------------------------------------------------
   -- Plugin Specific Options
   ----------------------------------------------------------------
-  -- Themes
-  g.catppuccin_flavour = "mocha" -- latte, frappe, macchiato, catppuccino
-  -- g.tokyodark_transparent_background = false
-  g.tokyodark_enable_italic_comment = true
-  g.tokyodark_enable_italic = true
-  g.tokyodark_color_gamma = "1.0"
-  g.tokyonight_style = "night" -- "day", "storm"
-  g.tokyonight_italic_functions = true
-  -- g.tokyonight_transparent = true -- dont set bg
-  -- Undotree
-  g.undotree_SplitWidth = 35
-  g.undotree_DiffpanelHeight = 10
-  g.undotree_WindowLayout = 4
-  g.undotree_TreeNodeShape = "◉"
-  g.undotree_SetFocusWhenToggle = 1
-
-  -- Committia
-  g.committia_open_only_vim_starting = 0
-  -- g.committia_use_singlecolumn = "fallback" -- "always"
-
-  -- Suda
-  -- vim.cmd[[let g:suda#prompt = "Password:"]]
-  g.suda_smart_edit = 1
-
-  -- Vim Matchup
-  g.matchup_matchparen_offscreen = { method = "popup" }
-  g.matchup_surround_enabled = 1
-  --disable specific module
-  -- g.matchup_matchparen_enabled = 0
-  -- g.matchup_motion_enabled = 0
-  -- g.matchup_text_obj_enabled = 0
-
-  -- Neovide settings
+  -- (GUI) Neovide settings
   g.neovide_no_idle = true
   g.neovide_input_use_logo = true
   g.neovide_cursor_antialiasing = true
 
-  -- Multicursor
-  -- g.VM_default_mappings = 1
-  g.VM_mouse_mappings = 1
-  g.VM_maps = {}
-  -- Multicursor mappings
-  -- g.VM_leader = {'default': ' ', 'visual': ' ', 'buffer': 'z'}
-  -- g.VM_leader = {'default': '<Space>', 'visual': '<Space>', 'buffer': 'z'}
-  g.VM_maps["Find Under"] = "<M-n>"
-  g.VM_maps["Find Subword Under"] = "<M-n>"
-  g.VM_maps["Select All"] = "<M-a>"
-  g.VM_maps["Select Cursor Down"] = "<M-C-Down>"
-  g.VM_maps["Select Cursor Up"] = "<M-C-Up>"
-  -- g.VM_maps["Add Cursor At Pos"] = "<M-C-a>"
-
   -- Codeium
   g.codeium_disable_bindings = 1
 
-  -- DB
-  g.db_ui_use_nerd_fonts = 1
-  g.db_ui_show_database_icon = 1
-  -- g.db_ui_env_variable_url = 'DATABASE_URL'
-  -- g.db_ui_env_variable_name = 'DATABASE_NAME'
-  -- g.db_ui_disable_mappings = 1 -- Disable default mappings
-
-  -- DB Completion Symbol
-  -- g.vim_dadbod_completion_mark = "[DB]"
-
-  -- Beacon
-  g.beacon_timeout = 300
-
-  -- Instant
-  g.instant_name = "AnoRebel"
-
-  -- Cheat
-  g.cheat_default_window_layout = "float" -- "vertical_split" | "split" | "tab"
-
-  -- Sniprun
+  -- TS??
   g.markdown_fenced_languages = {
     "javascript",
     "typescript",
@@ -281,31 +231,6 @@ vim.o.switchbuf = "useopen"
     "c",
     "cpp",
   }
-
-  -- nvim-code-action-menu
-  g.code_action_menu_window_border = "rounded" -- "single"
-  g.code_action_menu_show_details = true
-  g.code_action_menu_show_diff = true
-
-  -- Maximizer
-  g.maximizer_set_default_mapping = 1
-  g.maximizer_set_mapping_with_bang = 1
-  -- g.maximizer_default_mapping_key = "<F3>"
-
-  -- Git Messenger
-  -- TODO: Needs work
-  g.git_messenger_no_default_mappings = true
-  g.git_messenger_floating_win_opts = { border = "rounded" }
-  g.git_messenger_popup_content_margins = false
-  -- g.git_messenger_include_diff = "none" -- "current" | "all"
-  -- g.git_messenger_max_popup_height = null
-  -- g.git_messenger_max_popup_width = null
-
-  -- Illuminate
-  -- g.Illuminate_delay = 0
-  -- g.Illuminate_highlightUnderCursor = 0
-  g.Illuminate_ftblacklist = { "alpha", "NvimTree" }
-  -- g.Illuminate_highlightUnderCursor = 0
   ----------------------------------------------------------------
 
   -- disable some builtin vim plugins
@@ -347,7 +272,7 @@ vim.o.switchbuf = "useopen"
 
   vim.schedule(function()
     set.shada = "!,'100,<30,:50,@50,/50,s10,h"
-    set.shadafile = require("avim.utils").join_paths(_G.SHADADIR, "avim.shada")
+    set.shadafile = require("avim.utils").join_paths(_G.avim.SHADADIR, "avim.shada")
     vim.cmd([[ silent! rsh ]])
   end)
 end

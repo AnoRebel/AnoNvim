@@ -1,11 +1,10 @@
 local M = {}
-local Log = require("avim.core.log")
 
 local fn = vim.fn
 local api = vim.api
-local uv = vim.loop
+local uv = vim.uv
 local lsp = vim.lsp
-local is_windows = vim.loop.os_uname().sysname == "Windows_NT"
+local is_windows = vim.uv.os_uname().sysname == "Windows_NT"
 
 local diagnostic_map = {}
 diagnostic_map[vim.diagnostic.severity.ERROR] = { "✗", guifg = "red" }
@@ -20,9 +19,6 @@ local fallback_formatting_client = "eslint"
 
 -- prevent repeated lookups
 local buffer_client_ids = {}
-
-M.disableAutoMaximize = false
-M.bufferDimNSId = api.nvim_create_namespace("buffer-dim")
 
 M.load_env = function()
   ---@meta overridden to use ANONVIM_XXX_DIR instead, since a lot of plugins call this function interally
@@ -73,17 +69,201 @@ M.load_env = function()
   end
 end
 
-M.require_safe = function(mod)
-  local status_ok, module = pcall(require, mod)
-  if not status_ok then
-    local trace = debug.getinfo(2, "SL")
-    local shorter_src = trace.short_src
-    local lineinfo = shorter_src .. ":" .. (trace.currentline or trace.linedefined)
-    local msg = string.format("%s : skipped loading [%s]", lineinfo, mod)
-    Log:debug(msg)
+--- Merges two provided tables.
+---@param t1 table
+---@param t2 table
+M.table_merge = function(t1, t2)
+  local op = {}
+  for _, v in ipairs(t1) do
+    table.insert(op, v)
   end
-  return module
+  for _, v in ipairs(t2) do
+    table.insert(op, v)
+  end
+
+  return op
 end
+
+---@param mode string|string[] Mode short-name, see |nvim_set_keymap()|. Can also be list of modes to create mapping on multiple modes.
+---@param keymap string Left-hand side |{lhs}| of the mapping.
+---@param command? string|function Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts|{ name?: string, mode?: string|string[], prefix?: string, buffer?: string|nil, silent?: boolean, noremap?: boolean, nowait?: boolean, expr?: boolean }
+M.map = function(mode, keymap, command, opts)
+  opts = vim.tbl_deep_extend("force", {
+    silent = true, -- use `silent` when creating keymaps
+    noremap = true, -- use `noremap` when creating keymaps
+    nowait = true, -- use `nowait` when creating keymaps
+  }, opts)
+  -- TODO: Check for duplicates
+  table.insert(_G.avim.mappings, { mode, keymap, command, opts })
+  local ok, wk = pcall(require, "which-key")
+  if ok then
+    if opts.name ~= nil and command == nil then
+      local name = opts.name
+      opts.name = nil
+      wk.register({ [keymap] = { name = name } })
+    else
+      wk.register({ [keymap] = { command, opts.desc or "" } }, opts)
+    end
+  else
+    opts.name = nil
+    if command ~= nil then
+      if opts.prefix ~= nil then
+        local prefix = opts.prefix
+        opts.prefix = nil
+        vim.keymap.set(mode, prefix .. keymap, command, opts)
+      else
+        vim.keymap.set(mode, keymap, command, opts)
+      end
+    end
+  end
+end
+
+--- Gets a path to a package in the Mason registry.
+--- Prefer this to `get_package`, since the package might not always be
+--- available yet and trigger errors.
+---@param pkg string
+---@param path? string
+---@param opts? { warn?: boolean }
+M.get_pkg_path = function(pkg, path, opts)
+  pcall(require, "mason") -- make sure Mason is loaded. Will fail when generating docs
+  local root = vim.env.MASON or (vim.fn.stdpath("data") .. "/mason")
+  opts = opts or {}
+  opts.warn = opts.warn == nil and true or opts.warn
+  path = path or ""
+  local ret = root .. "/packages/" .. pkg .. "/" .. path
+  if opts.warn and not vim.loop.fs_stat(ret) and not require("lazy.core.config").headless() then
+    M.warn(
+      ("Mason package path not found for **%s**:\n- `%s`\nYou may need to force update the package."):format(pkg, path)
+    )
+  end
+  return ret
+end
+
+M.move_to_file_refactor = function(client, buffer)
+  client.commands["_typescript.moveToFileRefactoring"] = function(command, ctx)
+    ---@type string, string, lsp.Range
+    local action, uri, range = unpack(command.arguments)
+
+    local function move(newf)
+      client.request("workspace/executeCommand", {
+        command = command.command,
+        arguments = { action, uri, range, newf },
+      })
+    end
+
+    local fname = vim.uri_to_fname(uri)
+    client.request("workspace/executeCommand", {
+      command = "typescript.tsserverRequest",
+      arguments = {
+        "getMoveToRefactoringFileSuggestions",
+        {
+          file = fname,
+          startLine = range.start.line + 1,
+          startOffset = range.start.character + 1,
+          endLine = range["end"].line + 1,
+          endOffset = range["end"].character + 1,
+        },
+      },
+    }, function(_, result)
+      ---@type string[]
+      local files = result.body.files
+      table.insert(files, 1, "Enter new path...")
+      vim.ui.select(files, {
+        prompt = "Select move destination:",
+        format_item = function(f)
+          return vim.fn.fnamemodify(f, ":~:.")
+        end,
+      }, function(f)
+        if f and f:find("^Enter new path") then
+          vim.ui.input({
+            prompt = "Enter move destination:",
+            default = vim.fn.fnamemodify(fname, ":h") .. "/",
+            completion = "file",
+          }, function(newf)
+            return newf and move(newf)
+          end)
+        elseif f then
+          move(f)
+        end
+      end)
+    end)
+  end
+end
+
+---@alias lsp.Client.filter {id?: number, bufnr?: number, name?: string, method?: string, filter?:fun(client: lsp.Client):boolean}
+
+---@param opts? lsp.Client.filter
+M.get_clients = function(opts)
+  local ret = {} ---@type vim.lsp.Client[]
+  if vim.lsp.get_clients then
+    ret = vim.lsp.get_clients(opts)
+  else
+    ---@diagnostic disable-next-line: deprecated
+    ret = vim.lsp.get_active_clients(opts)
+    if opts and opts.method then
+      ---@param client vim.lsp.Client
+      ret = vim.tbl_filter(function(client)
+        return client.supports_method(opts.method, { bufnr = opts.bufnr })
+      end, ret)
+    end
+  end
+  return opts and opts.filter and vim.tbl_filter(opts.filter, ret) or ret
+end
+
+---@param method string|string[]
+M.lsp_has = function(buffer, method)
+  if type(method) == "table" then
+    for _, m in ipairs(method) do
+      if M.lsp_has(buffer, m) then
+        return true
+      end
+    end
+    return false
+  end
+  method = method:find("/") and method or "textDocument/" .. method
+  local clients = M.get_clients({ bufnr = buffer })
+  for _, client in ipairs(clients) do
+    if client.supports_method(method) then
+      return true
+    end
+  end
+  return false
+end
+
+---@class LspCommand: lsp.ExecuteCommandParams
+---@field open? boolean
+---@field handler? lsp.Handler
+
+---@param opts LspCommand
+M.lsp_execute = function(opts)
+  local params = {
+    command = opts.command,
+    arguments = opts.arguments,
+  }
+  if opts.open then
+    require("trouble").open({
+      mode = "lsp_command",
+      params = params,
+    })
+  else
+    return vim.lsp.buf_request(0, "workspace/executeCommand", params, opts.handler)
+  end
+end
+
+M.lsp_action = setmetatable({}, {
+  __index = function(_, action)
+    return function()
+      vim.lsp.buf.code_action({
+        apply = true,
+        context = {
+          only = { action },
+          diagnostics = {},
+        },
+      })
+    end
+  end,
+})
 
 M.format = function(bufnr)
   bufnr = tonumber(bufnr) or api.nvim_get_current_buf()
@@ -92,7 +272,7 @@ M.format = function(bufnr)
   if buffer_client_ids[bufnr] then
     selected_client = lsp.get_client_by_id(buffer_client_ids[bufnr])
   else
-    for _, client in ipairs(lsp.get_active_clients({ buffer = bufnr })) do
+    for _, client in ipairs(M.get_clients({ buffer = bufnr })) do
       if vim.tbl_contains(preferred_formatting_clients, client.name) then
         selected_client = client
         break
@@ -158,10 +338,6 @@ M.fold_handler = function(virtText, lnum, endLnum, width, truncate)
   return newVirtText
 end
 
-local function windowIsRelative(windowId)
-  return api.nvim_win_get_config(windowId).relative ~= ""
-end
-
 local function windowIsCf(windowId)
   local buftype = vim.bo.buftype
   if windowId ~= nil then
@@ -170,11 +346,10 @@ local function windowIsCf(windowId)
   end
   return buftype == "quickfix"
 end
-
-M.toggle_dim_windows = function()
+M.toggle_windows_dim = function()
   local windowsIds = api.nvim_list_wins()
   local currentWindowId = api.nvim_get_current_win()
-  if windowIsRelative(currentWindowId) then
+  if api.nvim_win_get_config(currentWindowId).relative ~= "" then
     return
   end
   pcall(fn.matchdelete, currentWindowId)
@@ -182,7 +357,7 @@ M.toggle_dim_windows = function()
     return
   end
   for _, id in ipairs(windowsIds) do
-    if id ~= currentWindowId and not windowIsRelative(id) then
+    if id ~= currentWindowId and not api.nvim_win_get_config(id).relative ~= "" then
       pcall(fn.matchadd, "BufDimText", ".", 200, id, { window = id })
     end
   end
@@ -191,7 +366,8 @@ end
 M.peek_or_hover = function()
   local winid = require("ufo").peekFoldedLinesUnderCursor()
   if not winid then
-    vim.lsp.buf.hover()
+    -- vim.lsp.buf.hover()
+    require("hover").hover()
   end
 end
 
@@ -201,7 +377,7 @@ M.nN = function(c)
     -- Safe to override buffer scope keymaps remapped by ufo
     -- ufo will restore previous buffer keymaps before closing preview window
     -- Type <CR> will switch to preview window and fire `tarce` action
-    vim.keymap.set("n", "<CR>", function()
+    M.map("n", "<CR>", function()
       local keyCodes = vim.api.nvim_replace_termcodes("<Tab><CR>", true, false, true)
       vim.api.nvim_feedkeys(keyCodes, "im", false)
     end, { buffer = true })
@@ -222,89 +398,6 @@ local view_selection = function(prompt_bufnr, map)
     openfile.fn("preview", filename)
   end)
   return true
-end
-
-M.start_telescope = function(telescope_mode, opts)
-  local present, lib = pcall(require, "nvim-tree.lib")
-
-  if not present then
-    vim.notify("NvimTree Not Found/Loaded", vim.log.levels.WARN)
-    return
-  end
-  local node = lib.get_node_at_cursor()
-  local abspath = node.absolute_path or node.link_to
-  local is_folder = node.fs_stat and node.fs_stat.type == "directory" or false
-  local basedir = is_folder and abspath or fn.fnamemodify(abspath, ":h")
-  -- if (node.name == '..' and TreeExplorer ~= nil) then
-  --   basedir = TreeExplorer.cwd
-  -- end
-  opts = opts or {}
-  opts.cwd = basedir
-  opts.search_dirs = { basedir }
-  opts.attach_mappings = view_selection
-  return require("telescope.builtin")[telescope_mode](opts)
-end
-
-M.tree_git_add = function()
-  local lib = require("nvim-tree.lib")
-  local node = lib.get_node_at_cursor()
-  local gs = node.git_status.file
-
-  -- If the file is untracked, unstaged or partially staged, we stage it
-  if gs == "??" or gs == "MM" or gs == "AM" or gs == " M" then
-    vim.cmd("silent !git add " .. node.absolute_path)
-
-  -- If the file is staged, we unstage
-  elseif gs == "M " or gs == "A " then
-    vim.cmd("silent !git restore --staged " .. node.absolute_path)
-  end
-
-  lib.refresh_tree()
-end
-
-local not_id
-HardMode = false
-local function avoid_keys(mode, mov_keys)
-  for _, key in ipairs(mov_keys) do
-    local count = 0
-    vim.keymap.set(mode, key, function()
-      if count >= 5 then
-        not_id = vim.notify("Hold it Cowboy!", vim.log.levels.WARN, {
-          icon = "🤠",
-          replace = not_id,
-          keep = function()
-            return count >= 5
-          end,
-        })
-      else
-        count = count + 1
-        -- after 5 seconds decrement
-        vim.defer_fn(function()
-          count = count - 1
-        end, 5000)
-        return key
-      end
-    end, { expr = true })
-  end
-end
-
-M.ToggleHardMode = function()
-  local modes = { "n", "v" }
-  local movement_keys = { "h", "j", "k", "l", "<Left>", "<Down>", "<Up>", "<Right>" }
-  if HardMode then
-    for _, mode in pairs(modes) do
-      for _, m_key in pairs(movement_keys) do
-        vim.api.nvim_del_keymap(mode, m_key)
-      end
-    end
-    vim.notify("Hard mode OFF", vim.log.levels.INFO, { timeout = 5 })
-  else
-    for _, mode in pairs(modes) do
-      avoid_keys(mode, movement_keys)
-    end
-    vim.notify("Hard mode ON", vim.log.levels.INFO, { timeout = 5 })
-  end
-  HardMode = not HardMode
 end
 
 -- Returns the colors/palette of the current theme
@@ -345,15 +438,6 @@ M.toggle_diff = function()
   end
 end
 
--- lightbulb
-M.update_lightbulb = function()
-  require("nvim-lightbulb").update_lightbulb({
-    sign = { enabled = false },
-    float = { enabled = false },
-    virtual_text = { enabled = true },
-  })
-end
-
 local function toggleTermMaximize()
   local currentHeight = api.nvim_win_get_height(0)
   local defaultHeight = 15
@@ -366,6 +450,9 @@ local function toggleTermMaximize()
 
     api.nvim_win_set_height(0, math.max(nextHeight, defaultHeight))
   end
+end
+local function windowIsRelative(windowId)
+  return api.nvim_win_get_config(windowId).relative ~= ""
 end
 
 M.maximize_window = function()
@@ -420,40 +507,6 @@ M.auto_maximize_window = function()
   M.maximize_window()
 end
 
--- taken from https://github.com/neovim/neovim/issues/3688
-M.hide_cursor = function()
-  vim.cmd("hi Cursor blend=100")
-
-  -- for some reason unable to set through the M.opt
-  vim.cmd("set guicursor=" .. vim.o.guicursor .. ",a:Cursor/lCursor")
-end
-
-M.restore_cursor = function()
-  vim.cmd("hi Cursor blend=0")
-  vim.cmd("set guicursor=" .. vim.o.guicursor)
-end
-
-M.enable_transparent_mode = function()
-  api.nvim_create_autocmd("ColorScheme", {
-    pattern = "*",
-    callback = function()
-      local hl_groups = {
-        "Normal",
-        "SignColumn",
-        "NormalNC",
-        "TelescopeBorder",
-        "NvimTreeNormal",
-        "EndOfBuffer",
-        "MsgArea",
-      }
-      for _, name in ipairs(hl_groups) do
-        vim.cmd(string.format("highlight %s ctermbg=none guibg=none", name))
-      end
-    end,
-  })
-  vim.opt.fillchars = "eob: "
-end
-
 M.close_buffer = function(bufnr, force)
   if force == nil then
     force = false
@@ -500,10 +553,8 @@ M.close_buffer = function(bufnr, force)
     return
   end
 
-  local fileExists = fn.filereadable(fn.expand("%p"))
-
   -- if file doesnt exist & its modified
-  if fileExists == 0 then
+  if fn.filereadable(fn.expand("%p")) == 0 then
     vim.notify("Really bruh, no file name?!", vim.log.levels.WARN)
     -- print "Really bruh, no file name? Add it now!"
     return
@@ -526,34 +577,6 @@ M.close_buffer = function(bufnr, force)
   end
 end
 
-M.close_all = function(keep_current, type, force)
-  if force == nil then
-    force = false
-  end
-  if keep_current == nil then
-    keep_current = false
-  end
-  local current = api.nvim_get_current_buf()
-  local bufs = api.nvim_list_bufs()
-  for _, bufnr in ipairs(bufs) do
-    if not keep_current or bufnr ~= current then
-      M.close_buffer(bufnr, force)
-    else
-      vim.cmd((force and "bd!" or "confirm bd") .. bufnr)
-    end
-  end
-  if type == "tab" then
-    if #vim.api.nvim_list_tabpages() > 1 then
-      vim.t.bufs = nil
-      -- require("astronvim.utils").event "BufsUpdated"
-      -- vim.cmd.tabclose()
-      vim.cmd(force and "tabclose!" or "confirm tabclose")
-    end
-    -- else
-    -- 	vim.cmd("enew")
-  end
-end
-
 --- Serve a notification with a title of AnoNvim
 -- @param msg the notification body
 -- @param type the type of the notification (:help vim.log.levels)
@@ -563,6 +586,7 @@ function M.notify(msg, type, opts)
     vim.notify(msg, type, M.extend_tbl({ title = "AnoNvim" }, opts))
   end)
 end
+_G.avim.notify = M.notify
 
 --- Check if a plugin is defined in lazy. Useful with lazy loading when a plugin is not necessarily loaded yet
 -- @param plugin the plugin string to search for
@@ -590,22 +614,17 @@ function M.event(event)
   end)
 end
 
-local get_highest_diagnostic_severity = function(diagnostics)
-  local highest_severity = 100
-  for _, diagnostic in ipairs(diagnostics) do
-    local severity = diagnostic.severity
-    if severity < highest_severity then
-      highest_severity = severity
-    end
-  end
-  return highest_severity
-end
-
 M.get_status = function(filename)
   local diagnostics = vim.diagnostic.get()
-  local get_icon_color = M.require_safe("nvim-web-devicons").get_icon_color
+  local get_icon_color = require("nvim-web-devicons").get_icon_color
   if vim.tbl_count(diagnostics) > 0 then
-    local highest_severity = get_highest_diagnostic_severity(diagnostics)
+    local highest_severity = 100
+    for _, diagnostic in ipairs(diagnostics) do
+      local severity = diagnostic.severity
+      if severity < highest_severity then
+        highest_severity = severity
+      end
+    end
     return diagnostic_map[highest_severity]
   else
     local filetype_icon, color = get_icon_color(filename)
@@ -613,22 +632,16 @@ M.get_status = function(filename)
   end
 end
 
-local diag_enabled = true
-function M.toggle_diagnostics()
-  diag_enabled = not diag_enabled
-  if diag_enabled then
+M.toggle_diagnostics = function()
+  local defaults = require("avim.core.defaults")
+  defaults.options.diag_enabled = not defaults.options.diag_enabled
+  if defaults.options.diag_enabled then
     vim.diagnostic.enable()
     vim.notify("Enabled diagnostics", vim.log.levels.INFO, { title = "Diagnostics" })
   else
     vim.diagnostic.disable()
     vim.notify("Disabled diagnostics", vim.log.levels.WARN, { title = "Diagnostics" })
   end
-end
-
---- Toggle background="dark"|"light"
-M.toggle_background = function()
-  vim.go.background = vim.go.background == "light" and "dark" or "light"
-  vim.notify(string.format("background=%s", vim.go.background))
 end
 
 --- Open a URL under the cursor with the current operating system
@@ -648,64 +661,6 @@ function M.system_open(path)
   vim.fn.jobstart({ cmd, path or vim.fn.expand("<cfile>") }, { detach = true })
 end
 
-M.load_keymaps = function(mappings, map_opts)
-  local merge_tb = vim.tbl_deep_extend
-  -- set mapping function with/without whichkey
-  local map_func
-  local whichkey_exists, wk = pcall(require, "which-key")
-  -- local nopts = {
-  --    mode = "n", -- NORMAL mode
-  --    prefix = "<leader>",
-  --    buffer = nil, -- Global mappings. Specify a buffer number for buffer local mappings
-  --    silent = true, -- use `silent` when creating keymaps
-  --    noremap = true, -- use `noremap` when creating keymaps
-  --    nowait = true, -- use `nowait` when creating keymaps
-  -- }
-  -- local vopts = {
-  --    mode = "v", -- VISUAL mode
-  --    prefix = "<leader>",
-  --    buffer = nil, -- Global mappings. Specify a buffer number for buffer local mappings
-  --    silent = true, -- use `silent` when creating keymaps
-  --    noremap = true, -- use `noremap` when creating keymaps
-  --    nowait = true, -- use `nowait` when creating keymaps
-  -- }
-  local local_opts = {
-    silent = true, -- use `silent` when creating keymaps
-    noremap = true, -- use `noremap` when creating keymaps
-    nowait = true, -- use `nowait` when creating keymaps
-  }
-
-  if whichkey_exists then
-    map_func = function(keybind, mapping_info, opts)
-      wk.register({ [keybind] = mapping_info }, opts)
-    end
-  else
-    map_func = function(keybind, mapping_info, opts)
-      local mode = opts.mode
-      opts.mode = nil
-      if mapping_info[1] ~= nil then
-        vim.keymap.set(mode, keybind, mapping_info[1], opts)
-      end
-    end
-  end
-
-  local maps = merge_tb("force", require("avim.core.defaults").mappings, mappings or {})
-
-  -- TODO: require("leap").add_default_mappings()
-  for mode, mode_mappings in pairs(maps) do
-    for keybind, mapping_info in pairs(mode_mappings) do
-      local default_opts = merge_tb("force", { mode = mode }, map_opts or local_opts)
-      local opts = merge_tb("force", default_opts, mapping_info.opts or {})
-
-      if mapping_info.opts then
-        mapping_info.opts = nil
-      end
-
-      map_func(keybind, mapping_info, opts)
-    end
-  end
-end
-
 M.get_greeting = function(name)
   local tableTime = os.date("*t")
   local hour = tableTime.hour
@@ -715,8 +670,9 @@ M.get_greeting = function(name)
     [3] = "  Good afternoon",
     [4] = "  Good evening",
     [5] = "望 Good night",
+    [6] = " Welcome back",
   }
-  local greetingIndex = ""
+  local greetingIndex = 6
   if hour == 23 or hour < 7 then
     greetingIndex = 1
   elseif hour < 12 then
@@ -809,88 +765,6 @@ M.is_directory = function(path)
   return stat and stat.type == "directory" or false
 end
 
-M.get_relative_fname = function()
-  local fname = fn.expand("%:p")
-  return fname:gsub(fn.getcwd() .. "/", "")
-end
-
-M.get_relative_gitdir = function()
-  local fname = fn.expand("%:p")
-  local gitpath = fn.systemlist("git rev-parse --show-toplevel")[1]
-  return fname:gsub(gitpath .. "/", "")
-end
-
-M.sleep = function(n)
-  os.execute("sleep " .. tonumber(n))
-end
-
-M.toggle_quicklist = function()
-  if fn.empty(fn.filter(fn.getwininfo(), "v:val.quickfix")) == 1 then
-    vim.cmd("copen")
-  else
-    vim.cmd("cclose")
-  end
-end
-
--- Split a string and return a table of the split values
---@param inputstr (string) string to split
---@param sep (string) string to use as split character
---@returns (table)
-M.split = function(inputstr, sep)
-  if sep == nil then
-    sep = "%s"
-  end
-  local t = {}
-  for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
-    table.insert(t, str)
-  end
-  return t
-end
-
--- Determine if we're using a session file
-M.using_session = function()
-  return (vim.g.persisting ~= nil)
-end
-
-M.loadsession = function()
-  local ok, persisted = pcall(require, "persisted")
-  if not ok then
-    return
-  end
-
-  local sessions = persisted.list()
-
-  local sessions_short = {}
-  for _, session in pairs(sessions) do
-    sessions_short[#sessions_short + 1] = session.file_path:gsub(_G.SESSIONDIR, "")
-  end
-
-  vim.ui.select(sessions_short, {
-    prompt = "Sessions",
-    format_item = function(sess)
-      local spl = M.split(sess:gsub("%%", "/"):gsub("@", "/"):gsub(".vim", ""), "/")
-      return "Load: `" .. spl[#spl - 1] .. "` from: `" .. spl[#spl - 2] .. "` on branch: " .. spl[#spl]
-    end,
-  }, function(choice)
-    if choice == nil then
-      return
-    end
-    vim.api.nvim_exec_autocmds("User", { pattern = "PersistedLoadPre" })
-    local ok, res = pcall(vim.cmd, "source " .. fn.fnameescape(_G.SESSIONDIR .. choice))
-    if not ok then
-      local spl = M.split(choice:gsub("%%", "/"):gsub("@", "/"):gsub(".vim", ""), "/")
-      local sesh = "`" .. spl[#spl - 1] .. "` from: `" .. spl[#spl - 2] .. "` on branch: " .. spl[#spl]
-      vim.notify("Failed to load: " .. sesh .. ". Because: " .. res, vim.log.levels.WARN, { "Sessions" })
-      return
-    end
-    -- vim.cmd("lua require('persisted').stop()")
-    vim.api.nvim_exec_autocmds("User", { pattern = "PersistedLoadPost" })
-    local spl = M.split(choice:gsub("%%", "/"):gsub("@", "/"):gsub(".vim", ""), "/")
-    local sesh = "`" .. spl[#spl - 1] .. "` from: `" .. spl[#spl - 2] .. "` on branch: " .. spl[#spl]
-    vim.notify("Loaded: " .. sesh, vim.log.levels.INFO, { "Sessions" })
-  end)
-end
-
 -- Determine if there is enough space in the window to display components
 M.there_is_width = function(winid)
   return api.nvim_win_get_width(winid) > 80 -- 120
@@ -971,15 +845,11 @@ M.read_json_file = function(filename)
   return json
 end
 
-M.read_package_json = function()
-  return M.read_json_file("package.json")
-end
-
 ---Check if the given NPM package is installed in the current project.
 ---@param package string
 ---@return boolean
 M.is_npm_package_installed = function(package)
-  local package_json = M.read_package_json()
+  local package_json = M.read_json_file("package.json")
   if not package_json then
     return false
   end
