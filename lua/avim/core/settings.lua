@@ -7,10 +7,10 @@ if vim.fn.has("nvim-0.9") == 1 then
 end
 vim.t.bufs = api.nvim_list_bufs()
 if #api.nvim_list_uis() == 0 then
-  set.shortmess = "" -- try to prevent echom from cutting messages off or prompting
-  set.more = false -- don't pause listing when screen is filled
+  set.shortmess = ""   -- try to prevent echom from cutting messages off or prompting
+  set.more = false     -- don't pause listing when screen is filled
   set.cmdheight = 9999 -- helps avoiding |hit-enter| prompts.
-  set.columns = 9999 -- set the widest screen possible
+  set.columns = 9999   -- set the widest screen possible
   set.swapfile = false -- don't use a swap file
 else
   g.mapleader = " "
@@ -20,38 +20,38 @@ else
   -- g.did_load_filetypes = 1 -- check Neovim PR #19216
   -- g.do_filetype_lua = 1
   g.background = require("avim.core.defaults").ui.background
-  g.dashboard_footer_icon = "🐬 "
 
   set.jumpoptions = "stack,view"
   set.confirm = true
   set.fileencoding = "utf-8" -- the encoding written to a file
-  set.conceallevel = 0 -- so that `` is visible in markdown files
-  set.laststatus = 3 -- global statusline
+  set.conceallevel = 0       -- so that `` is visible in markdown files
+  set.laststatus = 3         -- global statusline
   set.title = true
   -- set.titlestring = "AnoNvim" -- "%<%F%=%l/%L - nvim" -- what the title of the window will be set to
-  set.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+  set.clipboard = vim.env.SSH_TTY and "" or "unnamedplus"         -- Sync with system clipboard
   set.cmdheight = 1
-  set.cul = true -- cursor line
+  set.cul = true                                                  -- cursor line
   set.completeopt = { "menu", "menuone", "noinsert", "noselect" } -- Completion opions for code completion
   set.cursorline = true
-  set.cursorlineopt = "screenline,number" -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
-  set.emoji = true -- Turn on emojis
-  set.pumheight = 20 -- pop up menu height
-  set.showtabline = 2 -- always show tabs
-  set.formatoptions:remove("cro") -- auto-wrap comments, don't auto insert comment on o/O and enter
+  set.cursorlineopt =
+  "screenline,number"                                             -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
+  set.emoji = true                                                -- Turn on emojis
+  set.pumheight = 10                                              -- pop up menu height
+  set.showtabline = 2                                             -- always show tabs
+  set.formatoptions:remove("cro")                                 -- auto-wrap comments, don't auto insert comment on o/O and enter
 
   -- Add mouse movement events for bufferline
   -- set.mousemoveevent = true
   -- vim.o.mousemoveevent = true
 
   -- Indentline
-  set.expandtab = true -- Use spaces instead of tabs
-  set.shiftwidth = 2 -- Size of an indent
-  set.smartindent = true -- Insert indents automatically
+  set.expandtab = true      -- Use spaces instead of tabs
+  set.shiftwidth = 2        -- Size of an indent
+  set.smartindent = true    -- Insert indents automatically
   set.autoindent = true
   set.preserveindent = true -- Preserve indent structure as much as possible
-  set.softtabstop = 2 -- Number of spaces tabs count for
-  set.shiftround = true -- Round indent
+  set.softtabstop = 2       -- Number of spaces tabs count for
+  set.shiftround = true     -- Round indent
 
   -- Folding (Finally)
   -- vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
@@ -84,12 +84,13 @@ else
   vim.o.switchbuf = "useopen"
 
   set.hidden = true
-  set.ignorecase = true -- Ignore case
-  set.infercase = true -- Infer cases in keyword completion
-  set.smartcase = true -- Don't ignore case with capitals
-  set.splitbelow = true -- Put new windows below current
+  set.ignorecase = true                                           -- Ignore case
+  set.infercase = true                                            -- Infer cases in keyword completion
+  set.smartcase = true                                            -- Don't ignore case with capitals
+  set.inccommand = "nosplit"                                      -- for incsearch while sub
+  set.splitbelow = true                                           -- Put new windows below current
   set.splitkeep = vim.fn.has("nvim-0.9") == 1 and "screen" or nil -- Maintain code view when splitting
-  set.splitright = true -- Put new windows right of current
+  set.splitright = true                                           -- Put new windows right of current
   -- set.termguicolors = true -- True color support
   if vim.fn.has("termguicolors") == 1 then
     g.t_8f = "[[38;2;%lu;%lu;%lum"
@@ -105,12 +106,12 @@ else
   set.mouse = "a" -- Use the mouse in all modes
 
   -- Misc
-  set.showmatch = true -- Show matching brackets by flickering
-  set.showcmd = false -- Do not show the mode
-  set.showmode = false -- Do not show the mode
-  set.scrolloff = 4 -- minimal number of screen lines to keep above and below the cursor.
-  set.sidescrolloff = 3 -- The minimal number of columns to keep to the left and to the right of the cursor if 'nowrap' is set
-  set.wildmode = "list:longest" -- Command-line completion mode
+  set.showmatch = true                                -- Show matching brackets by flickering
+  set.showcmd = false                                 -- Do not show the mode
+  set.showmode = false                                -- Do not show the mode
+  set.scrolloff = 3                                   -- minimal number of screen lines to keep above and below the cursor.
+  set.sidescrolloff = 3                               -- The minimal number of columns to keep to the left and to the right of the cursor if 'nowrap' is set
+  set.wildmode = "list:longest"                       -- Command-line completion mode
   set.wildignore = { "*/.git/*", "*/node_modules/*" } -- Ignore these files/folders
 
   -- Numbers
@@ -144,11 +145,12 @@ else
   --   W = true, -- Do not show "written" in command line when writing
   -- }
 
-  set.textwidth = 120 -- Total allowed width on the screen
-  set.sessionoptions = "globals,buffers,curdir,folds,tabpages,winpos,winsize,terminal" -- Session options to store in the session
+  set.textwidth = 120                                                                  -- Total allowed width on the screen
+  set.sessionoptions =
+  "globals,buffers,curdir,folds,tabpages,winpos,winsize,terminal"                      -- Session options to store in the session
 
   -- min 1, max 4 signs
-  vim.o.signcolumn = "auto:1-4"
+  vim.o.signcolumn = "auto" -- "auto:1-4"
   -- set.signcolumn = "yes" -- Show information next to the line numbers
   set.tabstop = 2
   set.timeoutlen = 250
@@ -163,6 +165,34 @@ else
   -- go to previous/next line with h,l,left arrow and right arrow
   -- when cursor reaches end/beginning of line
   set.whichwrap:append("<>[]hl")
+
+  vim.diagnostic.config({
+    virtual_text = {
+      prefix = "",
+    },
+    float = {
+      focusable = true,
+      source = true,
+      border = "rounded",
+      style = "minimal",
+      format = function(diagnostic)
+        local code = diagnostic.code or (diagnostic.user_data and diagnostic.user_data.lsp.code)
+        if not diagnostic.source then
+          return string.format("%s [%s]", diagnostic.message, code)
+        end
+
+        if diagnostic.source == "eslint" then
+          return string.format("%s [%s]", diagnostic.message, diagnostic.user_data.lsp.code)
+        end
+
+        return string.format("%s [%s]", diagnostic.message, diagnostic.source)
+      end,
+    },
+    severity_sort = true,
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+  })
 
   ----------------------------------------------------------------
   -- Custom missing filetypes
@@ -186,7 +216,7 @@ else
     filename = {
       [".env"] = "dotenv",
       [".eslintrc.json"] = "jsonc", -- assuming nx project.json
-      ["project.json"] = "jsonc", -- assuming nx project.json
+      ["project.json"] = "jsonc",   -- assuming nx project.json
       [".yamlfmt"] = "yaml",
       ["vifmrc"] = "vim",
     },
@@ -232,43 +262,6 @@ else
     "cpp",
   }
   ----------------------------------------------------------------
-
-  -- disable some builtin vim plugins
-  local default_plugins = {
-    "2html_plugin",
-    "getscript",
-    "getscriptPlugin",
-    "gzip",
-    "logipat",
-    "netrw",
-    "netrwPlugin",
-    "netrwSettings",
-    "netrwFileHandlers",
-    "matchit",
-    "tar",
-    "tarPlugin",
-    "rrhelper",
-    "spellfile_plugin",
-    "vimball",
-    "vimballPlugin",
-    "zip",
-    "zipPlugin",
-  }
-
-  for _, plugin in pairs(default_plugins) do
-    g["loaded_" .. plugin] = 1
-  end
-
-  -- local default_providers = {
-  --   "node",
-  --   "perl",
-  --   "ruby",
-  --   "python3",
-  -- }
-  --
-  -- for _, provider in ipairs(default_providers) do
-  --   vim.g["loaded_" .. provider .. "_provider"] = 0
-  -- end
 
   vim.schedule(function()
     set.shada = "!,'100,<30,:50,@50,/50,s10,h"

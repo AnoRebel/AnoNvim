@@ -1,9 +1,14 @@
+---@class utils: UtilsCore
+---@field lsp utils.lsp
+---@field dbee utils.dbee
+---@field peek utils.peek
+---@field snippet utils.snippet
+---@field theme_picker utils.theme_picker
 local M = {}
 
 local fn = vim.fn
 local api = vim.api
 local uv = vim.uv
-local lsp = vim.lsp
 local is_windows = vim.uv.os_uname().sysname == "Windows_NT"
 
 local diagnostic_map = {}
@@ -12,25 +17,36 @@ diagnostic_map[vim.diagnostic.severity.WARN] = { "", guifg = "orange" }
 diagnostic_map[vim.diagnostic.severity.INFO] = { "", guifg = "green" }
 diagnostic_map[vim.diagnostic.severity.HINT] = { "", guifg = "blue" }
 
--- use lsp formatting if it's available (and if it's good)
--- otherwise, fall back to null-ls
-local preferred_formatting_clients = { "null-ls" }
-local fallback_formatting_client = "eslint"
+setmetatable(M, {
+  __index = function(t, k)
+    local LazyUtil = require("lazy.core.util")
+    if LazyUtil[k] then
+      return LazyUtil[k]
+    end
+    ---@diagnostic disable-next-line: no-unknown
+    -- t[k] = require("avim.utils." .. k)
+    local t_ok, t_k = pcall(require, "avim.utils." .. k)
+    if not t_ok then
+      t[k] = M[k]
+    else
+      t[k] = t_k
+    end
+    return t[k]
+  end,
+})
 
--- prevent repeated lookups
-local buffer_client_ids = {}
-
+--- Clears old and loads new paths if run under ANONVIM_XXX_DIR environment variable(s).
 M.load_env = function()
   ---@meta overridden to use ANONVIM_XXX_DIR instead, since a lot of plugins call this function interally
   vim.fn.stdpath = function(what)
     if what == "data" then
-      return _G.get_runtime_dir()
+      return M.get_runtime_dir()
     elseif what == "cache" then
-      return _G.get_cache_dir()
+      return M.get_cache_dir()
     elseif what == "state" then
-      return _G.get_state_dir()
+      return M.get_state_dir()
     elseif what == "config" then
-      return _G.get_config_dir()
+      return M.get_config_dir()
     end
     return vim.call("stdpath", what)
   end
@@ -39,34 +55,99 @@ M.load_env = function()
     -- Data
     vim.opt.rtp:remove(M.join_paths(vim.call("stdpath", "data"), "lazy"))
     vim.opt.rtp:remove(M.join_paths(vim.call("stdpath", "data"), "lazy", "lazy.nvim"))
-    vim.opt.rtp:prepend(M.join_paths(_G.get_runtime_dir(), "lazy"))
-    vim.opt.rtp:append(M.join_paths(_G.get_runtime_dir(), "lazy", "lazy.nvim"))
+    vim.opt.rtp:prepend(M.join_paths(M.get_runtime_dir(), "lazy"))
+    vim.opt.rtp:append(M.join_paths(M.get_runtime_dir(), "lazy", "lazy.nvim"))
 
     -- Cache
     vim.opt.rtp:remove(vim.call("stdpath", "cache"))
     vim.opt.rtp:remove(M.join_paths(vim.call("stdpath", "cache"), "after"))
-    vim.opt.rtp:prepend(_G.get_cache_dir())
-    vim.opt.rtp:append(M.join_paths(_G.get_cache_dir(), "after"))
+    vim.opt.rtp:prepend(M.get_cache_dir())
+    vim.opt.rtp:append(M.join_paths(M.get_cache_dir(), "after"))
 
     -- State
     vim.opt.rtp:remove(vim.call("stdpath", "state"))
     vim.opt.rtp:remove(M.join_paths(vim.call("stdpath", "state"), "after"))
-    vim.opt.rtp:prepend(_G.get_state_dir())
-    vim.opt.rtp:append(M.join_paths(_G.get_state_dir(), "after"))
+    vim.opt.rtp:prepend(M.get_state_dir())
+    vim.opt.rtp:append(M.join_paths(M.get_state_dir(), "after"))
 
     -- Config
     vim.opt.rtp:remove(vim.call("stdpath", "config"))
     vim.opt.rtp:remove(M.join_paths(vim.call("stdpath", "config"), "after"))
-    vim.opt.rtp:prepend(_G.get_config_dir())
-    vim.opt.rtp:append(M.join_paths(_G.get_config_dir(), "after"))
+    vim.opt.rtp:prepend(M.get_config_dir())
+    vim.opt.rtp:append(M.join_paths(M.get_config_dir(), "after"))
     -- TODO: we need something like this: vim.opt.packpath = vim.opt.rtp
 
     vim.cmd([[let &packpath = &runtimepath]])
     -- add mason binaries to path
-    vim.env.PATH = vim.env.PATH .. (is_windows and ";" or ":") .. _G.get_runtime_dir() .. "/mason/bin"
+    vim.env.PATH = vim.env.PATH .. (is_windows and ";" or ":") .. M.get_runtime_dir() .. "/mason/bin"
     vim.env.MYVIMRC = _G.get_avim_base_dir() .. "/init.lua"
     -- vim.v.progpath = utils.join_paths(vim.env.HOME, ".local", "bin", "avim")
   end
+end
+
+---Get the full path to `$ANONVIM_RUNTIME_DIR`
+---@return string
+function M.get_runtime_dir()
+  local avim_runtime_dir = os.getenv("ANONVIM_RUNTIME_DIR")
+  if not avim_runtime_dir then
+    -- when nvim is used directly
+    return vim.call("stdpath", "data")
+  end
+  return avim_runtime_dir
+end
+
+---Get the full path to `$ANONVIM_CONFIG_DIR`
+---@return string
+function M.get_config_dir()
+  local avim_config_dir = os.getenv("ANONVIM_CONFIG_DIR")
+  if not avim_config_dir then
+    return vim.call("stdpath", "config")
+  end
+  return avim_config_dir
+end
+
+---Get the full path to `$ANONVIM_CACHE_DIR`
+---@return string
+function M.get_cache_dir()
+  local avim_cache_dir = os.getenv("ANONVIM_CACHE_DIR")
+  if not avim_cache_dir then
+    return vim.call("stdpath", "cache")
+  end
+  return avim_cache_dir
+end
+
+---Get the full path to `$ANONVIM_CACHE_DIR`
+---@return string
+function M.get_state_dir()
+  local avim_state_dir = os.getenv("ANONVIM_STATE_DIR")
+  if not avim_state_dir then
+    return vim.call("stdpath", "state")
+  end
+  return avim_state_dir
+end
+
+---@param name string
+---@return string
+function M.normname(name)
+  local ret = name:lower():gsub("^n?vim%-", ""):gsub("%.n?vim$", ""):gsub("%.lua", ""):gsub("[^a-z]+", "")
+  return ret
+end
+
+---@return string
+function M.norm(path)
+  if path:sub(1, 1) == "~" then
+    local home = vim.loop.os_homedir()
+    if home:sub(-1) == "\\" or home:sub(-1) == "/" then
+      home = home:sub(1, -2)
+    end
+    path = home .. path:sub(2)
+  end
+  path = path:gsub("\\", "/"):gsub("/+", "/")
+  return path:sub(-1) == "/" and path:sub(1, -2) or path
+end
+
+function M.is_win()
+  return vim.loop.os_uname().sysname:find("Windows") ~= nil
 end
 
 --- Merges two provided tables.
@@ -94,7 +175,6 @@ M.map = function(mode, keymap, command, opts)
     noremap = true, -- use `noremap` when creating keymaps
     nowait = true, -- use `nowait` when creating keymaps
   }, opts)
-  -- TODO: Check for duplicates
   table.insert(_G.avim.mappings, { mode, keymap, command, opts })
   local ok, wk = pcall(require, "which-key")
   if ok then
@@ -116,197 +196,6 @@ M.map = function(mode, keymap, command, opts)
         vim.keymap.set(mode, keymap, command, opts)
       end
     end
-  end
-end
-
---- Gets a path to a package in the Mason registry.
---- Prefer this to `get_package`, since the package might not always be
---- available yet and trigger errors.
----@param pkg string
----@param path? string
----@param opts? { warn?: boolean }
-M.get_pkg_path = function(pkg, path, opts)
-  pcall(require, "mason") -- make sure Mason is loaded. Will fail when generating docs
-  local root = vim.env.MASON or (vim.fn.stdpath("data") .. "/mason")
-  opts = opts or {}
-  opts.warn = opts.warn == nil and true or opts.warn
-  path = path or ""
-  local ret = root .. "/packages/" .. pkg .. "/" .. path
-  if opts.warn and not vim.loop.fs_stat(ret) and not require("lazy.core.config").headless() then
-    M.warn(
-      ("Mason package path not found for **%s**:\n- `%s`\nYou may need to force update the package."):format(pkg, path)
-    )
-  end
-  return ret
-end
-
-M.move_to_file_refactor = function(client, buffer)
-  client.commands["_typescript.moveToFileRefactoring"] = function(command, ctx)
-    ---@type string, string, lsp.Range
-    local action, uri, range = unpack(command.arguments)
-
-    local function move(newf)
-      client.request("workspace/executeCommand", {
-        command = command.command,
-        arguments = { action, uri, range, newf },
-      })
-    end
-
-    local fname = vim.uri_to_fname(uri)
-    client.request("workspace/executeCommand", {
-      command = "typescript.tsserverRequest",
-      arguments = {
-        "getMoveToRefactoringFileSuggestions",
-        {
-          file = fname,
-          startLine = range.start.line + 1,
-          startOffset = range.start.character + 1,
-          endLine = range["end"].line + 1,
-          endOffset = range["end"].character + 1,
-        },
-      },
-    }, function(_, result)
-      ---@type string[]
-      local files = result.body.files
-      table.insert(files, 1, "Enter new path...")
-      vim.ui.select(files, {
-        prompt = "Select move destination:",
-        format_item = function(f)
-          return vim.fn.fnamemodify(f, ":~:.")
-        end,
-      }, function(f)
-        if f and f:find("^Enter new path") then
-          vim.ui.input({
-            prompt = "Enter move destination:",
-            default = vim.fn.fnamemodify(fname, ":h") .. "/",
-            completion = "file",
-          }, function(newf)
-            return newf and move(newf)
-          end)
-        elseif f then
-          move(f)
-        end
-      end)
-    end)
-  end
-end
-
----@alias lsp.Client.filter {id?: number, bufnr?: number, name?: string, method?: string, filter?:fun(client: lsp.Client):boolean}
-
----@param opts? lsp.Client.filter
-M.get_clients = function(opts)
-  local ret = {} ---@type vim.lsp.Client[]
-  if vim.lsp.get_clients then
-    ret = vim.lsp.get_clients(opts)
-  else
-    ---@diagnostic disable-next-line: deprecated
-    ret = vim.lsp.get_active_clients(opts)
-    if opts and opts.method then
-      ---@param client vim.lsp.Client
-      ret = vim.tbl_filter(function(client)
-        return client.supports_method(opts.method, { bufnr = opts.bufnr })
-      end, ret)
-    end
-  end
-  return opts and opts.filter and vim.tbl_filter(opts.filter, ret) or ret
-end
-
----@param method string|string[]
-M.lsp_has = function(buffer, method)
-  if type(method) == "table" then
-    for _, m in ipairs(method) do
-      if M.lsp_has(buffer, m) then
-        return true
-      end
-    end
-    return false
-  end
-  method = method:find("/") and method or "textDocument/" .. method
-  local clients = M.get_clients({ bufnr = buffer })
-  for _, client in ipairs(clients) do
-    if client.supports_method(method) then
-      return true
-    end
-  end
-  return false
-end
-
----@class LspCommand: lsp.ExecuteCommandParams
----@field open? boolean
----@field handler? lsp.Handler
-
----@param opts LspCommand
-M.lsp_execute = function(opts)
-  local params = {
-    command = opts.command,
-    arguments = opts.arguments,
-  }
-  if opts.open then
-    require("trouble").open({
-      mode = "lsp_command",
-      params = params,
-    })
-  else
-    return vim.lsp.buf_request(0, "workspace/executeCommand", params, opts.handler)
-  end
-end
-
-M.lsp_action = setmetatable({}, {
-  __index = function(_, action)
-    return function()
-      vim.lsp.buf.code_action({
-        apply = true,
-        context = {
-          only = { action },
-          diagnostics = {},
-        },
-      })
-    end
-  end,
-})
-
-M.format = function(bufnr)
-  bufnr = tonumber(bufnr) or api.nvim_get_current_buf()
-
-  local selected_client
-  if buffer_client_ids[bufnr] then
-    selected_client = lsp.get_client_by_id(buffer_client_ids[bufnr])
-  else
-    for _, client in ipairs(M.get_clients({ buffer = bufnr })) do
-      if vim.tbl_contains(preferred_formatting_clients, client.name) then
-        selected_client = client
-        break
-      end
-
-      if client.name == fallback_formatting_client then
-        selected_client = client
-      end
-    end
-  end
-
-  if not selected_client then
-    return
-  end
-
-  buffer_client_ids[bufnr] = selected_client.id
-
-  local params = lsp.util.make_formatting_params()
-  local res, err = selected_client.request_sync("textDocument/formatting", params, 4500, bufnr)
-  if err then
-    local err_msg = type(err) == "string" and err or err.message
-    vim.notify("Formatting: " .. err_msg, vim.log.levels.WARN)
-    return
-  end
-
-  -- if not api.nvim_buf_is_loaded(bufnr) or api.nvim_buf_get_option(bufnr, "modified") then
-  --   return
-  -- end
-
-  if res and res.result then
-    lsp.util.apply_text_edits(res.result, bufnr, selected_client.offset_encoding or "utf-16")
-    api.nvim_buf_call(bufnr, function()
-      vim.cmd("silent noautocmd update")
-    end)
   end
 end
 
@@ -360,14 +249,6 @@ M.toggle_windows_dim = function()
     if id ~= currentWindowId and not api.nvim_win_get_config(id).relative ~= "" then
       pcall(fn.matchadd, "BufDimText", ".", 200, id, { window = id })
     end
-  end
-end
-
-M.peek_or_hover = function()
-  local winid = require("ufo").peekFoldedLinesUnderCursor()
-  if not winid then
-    -- vim.lsp.buf.hover()
-    require("hover").hover()
   end
 end
 
@@ -499,14 +380,6 @@ M.maximize_window = function()
   end
 end
 
--- For Autocmd
-M.auto_maximize_window = function()
-  if M.disableAutoMaximize or vim.bo.filetype == "toggleterm" or windowIsCf() then
-    return
-  end
-  M.maximize_window()
-end
-
 M.close_buffer = function(bufnr, force)
   if force == nil then
     force = false
@@ -583,7 +456,7 @@ end
 -- @param opts table of nvim-notify options to use (:help notify-options)
 function M.notify(msg, type, opts)
   vim.schedule(function()
-    vim.notify(msg, type, M.extend_tbl({ title = "AnoNvim" }, opts))
+    vim.notify(msg, type, vim.tbl_extend("force", { title = "AnoNvim" }, opts))
   end)
 end
 _G.avim.notify = M.notify

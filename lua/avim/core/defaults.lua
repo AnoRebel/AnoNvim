@@ -1,4 +1,3 @@
-local utils = require("avim.utils")
 local M = {}
 
 M.version = "v2.0.0"
@@ -10,58 +9,6 @@ M.ui = {
   background = "dark",
   fonts = "JetBrainsMono NF:h10",
   list = false,
-}
-
-M.features = {
-  ai = true,
-  api = true,
-  animate = true,
-  dashboard = true,
-  bufferline = true,
-  buffer_dim = false,
-  cost = true,
-  collab = false,
-  -- cmp = true,
-  comment = true,
-  database = true,
-  dynamic_theme = true,
-  explorer = true,
-  extras = false,
-  formatting = true,
-  git = true,
-  indent = true,
-  indent_alt = false,
-  inline = true,
-  incline = true,
-  kitty = true,
-  flutter = false,
-  fugit = false,
-  -- lsp = true,
-  lualine = true,
-  multicursor = true,
-  navic = false,
-  neogit = true,
-  notify = true,
-  notes = true,
-  outline = false,
-  peek_md = true,
-  precognition = false,
-  remote = false,
-  repl = false,
-  search = true,
-  session = true,
-  screensaver = false,
-  screenshot = false,
-  scrollbar = true,
-  -- telescope = true,
-  terminal = true,
-  tests = false,
-  which_key = true,
-  winbar = true,
-  winbar_alt = false,
-  dap = false,
-  icons = true,
-  -- treesitter = true,
 }
 
 M.servers = {
@@ -103,6 +50,7 @@ M.packages = {
   "goimports-reviser",
   "golines",
   "gomodifytags",
+  "iferr",
   "impl",
   "jq",
   "selene",
@@ -197,7 +145,7 @@ M.treesitter = {
   "yuck",
 }
 
-M.tools = utils.table_merge(M.packages, M.servers)
+M.tools = require("avim.utils").table_merge(M.packages, M.servers)
 
 M.log = {
   ---@usage can be { "trace", "debug", "info", "warn", "error", "fatal" },
@@ -218,8 +166,8 @@ M.log = {
 }
 
 M.options = {
-  undodir = utils.join_paths(_G.get_state_dir(), "undo"),
-  sessiondir = utils.join_paths(_G.get_state_dir(), "sessions"),
+  undodir = require("avim.utils").join_paths(require("avim.utils").get_state_dir(), "undo"),
+  sessiondir = require("avim.utils").join_paths(require("avim.utils").get_state_dir(), "sessions"),
   peek = {
     max_height = 15,
     max_width = 30,

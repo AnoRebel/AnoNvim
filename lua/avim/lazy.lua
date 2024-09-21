@@ -5,20 +5,19 @@ local Log = require("avim.core.log")
 local utils = require("avim.utils")
 
 local options = {
-  root = utils.join_paths(_G.get_runtime_dir(), "lazy"), -- directory where plugins will be installed
+  root = utils.join_paths(utils.get_runtime_dir(), "lazy"), -- directory where plugins will be installed
   defaults = {
     lazy = true, -- should plugins be lazy-loaded?
-    -- version = nil,
-    version = "*", -- enable this to try installing the latest stable versions of plugins
   },
-  lockfile = utils.join_paths(_G.get_config_dir(), "lazy-lock.json"), -- lockfile generated after running update.
+  lockfile = utils.join_paths(utils.get_config_dir(), "lazy-lock.json"), -- lockfile generated after running update.
   concurrency = nil, ---@type number limit the maximum amount of concurrent tasks
   git = {
     timeout = 300,
   },
   install = {
+    missing = true,
     -- try to load one of these colorschemes when starting an installation during startup
-    colorscheme = { "tokyodark", "kanagawa", "rose-pine", "catppuccin" },
+    colorscheme = { "habamax", "tokyodark" },
   },
   ui = {
     -- The border to use for the UI window. Accepts same border values as |nvim_open_win()|.
@@ -63,61 +62,34 @@ local options = {
     notify = false, -- get a notification when new updates are found
     frequency = 14400, -- check for updates every 4 hours
   },
+  readme = {
+    root = require("avim.utils").join_paths(utils.get_runtime_dir(), "lazy", "readme"),
+  },
   performance = {
-    reset_packpath = true, -- reset the package path to improve startup time
+    -- reset_packpath = true, -- reset the package path to improve startup time
     rtp = {
-      reset = true, -- reset the runtime path to $VIMRUNTIME and your config directory
-      ---@type string[]
-      paths = {
-        _G.get_avim_base_dir(),
-        utils.join_paths(_G.get_avim_base_dir(), "after"),
-        -- Data
-        utils.join_paths(_G.get_runtime_dir(), "lazy"),
-        utils.join_paths(_G.get_runtime_dir(), "lazy", "lazy.nvim"),
-        -- Cache
-        _G.get_cache_dir(),
-        utils.join_paths(_G.get_cache_dir(), "after"),
-        -- State
-        _G.get_state_dir(),
-        utils.join_paths(_G.get_state_dir(), "after"),
-        -- Config
-        _G.get_config_dir(),
-        utils.join_paths(_G.get_config_dir(), "after"),
-        -- Lua 5.1 Luarocks
-        vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?/init.lua",
-        vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?.lua",
-        vim.fn.expand("$HOME") .. "/.local/share/mise/shims",
-      }, -- add any custom paths here that you want to indluce in the rtp
-      ---@type string[] list any plugins you want to disable here
-      disabled_plugins = {
-        "2html_plugin",
-        "getscript",
-        "getscriptPlugin",
-        "gzip",
-        "logipat",
-        "netrw",
-        "netrwPlugin",
-        "netrwSettings",
-        "netrwFileHandlers",
-        "matchit",
-        "tar",
-        "tarPlugin",
-        "rrhelper",
-        "spellfile_plugin",
-        "vimball",
-        "vimballPlugin",
-        "zip",
-        "zipPlugin",
-        -- "gzip",
-        -- "matchit",
-        -- "matchparen",
-        -- "netrwPlugin",
-        -- "tarPlugin",
-        -- "tohtml",
-        -- "tutor",
-        -- "zipPlugin",
-      },
+      reset = false, -- reset the runtime path to $VIMRUNTIME and your config directory
     },
+    paths = {
+      _G.get_avim_base_dir(),
+      utils.join_paths(_G.get_avim_base_dir(), "after"),
+      -- Data
+      utils.join_paths(utils.get_runtime_dir(), "lazy"),
+      utils.join_paths(utils.get_runtime_dir(), "lazy", "lazy.nvim"),
+      -- Cache
+      utils.get_cache_dir(),
+      utils.join_paths(utils.get_cache_dir(), "after"),
+      -- State
+      utils.get_state_dir(),
+      utils.join_paths(utils.get_state_dir(), "after"),
+      -- Config
+      utils.get_config_dir(),
+      utils.join_paths(utils.get_config_dir(), "after"),
+      -- Lua 5.1 Luarocks
+      vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?/init.lua",
+      vim.fn.expand("$HOME") .. "/.luarocks/share/lua/5.1/?.lua",
+      vim.fn.expand("$HOME") .. "/.local/share/mise/shims",
+    }, -- add any custom paths here that you want to indluce in the rtp
   },
 }
 
@@ -130,8 +102,8 @@ end
 ---Initialize lazy and prepare for installing plugins
 ---@return nil
 function M:init()
-  local lazypath = utils.join_paths(_G.get_runtime_dir(), "lazy", "lazy.nvim")
-  if not vim.loop.fs_stat(lazypath) then
+  local lazypath = utils.join_paths(utils.get_runtime_dir(), "lazy", "lazy.nvim")
+  if not vim.uv.fs_stat(lazypath) then
     local output = vim.fn.system({
       "git",
       "clone",
@@ -156,7 +128,7 @@ function M:init()
         vim.tbl_map(function(module)
           pcall(require, module)
         end, { "nvim-treesitter", "mason" })
-        require("avim.utils").notify("Mason is installing packages if configured, check status with :Mason")
+        utils.notify("Mason is installing packages if configured, check status with :Mason")
       end,
     })
   end

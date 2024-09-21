@@ -154,7 +154,7 @@ end
 ---Retrieves the path of the logfile
 ---@return string path of the logfile
 function Log:get_path()
-  return string.format("%s/%s.log", _G.get_cache_dir(), "avim")
+  return string.format("%s/%s.log", require("avim.utils").get_cache_dir(), "avim")
 end
 
 ---Add a log entry at TRACE level

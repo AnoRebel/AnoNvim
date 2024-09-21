@@ -59,10 +59,10 @@ local _load_theme = function(name, loader)
   if loader == nil then
     loader = function()
       vim.cmd("colorscheme " .. prev_theme)
-      _G.avim.theme = prev_theme
+      -- _G.avim.theme = name
     end
   end
-  call(loader, {}, "Failed to load theme " .. name, "avim.theme_manager")
+  call(loader, {}, "Failed to load theme " .. name, "avim.utils.theme_picker")
 end
 
 ---Load specified theme
@@ -75,6 +75,7 @@ local load_theme = function(theme, notify)
   vim.cmd("colorscheme default")
   _load_theme(theme, function()
     vim.cmd("colorscheme " .. theme)
+    _G.avim.theme = theme
     if notify then
       vim.notify("Switched to theme " .. theme, vim.log.levels.INFO, {
         title = "Theme Chooser",
@@ -128,7 +129,7 @@ return function()
 
   local function reset()
     if needs_restore then
-      load_theme(prev_theme, false)
+      _load_theme(prev_theme, false)
       needs_restore = false
     end
     if close_demo_win and demo_win ~= nil then
@@ -149,7 +150,7 @@ return function()
       T.actions.select_default:replace(function(prompt_bufnr)
         local selection = require("telescope.actions.state").get_selected_entry()
         if selection == nil then
-          T.utils.__warn_no_selection("avim.theme_selector")
+          T.utils.__warn_no_selection("avim.utils.theme_picker")
           T.actions.close(prompt_bufnr)
           reset()
           return
@@ -158,7 +159,6 @@ return function()
         needs_restore = false
         T.actions.close(prompt_bufnr)
         load_theme(selection.value)
-        reset()
       end)
 
       return true

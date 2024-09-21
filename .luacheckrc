@@ -18,6 +18,7 @@ stds.nvim = {
     "jit",
     "os",
     "vim",
+    "avim",
     "join_paths",
     "get_runtime_dir",
     "get_config_dir",

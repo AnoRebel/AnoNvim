@@ -10,6 +10,9 @@ end
 
 vim.uv = vim.uv or vim.loop
 require("avim.core"):init(base_dir)
+require("avim.core.settings")
+require("avim.lazy"):init()
+require("avim.lazy").load()
 
 local Log = require("avim.core.log")
 Log:configure_notifications(vim.notify)

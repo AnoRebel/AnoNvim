@@ -12,4 +12,4 @@ export ANONVIM_CACHE_DIR="${ANONVIM_CACHE_DIR:-"$XDG_CACHE_HOME/avim"}"
 
 export ANONVIM_BASE_DIR="${ANONVIM_BASE_DIR:-$ANONVIM_RUNTIME_DIR/avim}"
 
-exec nvim -u "$ANONVIM_BASE_DIR/init.lua" "$@"
+exec -a "$NVIM_APPNAME" nvim -u "$ANONVIM_BASE_DIR/init.lua" "$@"
