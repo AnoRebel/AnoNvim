@@ -1,10 +1,8 @@
-local features = require("avim.core.defaults").features
-
 -- vim.g.instant_username = "anorebel"
 return {
   {
     "jbyuki/instant.nvim",
-    enabled = features.collab,
+    enabled = false,
     cmd = {
       "InstantStartSingle",
       "InstantStartSession",
@@ -20,7 +18,7 @@ return {
   },
   {
     "chipsenkbeil/distant.nvim", -- NOTE: Requires `cargo install distant`
-    enabled = features.remote,
+    enabled = false,
     branch = "v0.3",
     cmd = {
       "Distant",

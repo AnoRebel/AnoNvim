@@ -1,29 +1,8 @@
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 -- Spectre
 -- run command :Spectre
-utils.map("n", "<leader>s", nil, { name = "󰛔 Search and Replace" })
-utils.map("n", "<leader>ss", "<cmd>lua require('spectre').open()<CR>", { desc = "[Spectre] Open" })
-utils.map(
-    { "n", "v" },
-    "<leader>sw",
-    "<cmd>lua require('spectre').open_visual({select_word=true})<CR>",
-    { desc = "[Spectre] Open Visual" }
-)
-utils.map(
-    "n",
-    "<leader>sp",
-    "viw<cmd>lua require('spectre').open_file_search()<CR>",
-    { desc = "[Spectre] File Search" }
-)
-utils.map("v", "<leader>sw", "<cmd>lua require('spectre').open_visual()<CR>", { desc = "[Spectre] Open Visual" })
-
--- Muren Search
--- utils.map("n", "<leader>so", "<cmd>MurenOpen<CR>", { desc = "[Muren] Open" })
--- utils.map("n", "<leader>sc", "<cmd>MurenClose<CR>", { desc = "[Muren] Close" })
-utils.map("n", "<leader>st", "<cmd>MurenToggle<CR>", { desc = "[Muren] Toggle" })
-utils.map("n", "<leader>sf", "<cmd>MurenFresh<CR>", { desc = "[Muren] Fresh Search" })
-utils.map("n", "<leader>su", "<cmd>MurenUnique<CR>", { desc = "[Muren] Unique Search" })
+utilities.map("n", "<leader>s", nil, { name = "󰛔 Search and Replace" })
 
 return {
     {
@@ -33,6 +12,21 @@ return {
         opts = {
             live_update = true, -- auto execute search again when you write to any file in vim
             open_cmd = "noswapfile vnew",
+        },
+        keys = {
+            { "<leader>ss", "<cmd>lua require('spectre').open()<CR>",        desc = "[Spectre] Open" },
+            {
+                "<leader>sw",
+                "<cmd>lua require('spectre').open_visual({select_word=true})<CR>",
+                mode = { "v" },
+                { desc = "[Spectre] Open Visual" }
+            },
+            {
+                "<leader>sp",
+                "viw<cmd>lua require('spectre').open_file_search()<CR>",
+                desc = "[Spectre] File Search"
+            },
+            { "<leader>sw", "<cmd>lua require('spectre').open_visual()<CR>", mode = { "v" },         desc = "[Spectre] Open Visual" },
         },
     },
     {
@@ -44,6 +38,11 @@ return {
             "MurenToggle",
             "MurenFresh",
             "MurenUnique",
+        },
+        keys = {
+            { "<leader>st", "<cmd>MurenToggle<CR>", desc = "[Muren] Toggle" },
+            { "<leader>sf", "<cmd>MurenFresh<CR>",  desc = "[Muren] Fresh Search" },
+            { "<leader>su", "<cmd>MurenUnique<CR>", desc = "[Muren] Unique Search" },
         },
     },
     {

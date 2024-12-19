@@ -4,9 +4,9 @@ local defaults = require("avim.core.defaults")
 vim.g.matchup_matchparen_offscreen = { method = "popup" }
 vim.g.matchup_surround_enabled = 1
 --disable specific module
--- vim.g.matchup_matchparen_enabled = 0
--- vim.g.matchup_motion_enabled = 0
--- vim.g.matchup_text_obj_enabled = 0
+-- vim.g.matchup_matchparen_enabled = 1
+-- vim.g.matchup_motion_enabled = 1
+-- vim.g.matchup_text_obj_enabled = 1
 
 return {
     "nvim-treesitter/nvim-treesitter",
@@ -27,13 +27,14 @@ return {
     end,
     cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
     dependencies = {
+        "nvim-treesitter/nvim-treesitter-textobjects",
         { "mtdl9/vim-log-highlighting",                 ft = { "text", "log" } },
         {
             "romgrk/nvim-treesitter-context",
             opts = {
                 separator = "_",
-                max_lines = 5,    -- 0
-                multiline_threshold = 10, -- 20
+                max_lines = 2,           -- 0
+                multiline_threshold = 5, -- 20
             },
         },
         { "JoosepAlviste/nvim-ts-context-commentstring" },
@@ -42,6 +43,7 @@ return {
     },
     opts = {
         ensure_installed = defaults.treesitter,
+        auto_install = true,
         highlight = {
             enable = true,
             use_languagetree = true,

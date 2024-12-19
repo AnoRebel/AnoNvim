@@ -1,4 +1,4 @@
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 -- Git Messenger
 -- TODO: Needs work
@@ -10,24 +10,12 @@ vim.g.git_messenger_popup_content_margins = false
 -- vim.g.git_messenger_max_popup_width = null
 -- Committia
 vim.g.committia_open_only_vim_starting = 0
--- vim.g.committia_use_singlecolumn = "fallback" -- "always"
 -----------------------------------------------------------------------------
 --- Keymaps
 -----------------------------------------------------------------------------
-utils.map("n", "<leader>g", nil, { name = " Git + DiffView" })
-utils.map("n", "<leader>gl", "<cmd>lua require('toggleterm').lazygit_toggle()<CR>", { desc = "[Git] UI" })
--- utils.map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "[Git] Commits" })
-utils.map("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "[Git] Status" })
--- Git Messenger
-utils.map({ "n", "v" }, "<leader>gm", "<cmd>GitMessenger<CR>", { desc = "[Git] Blame Code" })
-utils.map("n", "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<CR>", { desc = "[Git] Blame Line" })
--- Diffview
-utils.map("n", "<leader>gu", "<cmd>lua require('mini.diff').toggle_overlay()<CR>", { desc = "[Diff] Overlay" })
-utils.map("n", "<leader>go", "<cmd>DiffviewOpen<CR>", { desc = "[Diff] Open" })
-utils.map("n", "<leader>gc", "<cmd>DiffviewClose<CR>", { desc = "[Diff] Close" })
-utils.map("n", "<leader>gr", "<cmd>DiffviewRefresh<CR>", { desc = "[Diff] Refresh" })
-utils.map("n", "<leader>gf", "<cmd>DiffviewToggleFiles<CR>", { desc = "[Diff] Toggle Files" })
-utils.map("n", "<leader>gh", "<cmd>lua require('avim.utils').toggle_diff()<CR>", { desc = "[Diff] Toggle History" })
+utilities.map("n", "<leader>g", nil, { name = " Git + DiffView" })
+-- utilities.map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "[Git] Commits" })
+utilities.map("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "[Git] Status" })
 -----------------------------------------------------------------------------
 
 return {
@@ -61,6 +49,9 @@ return {
                 },
             })
         end,
+        keys = {
+            { "<leader>gu", "<cmd>lua require('mini.diff').toggle_overlay()<CR>", desc = "[Diff] Overlay" },
+        },
     },
     {
         "lewis6991/gitsigns.nvim",
@@ -97,25 +88,8 @@ return {
                 follow_files = true,
             },
         },
-    },
-    {
-        "NeogitOrg/neogit",
-        enabled = false,
-        dependencies = {
-            "nvim-lua/plenary.nvim",  -- required
-            "sindrets/diffview.nvim", -- optional - Diff integration
-
-            -- Only one of these is needed, not both.
-            "nvim-telescope/telescope.nvim", -- optional
-            -- "ibhagwan/fzf-lua",              -- optional
-        },
-        cmd = { "Neogit" },
-        -- config = true,
-        opts = {
-            integrations = {
-                telescope = true,
-                diffview = true,
-            },
+        keys = {
+            { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<CR>", desc = "[Git] Blame Line" },
         },
     },
     {
@@ -158,6 +132,13 @@ return {
                 fold_open = "",
             },
         },
+        keys = {
+            { "<leader>gh", "<cmd>lua require('avim.utilities').toggle_diff()<CR>", desc = "[Diff] Toggle History" },
+            { "<leader>go", "<cmd>DiffviewOpen<CR>",                                desc = "[Diff] Open" },
+            { "<leader>gc", "<cmd>DiffviewClose<CR>",                               desc = "[Diff] Close" },
+            { "<leader>gr", "<cmd>DiffviewRefresh<CR>",                             desc = "[Diff] Refresh" },
+            { "<leader>gf", "<cmd>DiffviewToggleFiles<CR>",                         desc = "[Diff] Toggle Files" },
+        },
     },
     {
         "akinsho/git-conflict.nvim",
@@ -176,5 +157,8 @@ return {
     {
         "rhysd/git-messenger.vim",
         cmd = { "GitMessenger" },
+        keys = {
+            { "<leader>gm", "<cmd>GitMessenger<CR>", mode = { "n", "v" }, desc = "[Git] Blame Code" },
+        },
     },
 }

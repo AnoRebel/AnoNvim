@@ -4,11 +4,6 @@
 # Use Vim standard library
 std = "vim"
 
-# General configuration
-[config]
-# Lua version to target
-lua_version = "5.1" # Neovim uses LuaJIT which is compatible with Lua 5.1
-
 # Rule configurations
 [rules]
 # Allow using global variables (needed for Neovim API)
@@ -28,13 +23,3 @@ empty_if = "warn"              # Warn about empty if statements
 shadowing = "warn"             # Warn about shadowing variables
 undefined_variable = "warn"    # Warn about undefined variables
 unused_variable = "warn"       # Warn about unused variables
-
-# Specific to Neovim development
-# [vim]
-# Define additional Neovim-specific globals
-# globals = [
-    # "vim",        # Neovim API
-    # "assert",     # Lua assert function
-    # "after",      # Module namespace
-    # "avim",       # AnoNvim namespace
-# ]

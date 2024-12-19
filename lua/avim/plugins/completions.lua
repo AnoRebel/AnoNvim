@@ -1,60 +1,59 @@
 local defaults = require("avim.core.defaults")
 local icons = require("avim.icons")
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 local CREATE_UNDO = vim.api.nvim_replace_termcodes("<c-G>u", true, true, true)
 local deps = {
     { "rafamadriz/friendly-snippets" },
     { "saadparwaiz1/cmp_luasnip" },
-    { "L3MON4D3/LuaSnip",                   build = "make install_jsregexp" },
-    { "hrsh7th/cmp-nvim-lua" },
-    { "hrsh7th/cmp-nvim-lsp" },
-    { "hrsh7th/cmp-buffer" },
-    { "hrsh7th/cmp-path" },
-    { "hrsh7th/cmp-cmdline" },
+    { "L3MON4D3/LuaSnip",                              build = "make install_jsregexp" },
+    -- { "hrsh7th/cmp-nvim-lua" },
+    -- { "hrsh7th/cmp-nvim-lsp" },
+    -- { "hrsh7th/cmp-buffer" },
+    -- { "hrsh7th/cmp-cmdline" },
+    -- { "hrsh7th/cmp-path" },
+    --
+    { "iguanacucumber/mag-nvim-lsp",                   name = "cmp-nvim-lsp",          opts = {} },
+    { "iguanacucumber/mag-nvim-lua",                   name = "cmp-nvim-lua" },
+    { "iguanacucumber/mag-buffer",                     name = "cmp-buffer" },
+    { "iguanacucumber/mag-cmdline",                    name = "cmp-cmdline" },
+    { "https://codeberg.org/FelipeLema/cmp-async-path" }, -- better than cmp-path
+    --
     { "lukas-reineke/cmp-under-comparator" },
     { "hrsh7th/cmp-nvim-lsp-signature-help" },
     { "dmitmel/cmp-cmdline-history" },
     {
-        "tzachar/cmp-tabnine",
-        build = "./install.sh",
-        enabled = utils.get_os()[2] ~= "arm",
-    },
-    {
         "Exafunction/codeium.nvim",
         dependencies = {
             "nvim-lua/plenary.nvim",
-            "hrsh7th/nvim-cmp",
+            -- "hrsh7th/nvim-cmp",
+            { "iguanacucumber/magazine.nvim", name = "nvim-cmp", },
         },
         config = function()
             require("codeium").setup({
-                config_path = utils.get_config_dir() .. "/codeium/config.json",
-                bin_path = utils.get_runtime_dir() .. "/codeium/bin",
+                enable_chat = true,
+                enable_cmp_source = true,
+                virtual_text = {
+                    enabled = true,
+                    map_keys = true,
+                    key_bindings = {
+                        -- Accept the current completion.
+                        accept = "<Tab>",
+                        -- Accept the next word.
+                        -- accept_word = false,
+                        -- Accept the next line.
+                        -- accept_line = false,
+                        -- Clear the virtual text.
+                        clear = "<C-e>",
+                        -- Cycle to the next completion.
+                        -- next = "<M-]>",
+                        -- Cycle to the previous completion.
+                        -- prev = "<M-[>",
+                    },
+                },
+                config_path = utilities.get_config_dir() .. "/codeium/config.json",
+                bin_path = utilities.get_runtime_dir() .. "/codeium/bin",
             })
-        end,
-    },
-    {
-        "Exafunction/codeium.vim",
-        event = "BufEnter",
-        config = function()
-            -- Change '<C-g>' here to any keycode you like.
-            utils.map("i", "<A-a>", function()
-                -- NOTE: Hack fix for this mapping always being set to nil
-                -- return vim.fn["codeium#Accept"]()
-                return vim.fn.feedkeys(vim.api.nvim_replace_termcodes(vim.fn["codeium#Accept"](), true, true, true), "")
-            end, { expr = true, silent = true, desc = "Codeium: Accept Suggestion" })
-            utils.map("i", "<A-n>", function()
-                return vim.fn["codeium#CycleCompletions"](1)
-            end, { expr = true, silent = true, desc = "Codeium: Next Suggestion" })
-            utils.map("i", "<A-p>", function()
-                return vim.fn["codeium#CycleCompletions"](-1)
-            end, { expr = true, silent = true, desc = "Codeium: Previous Suggestion" })
-            utils.map("i", "<A-Space>", function()
-                return vim.fn["codeium#Complete"]()
-            end, { expr = true, silent = true, desc = "Codeium: Trigger Suggestions" })
-            utils.map("i", "<A-Bslash>", function()
-                return vim.fn["codeium#Clear"]()
-            end, { expr = true, silent = true, desc = "Codeium: Clear Suggestions" })
         end,
     },
     {
@@ -122,33 +121,34 @@ local sources = {
     { name = "lazydev",                group_index = 0 }, -- set group index to 0 to skip loading LuaLS completions
     { name = "nvim_lsp_signature_help" },
     { name = "nvim_lua" },
-    { name = "path" },
+    { name = "async_path" },
+    -- { name = "path" },
     { name = "codeium" },
     { name = "cmp-dbee" },
-    { name = "cmp_tabnine" }, -- max_item_count = 3
     { name = "buffer",                 keyword_length = 3 },
     { name = "npm",                    keyword_length = 3 },
 }
 local source_mapping = {
-    luasnip = "[SNP]",     -- icons.snippet .. "[SNP]",
-    nvim_lsp = "[LSP]",    -- icons.paragraph .. "[LSP]",
-    lazydev = "[LLS]",     -- icons.bomb .. "[LLS]",
-    nvim_lua = "[LUA]",    -- icons.bomb .. "[LUA]",
-    path = "[PTH]",        -- icons.folderOpen2 .. "[PTH]",
-    buffer = "[BUF]",      -- icons.buffer .. "[BUF]",
-    treesitter = "[TST]",  -- icons.tree .. "[TST]",
-    zsh = "[ZSH]",         -- icons.terminal .. "[ZSH]",
-    npm = "[NPM]",         -- icons.terminal .. "[NPM]",
-    cmp_tabnine = "[TB9]", -- icons.light .. "[TB9]",
-    codeium = "[CODE]",    -- icons.rocket .. "[CODE]",
-    cmp_dbee = "[DBEE]",   -- icons.db .. "[DBEE]",
+    luasnip = "[SNP]",    -- icons.snippet .. "[SNP]",
+    nvim_lsp = "[LSP]",   -- icons.paragraph .. "[LSP]",
+    lazydev = "[LLS]",    -- icons.bomb .. "[LLS]",
+    nvim_lua = "[LUA]",   -- icons.bomb .. "[LUA]",
+    async_path = "[PTH]", -- icons.folderOpen2 .. "[PTH]",
+    -- path = "[PTH]",       -- icons.folderOpen2 .. "[PTH]",
+    buffer = "[BUF]",     -- icons.buffer .. "[BUF]",
+    treesitter = "[TST]", -- icons.tree .. "[TST]",
+    zsh = "[ZSH]",        -- icons.terminal .. "[ZSH]",
+    npm = "[NPM]",        -- icons.terminal .. "[NPM]",
+    codeium = "[CODE]",   -- icons.rocket .. "[CODE]",
+    cmp_dbee = "[DBEE]",  -- icons.db .. "[DBEE]",
 }
 
 return {
     {
-        "hrsh7th/nvim-cmp",
-        -- commit = "b356f2c", -- TODO: Temporary fix
-        version = false,
+        -- "hrsh7th/nvim-cmp",
+        "iguanacucumber/magazine.nvim",
+        name = "nvim-cmp",
+        -- version = false,
         event = "InsertEnter",
         dependencies = deps,
         opts = { auto_brackets = { "python" } },
@@ -163,7 +163,7 @@ return {
                 if ok then
                     return ret
                 end
-                return require("avim.utils.snippet").snippet_preview(input)
+                return require("avim.utilities.snippet").snippet_preview(input)
             end
 
             -- Utils
@@ -199,6 +199,8 @@ return {
             })
             require("luasnip.loaders.from_vscode").lazy_load()
 
+            local compare = require('cmp.config.compare')
+
             local options = {
                 window = {
                     completion = {
@@ -214,7 +216,7 @@ return {
                 snippet = {
                     expand = function(args)
                         -- luasnip.lsp_expand(args.body)
-                        return require("avim.utils.snippet").expand(args.body)
+                        return require("avim.utilities.snippet").expand(args.body)
                     end,
                 },
                 formatting = {
@@ -224,12 +226,6 @@ return {
                         local label = vim_item.abbr
                         local kind = icons.kind_icons[vim_item.kind]
                         local maxwidth = 50
-
-                        if entry.source.name == "cmp_tabnine" then
-                            if entry.completion_item.data ~= nil and entry.completion_item.data.detail ~= nil then
-                                menu = menu .. "[" .. entry.completion_item.data.detail .. "]"
-                            end
-                        end
 
                         vim_item.menu = menu
                         vim_item.kind = string.format("%s", kind)
@@ -246,10 +242,10 @@ return {
                 -- duplicates = {
                 --   buffer = 1,
                 --   path = 1,
+                --   async_path = 1,
                 --   nvim_lsp = 1,
                 --   lazydev = 1,
                 --   luasnip = 1,
-                --   cmp_tabnine = 1,
                 --   codeium = 1,
                 --   supermaven = 1,
                 --   treesitter = 1,
@@ -343,18 +339,17 @@ return {
                 -- don't sort double underscore things first
                 sorting = {
                     comparators = {
-                        require("cmp_tabnine.compare"),
-                        cmp.config.compare.offset,
-                        cmp.config.compare.exact,
-                        cmp.config.compare.score,
-                        -- cmp.config.compare.scopes,
+                        compare.offset,
+                        compare.exact,
+                        compare.score,
+                        -- compare.scopes,
                         require("cmp-under-comparator").under,
-                        cmp.config.compare.recently_used,
-                        cmp.config.compare.locality,
-                        cmp.config.compare.kind,
-                        -- cmp.config.compare.sort_text,
-                        cmp.config.compare.length,
-                        cmp.config.compare.order,
+                        compare.recently_used,
+                        compare.locality,
+                        compare.kind,
+                        -- compare.sort_text,
+                        compare.length,
+                        compare.order,
                     },
                 },
                 view = {
@@ -370,19 +365,6 @@ return {
             }
 
             cmp.setup(options)
-            vim.api.nvim_set_hl(0, "CmpItemKindSupermaven", { fg = "#6CC644" })
-
-            if utils.get_os()[2] ~= "arm" then
-                require("cmp_tabnine.config"):setup({
-                    max_lines = 1000,
-                    max_num_results = 3,
-                    sort = true,
-                    show_prediction_strength = true,
-                    run_on_every_keystroke = true,
-                    snipper_placeholder = "..",
-                    ignored_file_types = {},
-                })
-            end
 
             -- Use buffer source for `/` (if you enabled `native_menu`, this won't work anymore).
             cmp.setup.cmdline("/", {
@@ -399,7 +381,8 @@ return {
                 sources = cmp.config.sources({
                     { name = "nvim_lsp" },
                     { name = "nvim_lua" },
-                    { name = "path" },
+                    { name = "async_path" },
+                    -- { name = "path" },
                     { name = "cmdline_history" },
                 }, {
                     { name = "cmdline" },
@@ -409,7 +392,7 @@ return {
             local cmp_autopairs = require("nvim-autopairs.completion.cmp")
             local auto_pairs = require("nvim-autopairs.completion.handlers")
             cmp.event:on("menu_opened", function(event)
-                require("avim.utils.snippet").add_missing_snippet_docs(event.window)
+                require("avim.utilities.snippet").add_missing_snippet_docs(event.window)
             end)
             cmp.event:on("menu_closed", function()
                 local bufnr = vim.api.nvim_get_current_buf()
@@ -417,7 +400,7 @@ return {
             end)
             cmp.event:on("confirm_done", function(event)
                 if vim.tbl_contains(opts.auto_brackets or {}, vim.bo.filetype) then
-                    require("avim.utils.snippet").auto_brackets(event.entry)
+                    require("avim.utilities.snippet").auto_brackets(event.entry)
                 end
                 cmp_autopairs.on_confirm_done({
                     filetypes = {
@@ -450,17 +433,6 @@ return {
                     },
                 })
             end)
-
-            -- History
-            -- I dont like it for now, until I implement it better
-            -- for _, cmd_type in ipairs({ '?', '@' }) do
-            --   cmp.setup.cmdline(cmd_type, {
-            --     mapping = cmp.mapping.preset.cmdline(),
-            --     sources = {
-            --       { name = 'cmdline_history' },
-            --     },
-            --   })
-            -- end
         end,
     },
 }

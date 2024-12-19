@@ -11,7 +11,7 @@ return {
                 -- Diagnostics
                 b.diagnostics.selene,
                 b.diagnostics.todo_comments.with({
-                    disabled_filetypes = { "NvimTree", "neo-tree" },
+                    disabled_filetypes = { "neo-tree" },
                 }),
                 b.diagnostics.revive,
                 -- Formatting
@@ -34,15 +34,15 @@ return {
                 }),
                 -- b.formatting.prettierd.with { filetypes = { "html", "markdown", "css" } },
                 -- b.formatting.deno_fmt.with({
-                --   condition = function(utils)
-                --     return utils.root_has_file({ "deno.json", "deno.jsonc" })
+                --   condition = function(utilities)
+                --     return utilities.root_has_file({ "deno.json", "deno.jsonc" })
                 --   end,
                 -- }),
                 -- Code Actions
                 b.code_actions.gomodifytags,
                 b.code_actions.impl,
                 b.code_actions.gitsigns.with({
-                    disabled_filetypes = { "NvimTree", "neo-tree" },
+                    disabled_filetypes = { "neo-tree" },
                 }),
                 b.code_actions.refactoring,
                 -- Hover
@@ -67,7 +67,15 @@ return {
                             group = augroup,
                             buffer = bufnr,
                             callback = function()
-                                require("avim.utils").format(bufnr)
+                                -- require("avim.utilities").format(bufnr)
+                                vim.lsp.buf.format({
+                                  bufnr = bufnr,
+                                  timeout_ms = 5000,
+                                  async = false,
+                                  filter = function(clnt)
+                                    return clnt.name == "null-ls"
+                                  end,
+                              })
                             end,
                         })
                     end

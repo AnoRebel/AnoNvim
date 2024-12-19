@@ -1,56 +1,81 @@
-[selene]
-base = "lua51"
-name = "vim"
+# Vim/Neovim API Type Definitions for Selene
+# This file defines types and functions for Selene linting
 
+# Base configuration
+[selene]
+base = "lua51"        # Use Lua 5.1 as base (LuaJIT compatible)
+name = "vim"          # Define this as vim standard library
+
+# Core APIs
 [vim]
-any = true
+any = true           # Allow any vim.* calls
 
 [jit]
-any = true
+any = true           # Allow any jit.* calls
+
+# Test Framework Definitions
+# ------------------------
+
+# Assert Functions
+[[assert.args]]
+type = "bool"        # First argument must be boolean
+description = "Condition to assert"
 
 [[assert.args]]
-type = "bool"
-
-[[assert.args]]
-type = "string"
+type = "string"      # Optional error message
 required = false
-
-[[describe.args]]
-type = "string"
-[[describe.args]]
-type = "function"
-
-[[it.args]]
-type = "string"
-[[it.args]]
-type = "function"
-
-[[before_each.args]]
-type = "function"
-[[after_each.args]]
-type = "function"
+description = "Error message on failure"
 
 [assert.is_not]
-any = true
+any = true           # Allow any type for is_not comparison
 
 [[assert.equals.args]]
-type = "any"
+type = "any"         # Expected value
+description = "Expected value"
+
 [[assert.equals.args]]
-type = "any"
+type = "any"         # Actual value
+description = "Actual value"
+
 [[assert.equals.args]]
-type = "any"
+type = "any"         # Optional error message
 required = false
+description = "Error message on failure"
 
 [[assert.same.args]]
-type = "any"
+type = "any"         # Expected value for deep comparison
+description = "Expected value"
+
 [[assert.same.args]]
-type = "any"
+type = "any"         # Actual value for deep comparison
+description = "Actual value"
 
 [[assert.truthy.args]]
-type = "any"
+type = "any"         # Value to check for truthiness
+description = "Value to verify"
 
-[[assert.spy.args]]
-type = "any"
+# Test Structure
+[[describe.args]]
+type = "string"      # Test suite description
+description = "Description of the test suite"
 
-[[assert.stub.args]]
-type = "any"
+[[describe.args]]
+type = "function"    # Test suite function
+description = "Function containing test cases"
+
+[[it.args]]
+type = "string"      # Individual test description
+description = "Description of the test case"
+
+[[it.args]]
+type = "function"    # Test case function
+description = "Function containing test logic"
+
+# Test Lifecycle
+[[before_each.args]]
+type = "function"    # Setup function
+description = "Function to run before each test"
+
+[[after_each.args]]
+type = "function"    # Cleanup function
+description = "Function to run after each test"

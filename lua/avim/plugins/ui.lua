@@ -1,6 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 -- Maximizer
 vim.g.maximizer_set_default_mapping = 1
@@ -19,207 +19,134 @@ vim.api.nvim_set_hl(0, "IlluminatedWordRead", { link = "Visual" })
 vim.api.nvim_set_hl(0, "IlluminatedWordWrite", { link = "Visual" })
 vim.api.nvim_set_hl(0, "IlluminatedCurWord", { italic = true })
 
-if features.buffer_dim then
-    -- Dim buffer text if inactive
-    vim.api.nvim_set_hl(_G.avim.bufferDimNSId or 0, "BufDimText", { bg = "NONE", fg = "#222222", sp = "#555555" })
-    -- Dim Windows
-    local win_dim, _ = pcall(vim.api.nvim_get_autocmds, { group = "_window_dim" })
-    if not win_dim then
-        augroup("_window_dim", {})
-    end
-    autocmd("WinEnter", {
-        group = "_window_dim",
-        desc = "Dim inactive windows",
-        pattern = "*",
-        command = 'lua require("avim.utils").toggle_windows_dim()',
-        -- callback = utils.toggle_windows_dim,
-    })
+local d_theme, _ = pcall(vim.api.nvim_get_autocmds, { group = "_dynamic_theme" })
+if not d_theme then
+    augroup("_dynamic_theme", { clear = true })
 end
+autocmd({ "VimEnter", "VimResume" }, {
+    group = "_dynamic_theme",
+    desc = "Sets up a theme according to time of day",
+    pattern = "*",
+    callback = function()
+        local _time = os.date("*t")
+        if (_time.hour >= 21 and _time.hour < 24) or (_time.hour >= 0 and _time.hour < 1) then
+            vim.cmd([[colorscheme catppuccin]])
+            _G.avim.theme = vim.g.colors_name
+        elseif (_time.hour >= 16 and _time.hour < 21) or (_time.hour >= 0 and _time.hour < 1) then
+            vim.cmd([[colorscheme rose-pine]])
+            _G.avim.theme = vim.g.colors_name
+        elseif _time.hour >= 1 and _time.hour < 5 then
+            vim.cmd([[colorscheme kanagawa]])
+            _G.avim.theme = vim.g.colors_name
+        elseif _time.hour >= 5 and _time.hour < 11 then
+            vim.cmd([[colorscheme tokyodark]])
+            _G.avim.theme = vim.g.colors_name
+        elseif _time.hour >= 11 and _time.hour < 16 then
+            vim.cmd([[colorscheme oxocarbon]])
+            _G.avim.theme = vim.g.colors_name
+        else
+            vim.cmd([[colorscheme tokyodark]])
+            _G.avim.theme = vim.g.colors_name
+        end
+    end,
+})
 
-if features.dynamic_theme then
-    local d_theme, _ = pcall(vim.api.nvim_get_autocmds, { group = "_dynamic_theme" })
-    if not d_theme then
-        augroup("_dynamic_theme", { clear = true })
-    end
-    autocmd({ "VimEnter", "VimResume" }, {
-        group = "_dynamic_theme",
-        desc = "Sets up a theme according to time of day",
-        pattern = "*",
-        callback = function()
-            local _time = os.date("*t")
-            if (_time.hour >= 21 and _time.hour < 24) or (_time.hour >= 0 and _time.hour < 1) then
-                vim.cmd([[colorscheme catppuccin]])
-                _G.avim.theme = vim.g.colors_name
-            elseif (_time.hour >= 16 and _time.hour < 21) or (_time.hour >= 0 and _time.hour < 1) then
-                vim.cmd([[colorscheme rose-pine]])
-                _G.avim.theme = vim.g.colors_name
-            elseif _time.hour >= 1 and _time.hour < 5 then
-                vim.cmd([[colorscheme kanagawa]])
-                _G.avim.theme = vim.g.colors_name
-            elseif _time.hour >= 5 and _time.hour < 11 then
-                vim.cmd([[colorscheme tokyodark]])
-                _G.avim.theme = vim.g.colors_name
-            elseif _time.hour >= 11 and _time.hour < 16 then
-                vim.cmd([[colorscheme oxocarbon]])
-                _G.avim.theme = vim.g.colors_name
-            else
-                vim.cmd([[colorscheme tokyodark]])
-                _G.avim.theme = vim.g.colors_name
-            end
-        end,
-    })
-else
-    vim.cmd([[colorscheme tokyodark]])
-    _G.avim.theme = vim.g.colors_name
-end
-
-if features.kitty then
+if false then
     -- recommended mappings
     -- resizing splits
     -- these keymaps will also accept a range,
     -- for example `10<A-h>` will `resize_left` by `(10 * config.default_amount)`
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<A-Left>",
         '<cmd>lua require("smart-splits").resize_left()<CR>',
         { desc = "Resize Window Left" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<A-Down>",
         '<cmd>lua require("smart-splits").resize_down()<CR>',
         { desc = "Resize Window Down" }
     )
-    utils.map({ "n", "v" }, "<A-Up>", '<cmd>lua require("smart-splits").resize_up()<CR>', { desc = "Resize Window Up" })
-    utils.map(
+    utilities.map({ "n", "v" }, "<A-Up>", '<cmd>lua require("smart-splits").resize_up()<CR>',
+        { desc = "Resize Window Up" })
+    utilities.map(
         { "n", "v" },
         "<A-Right>",
         '<cmd>lua require("smart-splits").resize_right()<CR>',
         { desc = "Resize Window Right" }
     )
     -- moving between splits
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-h>",
         '<cmd>lua require("smart-splits").move_cursor_left()<CR>',
         { desc = "Move to Left Window" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-j>",
         '<cmd>lua require("smart-splits").move_cursor_down()<CR>',
         { desc = "Move to Bottom Window" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-k>",
         '<cmd>lua require("smart-splits").move_cursor_up()<CR>',
         { desc = "Move to Top Window" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-l>",
         '<cmd>lua require("smart-splits").move_cursor_right()<CR>',
         { desc = "Move to Right Window" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-\\>",
         '<cmd>lua require("smart-splits").move_cursor_previous()<CR>',
         { desc = "Move to Previous Window" }
     )
     -- swapping buffers between windows
-    utils.map({ "n", "v" }, "<leader><leader>", nil, { name = "󰓡 Swap Windows" })
-    utils.map(
+    utilities.map({ "n", "v" }, "<leader><leader>", nil, { name = "󰓡 Swap Windows" })
+    utilities.map(
         { "n", "v" },
         "<leader><leader>h",
         '<cmd>lua require("smart-splits").swap_buf_left()<CR>',
         { desc = "Swap Window Left" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<leader><leader>j",
         '<cmd>lua require("smart-splits").swap_buf_down()<CR>',
         { desc = "Swap Window Down" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<leader><leader>k",
         '<cmd>lua require("smart-splits").swap_buf_up()<CR>',
         { desc = "Swap Window Up" }
     )
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<leader><leader>l",
         '<cmd>lua require("smart-splits").swap_buf_right()<CR>',
         { desc = "Swap Window Right" }
     )
 end
-autocmd({ "FocusGained", "TermClose", "TermLeave" }, { command = "checktime" })
--- Highlight yanked text
-local yankin, _ = pcall(vim.api.nvim_get_autocmds, { group = "_general_settings" })
-if not yankin then
-    augroup("_general_settings", {})
-end
-autocmd("TextYankPost", {
-    group = "_general_settings",
-    pattern = "*",
-    desc = "Highlight text on yank",
-    callback = function()
-        vim.highlight.on_yank({ higroup = "Search", timeout = 200 })
-    end,
-})
-local bcon, _ = pcall(vim.api.nvim_get_autocmds, { group = "_beacon_cursor_line" })
-if not bcon then
-    augroup("_beacon_cursor_line", {})
-end
-autocmd("WinEnter", {
-    group = "_beacon_cursor_line",
-    pattern = "*",
-    desc = "Hide cursor line on inactive windows",
-    command = "setlocal cursorline",
-})
-autocmd("WinLeave", {
-    group = "_beacon_cursor_line",
-    pattern = "*",
-    desc = "Hide cursor line on inactive windows",
-    command = "setlocal nocursorline",
-})
-
 -------------------------------------------------------------------------------
 --- Keymaps
 -------------------------------------------------------------------------------
 -- Window Move
-utils.map("n", "<A-m>", nil, { name = " Window Movement" })
-utils.map("n", "<A-m><Tab>", "<CMD>WinShift swap<CR>", { desc = "Swap Windows", noremap = true })
-utils.map("n", "<A-m>h", "<CMD>WinShift left<CR>", { desc = "Shift Window Left", noremap = true })
-utils.map("n", "<A-m><Left>", "<CMD>WinShift left<CR>", { desc = "Shift Window Left", noremap = true })
-utils.map("n", "<A-m>j", "<CMD>WinShift down<CR>", { desc = "Shift Window Down", noremap = true })
-utils.map("n", "<A-m><Down>", "<CMD>WinShift down<CR>", { desc = "Shift Window Down", noremap = true })
-utils.map("n", "<A-m>k", "<CMD>WinShift up<CR>", { desc = "Shift Window Up", noremap = true })
-utils.map("n", "<A-m><Up>", "<CMD>WinShift up<CR>", { desc = "Shift Window Up", noremap = true })
-utils.map("n", "<A-m>l", "<CMD>WinShift right<CR>", { desc = "Shift Window Right", noremap = true })
-utils.map("n", "<A-m><Right>", "<CMD>WinShift right<CR>", { desc = "Shift Window Right", noremap = true })
+utilities.map("n", "<A-m>", nil, { name = " Window Movement" })
 -- Illuminate
-utils.map(
-    "n",
-    "<A-n>",
-    '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>',
-    { desc = "Next Illuminated Reference" }
-)
-utils.map(
-    "n",
-    "<A-p>",
-    '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>',
-    { desc = "Previous Illuminated Reference" }
-)
 -------------------------------------------------------------------------------
 
 return {
     {
         "MunifTanjim/nui.nvim",
         config = function()
-            require("avim.utils.ui").load()
+            require("avim.utilities.ui").load()
         end,
     },
     {
@@ -354,8 +281,8 @@ return {
         config = function()
             local alpha = require("alpha")
             local fortune = require("alpha.fortune")
-            local greeting = utils.get_greeting("Rebel")
-            local banner = require("avim.utils.banners")["random"]
+            local greeting = utilities.get_greeting("Rebel")
+            local banner = require("avim.utilities.banners")["random"]
 
             --- @param sc string
             --- @param txt string
@@ -535,7 +462,6 @@ return {
                     margin = 5,
                 },
             })
-            utils.map({ "n", "v", "x" }, "<leader>h", "<cmd>Alpha<CR>", { desc = " Dashboard" })
             -- Disable statusline in dashboard
             ---- Hmmm, with winbar, i doubt that i need this though 🤔
             -- https://github.com/goolord/alpha-nvim/issues/42
@@ -551,9 +477,26 @@ return {
                 command = "set laststatus=0 | autocmd BufUnload <buffer> set laststatus=" .. vim.opt.laststatus._value,
             })
         end,
+        keys = {
+            { "<leader>h", "<cmd>Alpha<CR>", mode = { "n", "v" }, desc = " Dashboard" },
+        },
     },
     { "DanilaMihailov/beacon.nvim" }, -- cmd = { "Beacon", "BeaconToggle", "BeaconOn", "BeaconOff" } },
-    { "RRethy/vim-illuminate" },
+    {
+        "RRethy/vim-illuminate",
+        -- keys = {
+        --     {
+        --         "<A-n>",
+        --         '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>',
+        --         desc = "Next Illuminated Reference"
+        --     },
+        --     {
+        --         "<A-p>",
+        --         '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>',
+        --         desc = "Previous Illuminated Reference"
+        --     },
+        -- },
+    },
     {
         "nvim-tree/nvim-web-devicons",
         config = true,
@@ -617,9 +560,9 @@ return {
                 render = function(props)
                     local bufname = vim.api.nvim_buf_get_name(props.buf)
                     local filename = vim.fn.fnamemodify(bufname, ":t")
-                    local status = utils.get_status(filename)
+                    local status = utilities.get_status(filename)
                     local modified = get_buf_option(props.buf, "modified") and "" or "" -- "⦁"
-                    local fg = require("avim.utils.constants").mode_color[vim.fn.mode()]
+                    local fg = require("avim.utilities.constants").mode_color[vim.fn.mode()]
                     local readonly = (vim.bo.readonly and vim.bo ~= "help") and require("avim.icons").ui.Lock or ""
                     return {
                         status,
@@ -631,37 +574,6 @@ return {
                         { modified,                    guifg = "#A3BA5E" },
                     }
                 end,
-            })
-        end,
-    },
-    {
-        "echasnovski/mini.animate",
-        version = false,
-        config = function()
-            local mouse_scrolled = false
-            for _, scroll in ipairs({ "Up", "Down" }) do
-                local key = "<ScrollWheel" .. scroll .. ">"
-                vim.keymap.set("", key, function()
-                    mouse_scrolled = true
-                    return key
-                end, { expr = true })
-            end
-            require("mini.animate").setup({
-                resize = {
-                    timing = require("mini.animate").gen_timing.linear({ duration = 50, unit = "total" }),
-                },
-                scroll = {
-                    timing = require("mini.animate").gen_timing.linear({ duration = 150, unit = "total" }),
-                    subscroll = require("mini.animate").gen_subscroll.equal({
-                        predicate = function(total_scroll)
-                            if mouse_scrolled then
-                                mouse_scrolled = false
-                                return false
-                            end
-                            return total_scroll > 1
-                        end,
-                    }),
-                },
             })
         end,
     },
@@ -681,21 +593,6 @@ return {
             editor_only_render_when_focused = false, -- auto show/hide images when the editor gains/looses focus
         },
     },
-    -- { "knubie/vim-kitty-navigator", build = "cp ./*.py ~/.config/kitty/" },
-    {
-        "mrjones2014/smart-splits.nvim",
-        enabled = features.kitty,
-        build = "./kitty/install-kittens.bash",
-        opts = {
-            ignored_buftypes = {
-                "nofile",
-                "quickfix",
-                "prompt",
-                "noice",
-            },
-            ignored_filetypes = { "NvimTree", "neo-tree", "noice" },
-        },
-    },
     {
         "barrett-ruth/import-cost.nvim",
         enabled = false, -- NOTE: Seems resource intensive
@@ -713,11 +610,22 @@ return {
             },
         },
     },
-    { "szw/vim-maximizer", cmd = { "MaximizerToggle" } },
+    { "szw/vim-maximizer",         cmd = { "MaximizerToggle" } },
     {
         "sindrets/winshift.nvim",
         cmd = "WinShift",
         config = true,
+        keys = {
+            { "<A-m><Tab>",   "<CMD>WinShift swap<CR>",  desc = "Swap Windows",       noremap = true },
+            { "<A-m>h",       "<CMD>WinShift left<CR>",  desc = "Shift Window Left",  noremap = true },
+            { "<A-m><Left>",  "<CMD>WinShift left<CR>",  desc = "Shift Window Left",  noremap = true },
+            { "<A-m>j",       "<CMD>WinShift down<CR>",  desc = "Shift Window Down",  noremap = true },
+            { "<A-m><Down>",  "<CMD>WinShift down<CR>",  desc = "Shift Window Down",  noremap = true },
+            { "<A-m>k",       "<CMD>WinShift up<CR>",    desc = "Shift Window Up",    noremap = true },
+            { "<A-m><Up>",    "<CMD>WinShift up<CR>",    desc = "Shift Window Up",    noremap = true },
+            { "<A-m>l",       "<CMD>WinShift right<CR>", desc = "Shift Window Right", noremap = true },
+            { "<A-m><Right>", "<CMD>WinShift right<CR>", desc = "Shift Window Right", noremap = true },
+        },
     },
     {
         "stevearc/dressing.nvim",

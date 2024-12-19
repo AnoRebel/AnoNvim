@@ -24,15 +24,16 @@ return {
     {
         "stevearc/oil.nvim",
         cmd = { "Oil" },
+        keys = {
+            { "-", "<cmd>Oil <CR>",         mode = { "n", "v" }, desc = "[Oil] Open Folder" }, -- vim.cmd("vsplit | wincmd |")
+            { "_", "<cmd>Oil --float <CR>", mode = { "n", "v" }, desc = "[Oil] Open Floating" },
+        },
         opts = {
             win_options = {
                 signcolumn = "number",
             },
             columns = {
-                "icon",
                 -- "permissions",
-                "size",
-                "mtime",
                 -- "atime",
             },
             -- Deleted files will be removed with the trash_command (below).
@@ -119,19 +120,37 @@ return {
             "nvim-lua/plenary.nvim",
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
             "MunifTanjim/nui.nvim",
+            "3rd/image.nvim",              -- Optional image support in preview window: See `# Preview Mode` for more information
             "antosha417/nvim-lsp-file-operations",
         },
         cmd = { "Neotree" },
+        keys = {
+            { "<leader>e", "<cmd>Neotree toggle=true<CR>", mode = { "n", "v" }, desc = "[Neotree] File Manager Toggle" },
+            {
+                "<C-n>",
+                "<cmd>Neotree filesystem left reveal toggle<CR>",
+                mode = { "n", "v" },
+                desc = "[Neotree] File Manager Toggle"
+            },
+        },
         config = function(_, opts)
             require("neo-tree").setup(opts)
             require("lsp-file-operations").setup()
         end,
-        opts = function()
+        opts = function(_, opts)
             -- TODO move after neo-tree improves (https://github.com/nvim-neo-tree/neo-tree.nvim/issues/707)
+            -- local function on_move(data)
+            --     Snacks.rename.on_rename_file(data.source, data.destination)
+            -- end
+            -- local events = require("neo-tree.events")
+            -- opts.event_handlers = opts.event_handlers or {}
+            -- vim.list_extend(opts.event_handlers, {
+            --     { event = events.FILE_MOVED,   handler = on_move },
+            --     { event = events.FILE_RENAMED, handler = on_move },
+            -- })
             return {
                 auto_clean_after_session_restore = true,
-                -- BUG: Nui doesnt support shadow popup borders
-                popup_border_style = "rounded", -- "shadow",
+                popup_border_style = "rounded",
                 sources = {
                     "filesystem",
                     "buffers",
@@ -403,7 +422,7 @@ return {
                         },
                     },
                 },
-                commands = require("avim.utils.global_commands"),
+                commands = require("avim.utilities.explorer"),
                 document_symbols = {
                     follow_cursor = true,
                 },

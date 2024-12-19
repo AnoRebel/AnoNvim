@@ -1,6 +1,39 @@
--- Copied from https://gitlab.com/gabmus/nvpunk/-/raw/master/lua/nvpunk/internals/context_menu.lua
+---@class avim.utilities.context_menu
+---@field buf_has_lsp fun(): boolean
+---@field buf_has_dap fun(): boolean
+---@field buf_is_package_json fun(): boolean
+---@field buf_is_file fun(): boolean
+---@field get_buf_size fun(): {width: number, height: number}
+---@field uiselect_context_menu fun(prompt: string, strings: table[string], funcs: table[function]): nil
+---@field clear_menu fun(menu: string): nil
+---@field format_menu_label fun(label: string): string
+---@field create_menu_entry fun(menu: string, label: string, action: string): nil
+---@field rclick_context_menu fun(menu: string, label: string, action: string): nil
+---@field set_rclick_submenu fun(menu_name: string, submenu_label: string, items: table[{string, string}], bindif: function?): nil
+---@field set_doc_rclick_menu fun(): nil
+---@field set_lsp_rclick_menu fun(): nil
+---@field set_manager_rclick_menu fun(): nil
+---@field set_explorer_rclick_menu fun(): nil
+---@field set_telescope_rclick_menu fun(): nil
+---@field set_venv_rclick_menu fun(): nil
+---@field set_git_rclick_menu fun(): nil
+---@field set_diff_rclick_menu fun(): nil
+---@field set_dap_rclick_menu fun(): nil
+---@field setup_rclick_menu_autocommands fun(): nil
+---@field set_rclick_menu fun(): nil
+---@field set_rclick_menu_autocommands fun(): nil
+---@field set_dap_rclick_menu_autocommands fun(): nil
+---@field set_doc_rclick_menu_autocommands fun(): nil
+---@field set_lsp_rclick_menu_autocommands fun(): nil
+---@field set_manager_rclick_menu_autocommands fun(): nil
+---@field set_explorer_rclick_menu_autocommands fun(): nil
+---@field set_telescope_rclick_menu_autocommands fun(): nil
+---@field set_venv_rclick_menu_autocommands fun(): nil
+---@field set_git_rclick_menu_autocommands fun(): nil
+---@field set_diff_rclick_menu_autocommands fun(): nil
 local M = {}
-local constants = require("avim.utils.constants")
+-- Copied from https://gitlab.com/gabmus/nvpunk/-/raw/master/lua/nvpunk/internals/context_menu.lua
+local constants = require("avim.utilities.constants")
 
 --- Checks if current buf has LSPs attached
 ---@return boolean

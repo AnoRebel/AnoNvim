@@ -1,6 +1,33 @@
-local Utils = require("avim.utils")
+local Utils = require("avim.utilities")
 
----@class util.lsp
+---@class avim.utilities.lsp
+---@field get_clients fun(opts?: lsp.Client.filter): vim.lsp.Client[]
+---@field get_pkg_path fun(pkg: string, path?: string, opts?: {warn?: boolean}): string
+---@field get_plugin fun(name: string): table
+---@field get_plugin_path fun(name: string, path?: string): string
+---@field has fun(client: vim.lsp.Client, method: string): boolean
+---@field has_plugin fun(name: string): boolean
+---@field is_loaded fun(name: string): boolean
+---@field on_attach fun(fn: fun(client: vim.lsp.Client, buffer: number), name?: string): nil
+---@field on_dynamic_capability fun(fn: fun(client: vim.lsp.Client, buffer: number), opts?: {group?: integer}): nil
+---@field on_supports_method fun(method: string, fn: fun(client: vim.lsp.Client, buffer: number)): nil
+---@field opts fun(name: string): table
+---@field peek_or_hover fun(): nil
+---@field setup fun(): nil
+---@field action table
+---@field binary_exists fun(bin: any): boolean
+---@field disable fun(server: string, cond: fun( root_dir, config): boolean)
+---@field empty_output fun(data: any): boolean
+---@field execute fun(opts: LspCommand)
+---@field format fun(bufnr: any)
+---@field get_config fun(server: any): _.lspconfig.options
+---@field is_enabled fun(server: any)
+---@field move_to_file_refactor fun(client: vim.lsp.Client, buffer: any)
+---@field on_rename fun(from: string, to: string, rename?: fun())
+---@field quick_type fun(_: any, src: string, pkg_name: string, top_level: any)
+---@field rename_file fun()
+---@field _check_methods fun(client: vim.lsp.Client, buffer: any)
+---@field _supports_method table<string, table<vim.lsp.Client, table<number, boolean>>>
 local M = {}
 
 ---@alias lsp.Client.filter {id?: number, bufnr?: number, name?: string, method?: string, filter?:fun(client: lsp.Client):boolean}
@@ -114,8 +141,8 @@ end
 
 function M.rename_file()
   local buf = api.nvim_get_current_buf()
-  local old = assert(require("avim.utils.root").realpath(vim.api.nvim_buf_get_name(buf)))
-  local root = assert(require("avim.utils.root").realpath(require("avim.utils.root").get({ normalize = true })))
+  local old = assert(require("avim.utilities.root").realpath(vim.api.nvim_buf_get_name(buf)))
+  local root = assert(require("avim.utilities.root").realpath(require("avim.utilities.root").get({ normalize = true })))
   assert(old:find(root, 1, true) == 1, "File not in project root")
 
   local extra = old:sub(#root + 2)

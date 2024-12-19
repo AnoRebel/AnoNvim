@@ -1,4 +1,4 @@
-local constants = require("avim.utils.constants")
+local constants = require("avim.utilities.constants")
 local icons = require("avim.icons")
 
 local diff = {
@@ -87,6 +87,10 @@ local conditions = {
         end
         return true
     end,
+    has_codeium = function()
+        local has_it, _ = pcall(require, "codeium")
+        return has_it
+    end,
     has_package_info = function()
         local has_it, _ = pcall(require, "package-info")
         return has_it
@@ -100,7 +104,6 @@ end
 local function dir_name()
     local _name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
     return icons.folderD .. _name .. " "
-    -- right_sep = { str = "", hl = { fg = "#141414" } },
 end
 
 local function sessions()
@@ -138,15 +141,10 @@ local function osinfo()
         icon = "  "
     end
     return icon .. os
-    -- left_sep = { str = "", hl = { fg = "#141414" } },
-    -- right_sep = { str = "", hl = { fg = "#141414" } },
 end
 
 local function updates()
     return require("lazy.status").updates()
-    -- hl = {
-    -- 	fg = "#ff9e64",
-    -- },
 end
 
 local function scrollbar()
@@ -174,6 +172,26 @@ local function trunc(trunc_width, trunc_len, hide_width, no_ellipsis)
         end
         return str
     end
+end
+
+local function custom_status()
+    local status = require('codeium.virtual_text').status()
+
+    if status.state == 'idle' then
+        -- Output was cleared, for example when leaving insert mode
+        return ' '
+    end
+
+    if status.state == 'waiting' then
+        -- Waiting for response
+        return "Waiting..."
+    end
+
+    if status.state == 'completions' and status.total > 0 then
+        return string.format('%d/%d', status.current, status.total)
+    end
+
+    return ' 0 '
 end
 
 return {
@@ -235,15 +253,10 @@ return {
             },
             lualine_c = {
                 {
-                    require("package-info").get_status,
-                    cond = conditions.has_package_info,
-                    color = { fg = "#7EA9A7", bg = "Normal" },
+                    custom_status,
+                    cond = conditions.has_codeium,
+                    color = { fg = "#CDD6F4", bg = "Normal" },
                 },
-                -- {
-                --   require("noice").api.status.search.get,
-                --   cond = require("noice").api.status.search.has,
-                --   color = { fg = "#ff9e64" },
-                -- },
             },
             lualine_x = {
                 {
@@ -319,7 +332,7 @@ return {
                     cond = conditions.has_session,
                     separator = { left = "" }, -- "" },
                     on_click = function(clicks, button, modifiers)
-                        require("avim.utils").loadsession()
+                        require("avim.utilities").loadsession()
                     end,
                 },
                 { "location", color = { fg = constants.mode_colors[vim.fn.mode()], bg = "Normal" } },

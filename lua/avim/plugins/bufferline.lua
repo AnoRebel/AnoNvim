@@ -1,4 +1,4 @@
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 vim.cmd([[
     function! Quit_vim(a,b,c,d)
@@ -6,25 +6,16 @@ vim.cmd([[
     endfunction
   ]])
 -- Bufferline
-utils.map({ "n", "v" }, "<Tab>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next Tab" })
-utils.map({ "n", "v" }, "<S-Tab>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous Tab" })
--- utils.map({ "n", "v" }, "<C-Tab>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next Tab" })
--- utils.map({ "n", "v" }, "<C-S-Tab>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous Tab" })
-utils.map({ "n", "v" }, "<leader>b", nil, { name = "󰓩 Buffers" })
-utils.map({ "n", "v" }, "<leader>bp", "<cmd>BufferLinePick<CR>", { desc = "Pick Tab" })
-utils.map({ "n", "v" }, "<leader>bc", "<cmd>BufferLinePickClose<CR>", { desc = "Pick And Close Tab" })
-utils.map({ "n", "v" }, "<leader>bb", "<cmd>e #<cr>", { desc = "Switch Tab" })
-utils.map({ "n", "v" }, "<leader>`", "<cmd>e #<cr>", { desc = "Switch Tab" })
-utils.map({ "n", "v" }, "<leader>bl", "<cmd>BufferLineMoveNext<CR>", { desc = "Move Tab Forward" })
-utils.map({ "n", "v" }, "<leader>br", "<cmd>BufferLineMovePrev<CR>", { desc = "Move Tab Back" })
-utils.map({ "n", "v" }, "<leader>bh", "<cmd>sp<CR>", { desc = "Split Horizontal", silent = true, noremap = true })
-utils.map({ "n", "v" }, "<leader>bv", "<cmd>vsp<CR>", { desc = "Split Vertical", silent = true, noremap = true })
-utils.map({ "n", "v" }, "<leader>bq", "<C-w>q", { desc = "Close Split", silent = true, noremap = true })
-utils.map({ "n", "v" }, "<leader>bm", "<cmd>MaximizerToggle!<CR>", { desc = "Toggle Maximize Tab" })
-utils.map({ "n", "v" }, "<leader>bt", "<cmd>BufferLineGoToBuffer -1<CR>", { desc = "Go to Last Visible Tab" })
+utilities.map({ "n", "v" }, "<leader>b", nil, { name = "󰓩 Buffers" })
+utilities.map({ "n", "v" }, "<leader>bb", "<cmd>e #<cr>", { desc = "Switch Tab" })
+utilities.map({ "n", "v" }, "<leader>`", "<cmd>e #<cr>", { desc = "Switch Tab" })
+utilities.map({ "n", "v" }, "<leader>bh", "<cmd>sp<CR>", { desc = "Split Horizontal", silent = true, noremap = true })
+utilities.map({ "n", "v" }, "<leader>bv", "<cmd>vsp<CR>", { desc = "Split Vertical", silent = true, noremap = true })
+utilities.map({ "n", "v" }, "<leader>bq", "<C-w>q", { desc = "Close Split", silent = true, noremap = true })
+utilities.map({ "n", "v" }, "<leader>bm", "<cmd>MaximizerToggle!<CR>", { desc = "Toggle Maximize Tab" })
 -- Opt
 for i = 1, 9 do
-    utils.map(
+    utilities.map(
         { "n", "v" },
         "<C-" .. i .. ">",
         "<cmd>BufferLineGoToBuffer " .. i .. "<CR>",
@@ -161,5 +152,16 @@ return {
                 return true
             end,
         },
+    },
+    keys = {
+        { "<Tab>",      "<cmd>BufferLineCycleNext<CR>",     desc = "Next Tab",               mode = { "n", "v" }, },
+        { "<S-Tab>",    "<cmd>BufferLineCyclePrev<CR>",     desc = "Previous Tab",           mode = { "n", "v" }, },
+        { "<leader>bp", "<cmd>BufferLinePick<CR>",          desc = "Pick Tab",               mode = { "n", "v" }, },
+        { "<leader>bc", "<cmd>BufferLinePickClose<CR>",     desc = "Pick And Close Tab",     mode = { "n", "v" }, },
+        { "<leader>bb", "<cmd>e #<cr>",                     desc = "Switch Tab",             mode = { "n", "v" }, },
+        { "<leader>`",  "<cmd>e #<cr>",                     desc = "Switch Tab",             mode = { "n", "v" }, },
+        { "<leader>bl", "<cmd>BufferLineMoveNext<CR>",      desc = "Move Tab Forward",       mode = { "n", "v" }, },
+        { "<leader>br", "<cmd>BufferLineMovePrev<CR>",      desc = "Move Tab Back",          mode = { "n", "v" }, },
+        { "<leader>bt", "<cmd>BufferLineGoToBuffer -1<CR>", desc = "Go to Last Visible Tab", mode = { "n", "v" }, },
     },
 }

@@ -1,3 +1,6 @@
+---@class avim.utilities.dbee
+---@field execute fun()
+---@field save fun(rng: any)
 local M = {}
 
 local Input = require("nui.input")
@@ -34,7 +37,7 @@ local file_name = Input({
 		vim.notify("Cancelled saving output", vim.log.levels.INFO, { title = "Dbee" })
 	end,
 	on_submit = function(value)
-		local join_paths = require("avim.utils").join_paths
+		local join_paths = require("avim.utilities").join_paths
 		local save_path = join_paths(os.getenv("HOME"), "Downloads")
 		local filename = "dbee_" .. os.date("%Y%m%d%H%M%S") .. "." .. format
 		if value ~= "" or value ~= nil then
@@ -45,13 +48,13 @@ local file_name = Input({
 			vim.notify("Empty name provided, using default", vim.log.levels.INFO, { title = "Dbee" })
 		end
 		if range then
-			require("dbee").store(format, op_type, {
+			require("avim.utilities.dbee").store(format, op_type, {
 				from = ranges[1],
 				to = ranges[2],
 				extra_arg = op_type == "file" and join_paths(save_path, filename) or 0,
 			})
 		else
-			require("dbee").store(
+			require("avim.utilities.dbee").store(
 				format,
 				op_type,
 				{ extra_arg = op_type == "file" and join_paths(save_path, filename) or 0 }
@@ -108,9 +111,9 @@ local range_input = Input({
 			file_name:mount()
 		else
 			if range then
-				require("dbee").store(format, op_type, { from = ranges[1], to = ranges[2] })
+				require("avim.utilities.dbee").store(format, op_type, { from = ranges[1], to = ranges[2] })
 			else
-				require("dbee").store(format, op_type, { extra_arg = 0 })
+				require("avim.utilities.dbee").store(format, op_type, { extra_arg = 0 })
 			end
 		end
 	end,
@@ -166,7 +169,7 @@ local type_chooser = Menu({
 				file_name:mount()
 			end
 		else
-			require("dbee").store(format, op_type, { extra_arg = 0 })
+			require("avim.utilities.dbee").store(format, op_type, { extra_arg = 0 })
 		end
 	end,
 })
@@ -253,7 +256,7 @@ local query = Input({
 		else
 			local tmp_query = string.sub(value, -1) == ";" and value:gsub("^%s*(.-)%s*$", "%1")
 				or value:gsub("^%s*(.-)%s*$", "%1") .. ";"
-			require("dbee").execute(tmp_query)
+			require("avim.utilities.dbee").execute(tmp_query)
 		end
 	end,
 })

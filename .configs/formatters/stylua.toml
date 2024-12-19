@@ -18,19 +18,3 @@ call_parentheses = "Always"       # Always use parentheses in function calls
 # Table formatting
 collapse_simple_statement = "Never"  # Don't collapse simple statements
 column_table_width = 80             # Separate width for table columns
-
-# Import sorting
-[sort_requires]
-enabled = true        # Sort require statements
-groups = ["string"]   # Group requires by type
-
-# Code organization
-[formatting]
-align_assignments = true           # Align consecutive assignments
-align_parameters = true           # Align function parameters
-spaces_around_equals = true       # Add spaces around equals signs
-keep_simple_function_one_line = true  # Keep simple functions on one line
-
-# Specific rules for Neovim development
-[specific]
-no_call_parentheses = []  # Functions that don't need parentheses

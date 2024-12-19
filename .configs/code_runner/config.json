@@ -1,0 +1,59 @@
+{
+  "defaultRunner": "terminal",
+  "runners": {
+    "terminal": {
+      "command": "terminal",
+      "position": "horizontal",
+      "size": 15
+    },
+    "float": {
+      "command": "terminal",
+      "position": "float"
+    }
+  },
+  "languages": {
+    "lua": {
+      "command": "lua",
+      "runner": "terminal"
+    },
+    "python": {
+      "command": "python3",
+      "runner": "terminal"
+    },
+    "javascript": {
+      "command": "node",
+      "runner": "terminal"
+    },
+    "typescript": {
+      "command": "ts-node",
+      "runner": "terminal"
+    },
+    "go": {
+      "command": "go run",
+      "runner": "terminal"
+    },
+    "rust": {
+      "command": "cargo run",
+      "runner": "terminal"
+    },
+    "sh": {
+      "command": "bash",
+      "runner": "terminal"
+    },
+    "ps1": {
+      "command": "pwsh",
+      "runner": "terminal"
+    }
+  },
+  "fileTypes": {
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".py": "python",
+    ".lua": "lua",
+    ".go": "go",
+    ".rs": "rust",
+    ".sh": "sh",
+    ".bash": "sh",
+    ".ps1": "ps1"
+  }
+}

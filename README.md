@@ -1,180 +1,214 @@
-<h1 align="center">AnoNvim</h1>
+# AnoNvim
 
 ![AnoNvim](.media/avim-5.png)
 
-My kinda bloated all-purpose Neovim **P.D.E** layer. I know abit about Lua, learning as I go. It's currently a
-Frankenstein of different configs so some cleanup is needed after I get more time, but so far so good.
+A modern, feature-rich Neovim configuration focused on providing a complete development environment. Built with Lua and
+designed for extensibility.
 
-It is mostly made for \*unix systems, but with _few_ modifications, can run just as well in Window systems.
+## Features
 
-I made it so, it can be run parallel to regular Neovim without interfering with each other.
+- 🚀 Performance
 
-Also added executable script for [Neovide](https://neovide.dev) and/or [Neoray](https://github.com/hismailbulut/Neoray),
-a GUI (Can be added through a param in the installer script).
+  - Fast startup with lazy loading
+  - Efficient plugin management
+  - Optimized file operations
+  - Smart caching system
+
+- 🎨 User Interface
+
+  - Dynamic theme switching based on time
+  - Beautiful and functional UI components
+  - Custom icons and visual elements
+  - Random Alpha logos/banners
+  - Winbar with context information
+
+- 📝 Development
+
+  - Advanced LSP integration
+  - AI coding assistant
+    - Codeium
+  - Powerful debugging support
+  - Git integration with conflict resolution
+  - Database integration with Dbee
+
+- 🔧 Tools & Utilities
+
+  - Fuzzy finding with Telescope
+  - File tree with NvimTree
+  - Terminal integration
+  - REST API client
+  - Session management
+  - Advanced search and replace
+
+- ⚙️ Configuration
+  - Type checking and linting
+  - Automatic package management
+  - Optional GUI support (Neovide/Neoray)
+  - Extensive customization options
+  - Well-documented codebase
+
+## Requirements
+
+- Neovim >= 0.10.0
+- Git >= 2.19.0
+- A [Nerd Font](https://www.nerdfonts.com/) (Optional but recommended)
+- For optional features:
+  - Node.js >= 20
+  - Python >= 3.7
+  - Go >= 1.20
+  - Rust ( >= latest stable)
+  - Luarocks
 
 ## Installation
 
-```sh
+```bash
 bash <(curl -s https://raw.githubusercontent.com/AnoRebel/AnoNvim/main/.install/installer.sh)
 ```
 
-- Installer Params:
+### Installation Options
 
-        Run `-h` or `--help` to get all params, below are some that can be passed as
-        environment variables
+```bash
+Options:
+    -h, --help                    Print this help message
+    -l, --local                   Install local copy of AnoNvim
+    -y, --yes                     Automatic yes to prompts
+    --overwrite                   Overwrite existing configuration
+    --no-install-dependencies     Skip dependency installation
+    --neovide                     Install Neovide GUI
+    --neoray                      Install Neoray GUI
+```
 
-        - AV_MAIN="main" (default: "main", no other values yet)
-        - INTERACTIVE_MODE=1 or `-i` (default: 1, values: 1 || 0)
-        - INSTALL_GUI=0 or `-g` (default: 0, values: 1 || 0)
+After installation:
 
-- Then simply run `avim` and the one-time setup will begin. Mason will install the rest of the packages on the
-  subsequent launch. After that, just hack away.
-- If you added the `-g` or `INSTALL_GUI` params, you have the `gavim` command for [Neovide](https://neovide.dev) or
-  [Neoray](https://github.com/hismailbulut/Neoray).
+1. Run `avim` to start AnoNvim
+2. Initial setup will install required plugins
 
 ## Directory Structure
 
 ```lua
-├── init.lua
-├── lua
-│   └── avim
-│       ├── autocmds.lua -- (Necessary and unnecessary Auto Commands)
-│       ├── core
-│       │   ├── defaults.lua -- (AnoNvim default settings)
-│       │   ├── health.lua -- (AnoNvim health check)
-│       │   ├── init.lua -- (Core AnoNvim setup, including runtime and globals)
-│       │   ├── log.lua -- (Custom logger)
-│       │   ├── settings.lua -- (Neovim options)
-│       │   └── updater.lua -- (Custom AnoNvim updater)
-│       ├── icons.lua -- (Collection of icons)
-│       ├── cheatsheet -- (Keybinds script taken from NvChad)
-│       │   ├── init.lua
-│       │   ├── simple.lua -- (Simple layout of Cheatsheet)
-│       │   └── grid.lua -- (Grid layout of Cheatsheet)
-│       ├── mappings.lua -- (Default mappings)
-│       ├── lazy.lua -- (Lazy initialization and plugin loading)
-│       ├── plugins -- (All plugin configurations go in here)
-│       │   ├── init.lua -- (Default plugin list)
-│       │   ├── alpha.lua
-│       │   └── Many other plugin configurations
-│       └── utils -- (Utilities needed for smooth sailing; basically a collection of methods that make AnoNvim work)
-│           ├── init.lua -- (Necessary and unnecessary Auto Commands)
-│           ├── banners.lua -- (Custom banners for Alpha)
-│           ├── blame.lua
-│           ├── context_menu.lua
-│           ├── dbee.lua
-│           ├── defer.lua
-│           ├── documentcolors.lua
-│           ├── git.lua
-│           ├── theme_picker.lua
-│           ├── renamer.lua
-│           ├── peek.lua
-│           ├── pylance.lua
-│           ├── quicktype.lua
-│           ├── statuscol.lua
-│           ├── tree_actions.lua
-│           ├── vim-ui.lua
-│           └── vmlens.lua
+.
+├── init.lua                  # Main entry point
+├── lua/avim
+│   ├── core                  # Core functionality
+│   │   ├── defaults.lua      # Default settings
+│   │   ├── init.lua          # Core initialization
+│   │   ├── log.lua           # Logging system
+│   │   └── settings.lua      # Neovim settings
+│   ├── commands.lua          # Commands and autocommand definitions
+│   ├── health.lua            # Health check
+│   ├── icons.lua             # Icon definitions
+│   ├── lazy.lua              # Plugin management
+│   ├── update.lua            # Update system
+│   ├── plugins               # Plugin configurations
+│   │   ├── bufferline.lua    # Bufferline(top bar) configurations
+│   │   ├── completions.lua   # Code completion configurations
+│   │   ├── database.lua      # Database configurations
+│   │   ├── editor.lua        # Editor configurations
+│   │   ├── explorer.lua      # File explorer configurations
+│   │   ├── extras.lua        # Extra plugin configurations
+│   │   ├── formatting.lua    # Code formatting configurations
+│   │   ├── git.lua           # Git configurations
+│   │   ├── lsp.lua           # LSP configurations
+│   │   ├── lualine.lua       # Lualine(bottom bar) configurations
+│   │   ├── remote.lua        # Remote Coding configurations
+│   │   ├── rest.lua          # Rest client configurations
+│   │   ├── search.lua        # Search and Replace configurations
+│   │   ├── snacks.lua        # Folke's Snacks configurations
+│   │   ├── telescope.lua     # Telescope configurations
+│   │   ├── themes.lua        # Themes configurations
+│   │   ├── treesitter.lua    # Treesitter configurations
+│   │   └── ui.lua            # UI components and configurations
+│   └── utilities             # Utility functions
 ```
 
-## Cheatsheet
+## Key Bindings
 
-- `:AvCheatsheet` or `<leader>ch` for Simple layout and `<leader>km` for grid layout (`<leader>` is space key in my
-  config)
+AnoNvim provides multiple ways to explore keybindings:
 
-## Mappings
+1. **Keymaps Search**:
 
-- `:Telescope keymaps` or `<leader>fk` (`<leader>` is space key in my config)
+   - `:Telescope keymaps` or `<leader>fk`
 
-## Features
+2. **Which Key**:
+   - Press `<leader>` to see available key bindings
+   - Context-aware key suggestions
 
-- Themes change according to time of day
-- Custom buffer close
-- Alpha Logo/Banner change randomly
-- Numbers toggle from relative to normal depending on mode
-- Etc...
+Note: `<leader>` key is mapped to the `Space` key
 
-## Plugins
+## Plugin Categories
 
-<details><summary>List of some of the installed plugins(Click to expand):</summary>
+<details><summary>🧠 AI Assistance</summary>
 
-- [Alpha](https://github.com/goolord/alpha-nvim)
-- [Better Escape](https://github.com/max397574/better-escape.nvim)
-- [Barbecue](https://github.com/utilyre/barbecue.nvim)
-- [Bufferline](https://github.com/akinsho/bufferline.nvim)
-- [Codeium.vim](https://github.com/Exafunction/codeium.vim)
-- [CodyAI](https://github.com/sourcegraph/sg.nvim)
-- [Codeium.nvim](https://github.com/Exafunction/codeium.nvim)
-- [Completions(Cmp)](https://github.com/hrsh7th/nvim-cmp)
-- [Colorizer](https://github.com/NvChad/nvim-colorizer.lua)
-- [Comment](https://github.com/numToStr/Comment.nvim)
-- [Conflict](https://github.com/akinsho/git-conflict.nvim)
-- [Dap](https://github.com/mfussenegger/nvim-dap)
-- [Dbee](https://github.com/kndndrj/nvim-dbee)
-- [Devicons](https://github.com/nvim-tree/nvim-web-devicons)
-- [Diffview](https://github.com/sindrets/diffview.nvim)
-- [Flutter](https://github.com/akinsho/flutter-tools.nvim)
-- [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)
-- [Incline](https://github.com/b0o/incline.nvim)
-- [Indentation](https://github.com/lukas-reineke/indent-blankline.nvim)
-- [Leap](https://github.com/ggandor/leap.nvim)
-- [LSP](https://github.com/neovim/nvim-lspconfig)
-- [Lualine](https://github.com/nvim-lualine/lualine.nvim)
-- [Mason](https://github.com/williamboman/mason.nvim)
-- [Muren](https://github.com/AckslD/muren.nvim)
-- [Mini](https://github.com/echasnovski/mini.nvim)
-- [Neoclip](https://github.com/AcksID/nvim-neoclip.lua)
-- [Neodev](https://github.com/folke/neodev.nvim)
-- [Neotest](https://github.com/nvim-neotest/neotest)
-- [Notify](https://github.com/rcarriga/nvim-notify)
-- [Null LS](https://github.com/jose-elias-alvarez/null-ls.nvim)
-- [None LS](https://github.com/nvimtools/none-ls.nvim)
-- [NvimTree](https://github.com/nvim-tree/nvim-tree.lua)
-- [Lazy](https://github.com/folke/lazy.nvim)
-- [Persisted](https://github.com/olimorris/persisted.nvim)
-- [Refactoring](https://github.com/ThePrimeagen/refactoring.nvim)
-- [Rest APIs](https://github.com/rest-nvim/rest.nvim)
-- [Scrollbar](https://github.com/kensyo/nvim-scrlbkun)
-- [Spectre](https://github.com/nvim-pack/nvim-spectre)
-- [Surround](https://github.com/kylechui/nvim-surround)
-- [Symbols Outline](https://github.com/simrat39/symbols-outline.nvim)
-- [Tabnine](https://github.com/tzachar/cmp-tabnine)
-- [Telescope](https://github.com/nvim-telescope/telescope.nvim)
-- [Terminal](https://github.com/akinsho/toggleterm.nvim)
-- [ToDo](https://github.com/folke/todo-comments.nvim)
-- [Treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
-- [Trouble](https://github.com/folke/trouble.nvim)
-- [Twilight](https://github.com/folke/twilight.nvim)
-- [Which Key](https://github.com/folke/which-key.nvim)
-- [WinShift](https://github.com/sindrets/winshift.nvim)
-- [Zen](https://github.com/folke/zen-mode.nvim)
-- And more... (Total is about 130+ 😁)
+- [Codeium.nvim](https://github.com/Exafunction/codeium.nvim) - AI code completion
 
 </details>
 
-And some other not mentioned here(Like I said, bloat 🤷)
+<details><summary>📝 Editor Enhancement</summary>
 
-## Gallery Showcase
+- [Alpha](https://github.com/goolord/alpha-nvim) - Startup screen
+- [Better Escape](https://github.com/max397574/better-escape.nvim) - Better escape key handling
+- [Comment](https://github.com/numToStr/Comment.nvim) - Code commenting
+- [Surround](https://github.com/kylechui/nvim-surround) - Text surroundings
+- [Which Key](https://github.com/folke/which-key.nvim) - Key binding helper
 
-<details><summary>Images (Click to expand):</summary>
+</details>
 
-![AnoNvim](.media/avim-1.png)
+<details><summary>🎨 User Interface</summary>
 
-![NvimTree](.media/avim-2.png)
+- [Barbecue](https://github.com/Beekaboo/dropbar.nvim) - VS Code-like winbar
+- [Bufferline](https://github.com/akinsho/bufferline.nvim) - Buffer line
+- [Lualine](https://github.com/nvim-lualine/lualine.nvim) - Status line
+- [NeoTree](https://github.com/nvim-neo-tree/neo-tree.nvim) - File explorer
+- [Oil](https://github.com/stevearc/oil.nvim) - Buffer-like File explorer
+- [Telescope](https://github.com/nvim-telescope/telescope.nvim) - Fuzzy finder
 
-![UI](.media/avim-3.png)
+</details>
 
-![Telescope](.media/avim-4.png)
+<details><summary>🛠️ Development Tools</summary>
+
+- [LSP](https://github.com/neovim/nvim-lspconfig) - Language Server Protocol
+- [None-LS](https://github.com/nvimtools/none-ls.nvim) - Language Server Protocol (extras)
+- [Lazy](https://github.com/folke/lazy.nvim) - Plugin management
+- [Mason](https://github.com/williamboman/mason.nvim) - Package management
+- [Rest APIs](https://github.com/rest-nvim/rest.nvim) - REST client
+- [Persisted](https://github.com/olimorris/persisted.nvim) - Session management
+- [Multiple Cursors](https://github.com/brenton-leighton/multiple-cursors.nvim) - Multiple cursors
+
+</details>
+
+<details><summary>📦 Git Integration</summary>
+
+- [Gitsigns](https://github.com/lewis6991/gitsigns.nvim) - Git decorations
+- [Diffview](https://github.com/sindrets/diffview.nvim) - Git diff viewer
+- [Conflict](https://github.com/akinsho/git-conflict.nvim) - Conflict resolution
+
+</details>
+
+## Gallery
+
+<details><summary>Screenshots (Click to expand)</summary>
+
+![AnoNvim](.media/dashboard_alt.png) ![Dashboard](.media/dashboard.png) ![NeoTree](.media/neotree.png)
+![Keymaps](.media/keymaps.png) ![Search and Replace](.media/search_and_replace.png) ![Themes](.media/themes.png)
+![Terminal](.media/terminal.png) ![Database](.media/database.png)
 
 </details>
 
 ## Credits
 
-Made from multiple other configs to fit my personal taste with less than minimal knowledge of lua and Neovim API.
+Built upon the great work of:
 
 - [CosmicVim](https://github.com/CosmicNvim/CosmicNvim)
 - [LunarVim](https://github.com/LunarVim/LunarVim)
 - [NvChad](https://github.com/NvChad/NvChad)
-- [~~VSNeovim~~ DomacVim](https://github.com/DomacsVim/DomacsVim)
+- [DomacsVim](https://github.com/DomacsVim/DomacsVim)
 - [b0o's config](https://github.com/b0o/nvim-conf)
-- [omega-nvim](https://github.com/max397574/omega-nvim)/[ignis-nvim](https://github.com/max397574/ignis-nvim)
+- [omega-nvim](https://github.com/max397574/omega-nvim)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for more details.

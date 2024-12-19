@@ -1,4 +1,4 @@
-local utils = require("avim.utils")
+local utils = require("avim.utilities")
 
 local function get_telescope_opts(state, path)
     return {
@@ -43,6 +43,26 @@ local go_sibling = function(state, node, direction)
     require("neo-tree.ui.renderer").focus_node(state, children[idx]:get_id())
 end
 
+---@class avim.utilities.explorer
+---@field child_or_open fun(state: any)
+---@field close_node_or_go_parent fun(state: any)
+---@field copy_selector fun(state: any)
+---@field diff_files fun(state: any)
+---@field go_first_sibling fun(state: any)
+---@field go_last_sibling fun(state: any)
+---@field go_parent_sibling fun(state: any)
+---@field open_and_clear_filter fun(state: any)
+---@field open_node_or_go_child fun(state: any)
+---@field open_or_focus fun(state: any)
+---@field open_or_preview fun(state: any)
+---@field parent_or_close fun(state: any)
+---@field run_command fun(state: any)
+---@field spectre_replace fun(state: any)
+---@field system_open fun(state: any)
+---@field telescope_find fun(state: any)
+---@field telescope_grep fun(state: any)
+---@field trash fun(state: any)
+---@field trash_visual fun(state: any)
 local global_commands = {
     system_open = function(state)
         utils.system_open(state.tree:get_node():get_id())

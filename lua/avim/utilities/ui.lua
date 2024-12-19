@@ -1,3 +1,7 @@
+---@class avim.utilities.ui
+---@field input fun(opts: table, on_confirm: fun())
+---@field select fun(items: table, opts: table, on_choice: fun())
+---@field load fun()
 local UI = {}
 
 local function input_opts()

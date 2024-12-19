@@ -1,10 +1,15 @@
----@class lazyvim.util.cmp
+---@class avim.utilities.snippet
+---@field add_missing_snippet_docs fun(window: cmp.CustomEntriesView|cmp.NativeEntriesView)
+---@field auto_brackets fun(entry: cmp.Entry): nil
+---@field confirm fun(opts?: {select: boolean, behavior: cmp.ConfirmBehavior})
+---@field expand fun(snippet: any)
+---@field snippet_preview fun(snippet: string): string
 local M = {}
 
 ---@alias Placeholder {n:number, text:string}
 
 ---@param snippet string
----@param fn fun(placeholder:Placeholder):string
+---@param fn fun(placeholder: Placeholder): string
 ---@return string
 local function snippet_replace(snippet, fn)
   return snippet:gsub("%$%b{}", function(m)

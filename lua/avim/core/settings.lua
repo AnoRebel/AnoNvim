@@ -246,9 +246,6 @@ else
   g.neovide_input_use_logo = true
   g.neovide_cursor_antialiasing = true
 
-  -- Codeium
-  g.codeium_disable_bindings = 1
-
   -- TS??
   g.markdown_fenced_languages = {
     "javascript",
@@ -265,7 +262,7 @@ else
 
   vim.schedule(function()
     set.shada = "!,'100,<30,:50,@50,/50,s10,h"
-    set.shadafile = require("avim.utils").join_paths(_G.avim.SHADADIR, "avim.shada")
+    set.shadafile = require("avim.utilities").join_paths(_G.avim.SHADADIR, "avim.shada")
     vim.cmd([[ silent! rsh ]])
   end)
 end

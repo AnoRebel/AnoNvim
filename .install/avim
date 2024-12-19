@@ -1,15 +1,46 @@
 #!/usr/bin/env bash
+set -eo pipefail
 
-declare -r XDG_STATE_HOME="${XDG_STATE_HOME:-"$HOME/.local/state"}"
+# Base XDG directories
 declare -r XDG_DATA_HOME="${XDG_DATA_HOME:-"$HOME/.local/share"}"
 declare -r XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-"$HOME/.config"}"
+declare -r XDG_STATE_HOME="${XDG_STATE_HOME:-"$HOME/.local/state"}"
 declare -r XDG_CACHE_HOME="${XDG_CACHE_HOME:-"$HOME/.cache"}"
 
-export ANONVIM_RUNTIME_DIR="${ANONVIM_RUNTIME_DIR:-"$XDG_DATA_HOME/anonvim"}"
-export ANONVIM_CONFIG_DIR="${ANONVIM_CONFIG_DIR:-"$XDG_CONFIG_HOME/avim"}"
-export ANONVIM_STATE_DIR="${ANONVIM_STATE_DIR:-"$XDG_STATE_HOME/avim"}"
-export ANONVIM_CACHE_DIR="${ANONVIM_CACHE_DIR:-"$XDG_CACHE_HOME/avim"}"
+# AnoNvim directories
+declare -r ANONVIM_RUNTIME_DIR="${ANONVIM_RUNTIME_DIR:-"$XDG_DATA_HOME/anonvim"}"
+declare -r ANONVIM_CONFIG_DIR="${ANONVIM_CONFIG_DIR:-"$XDG_CONFIG_HOME/avim"}"
+declare -r ANONVIM_STATE_DIR="${ANONVIM_STATE_DIR:-"$XDG_STATE_HOME/avim"}"
+declare -r ANONVIM_CACHE_DIR="${ANONVIM_CACHE_DIR:-"$XDG_CACHE_HOME/avim"}"
+declare -r ANONVIM_LOG_DIR="${ANONVIM_LOG_DIR:-"$XDG_STATE_HOME/avim"}"
+declare -r ANONVIM_BASE_DIR="${ANONVIM_BASE_DIR:-"$ANONVIM_RUNTIME_DIR/avim"}"
 
-export ANONVIM_BASE_DIR="${ANONVIM_BASE_DIR:-$ANONVIM_RUNTIME_DIR/avim}"
+# Error handling
+function error_handler() {
+    echo "Error: $1" >&2
+    exit 1
+}
 
+# Validate Neovim installation
+if ! command -v nvim >/dev/null 2>&1; then
+    error_handler "Neovim is not installed. Please install it first."
+fi
+
+# Validate configuration
+if [ ! -f "$ANONVIM_BASE_DIR/init.lua" ]; then
+    error_handler "AnoNvim configuration not found at $ANONVIM_BASE_DIR"
+fi
+
+# Export environment variables
+export ANONVIM_RUNTIME_DIR
+export ANONVIM_CONFIG_DIR
+export ANONVIM_STATE_DIR
+export ANONVIM_CACHE_DIR
+export ANONVIM_LOG_DIR
+export ANONVIM_BASE_DIR
+
+# Set app name if not already set
+NVIM_APPNAME=${NVIM_APPNAME:-avim}
+
+# Launch Neovim with AnoNvim configuration
 exec -a "$NVIM_APPNAME" nvim -u "$ANONVIM_BASE_DIR/init.lua" "$@"

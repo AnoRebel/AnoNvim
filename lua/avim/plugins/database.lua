@@ -1,29 +1,6 @@
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
-utils.map({ "n", "v" }, "<leader>d", nil, { name = " Database" })
-utils.map({ "n", "v" }, "<leader>do", "<cmd>lua require('dbee').open()<CR>", { desc = "[Database] Open" })
-utils.map({ "n", "v" }, "<leader>dc", "<cmd>lua require('dbee').close()<CR>", { desc = "[Database] Close" })
-utils.map({ "n", "v" }, "<leader>dt", "<cmd>lua require('dbee').toggle()<CR>", { desc = "[Database] Toggle" })
-utils.map(
-    { "n", "v" },
-    "<leader>de",
-    "<cmd>lua require('avim.utils.dbee').execute()<CR>",
-    { desc = "[Database] Execute Query" }
-)
-utils.map(
-    { "n", "v" },
-    "<leader>ds",
-    "<cmd>lua require('avim.utils.dbee').save()<CR>",
-    { desc = "[Database] Save Output" }
-)
-utils.map(
-    { "n", "v" },
-    "<leader>dr",
-    "<cmd>lua require('avim.utils.dbee').save(true)<CR>",
-    { desc = "[Database] Save Output" }
-)
-utils.map({ "n", "v" }, "<leader>dp", "<cmd>lua require('dbee').prev()<CR>", { desc = "[Database] Previous Page" })
-utils.map({ "n", "v" }, "<leader>dn", "<cmd>lua require('dbee').next()<CR>", { desc = "[Database] Next Page" })
+utilities.map({ "n", "v" }, "<leader>d", nil, { name = " Database" })
 
 return {
     "kndndrj/nvim-dbee",
@@ -45,4 +22,29 @@ return {
             },
         })
     end,
+    keys = {
+        { "<leader>do", "<cmd>lua require('dbee').open()<CR>",   mode = { "n", "v" }, desc = "[Database] Open" },
+        { "<leader>dc", "<cmd>lua require('dbee').close()<CR>",  mode = { "n", "v" }, desc = "[Database] Close" },
+        { "<leader>dt", "<cmd>lua require('dbee').toggle()<CR>", mode = { "n", "v" }, desc = "[Database] Toggle" },
+        {
+            "<leader>de",
+            "<cmd>lua require('avim.utilities.dbee').execute()<CR>",
+            mode = { "n", "v" },
+            desc = "[Database] Execute Query"
+        },
+        {
+            "<leader>ds",
+            "<cmd>lua require('avim.utilities.dbee').save()<CR>",
+            mode = { "n", "v" },
+            desc = "[Database] Save Output"
+        },
+        {
+            "<leader>dr",
+            "<cmd>lua require('avim.utilities.dbee').save(true)<CR>",
+            mode = { "n", "v" },
+            desc = "[Database] Save Output"
+        },
+        { "<leader>dp", "<cmd>lua require('dbee').prev()<CR>", mode = { "n", "v" }, desc = "[Database] Previous Page" },
+        { "<leader>dn", "<cmd>lua require('dbee').next()<CR>", mode = { "n", "v" }, desc = "[Database] Next Page" },
+    },
 }

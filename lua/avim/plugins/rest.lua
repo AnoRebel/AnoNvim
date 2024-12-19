@@ -1,5 +1,5 @@
 local defaults = require("avim.core.defaults")
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 return {
     "rest-nvim/rest.nvim",
@@ -15,11 +15,11 @@ return {
     },
     cmd = { "Rest" },
     config = function(_, opts)
-        require("rest-nvim").setup()
+        require("rest-nvim").setup(opts)
         -- Rest API
-        utils.map("n", "<leader>r", nil, { name = " Rest APIs" })
-        utils.map("n", "<leader>rr", "<CMD>Rest run<CR>", { desc = "Run Request Under the Cursor" })
-        utils.map("n", "<leader>rl", "<CMD>Rest run last<CR>", { desc = "Re-run Latest Request" })
+        utilities.map("n", "<leader>r", nil, { name = " Rest APIs" })
+        utilities.map("n", "<leader>rr", "<CMD>Rest run<CR>", { desc = "Run Request Under the Cursor" })
+        utilities.map("n", "<leader>rl", "<CMD>Rest run last<CR>", { desc = "Re-run Latest Request" })
     end,
     -- opts = {
     --   client = "curl",

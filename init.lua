@@ -13,6 +13,7 @@ require("avim.core"):init(base_dir)
 require("avim.core.settings")
 require("avim.lazy"):init()
 require("avim.lazy").load()
+require("avim.commands"):setup()
 
 local Log = require("avim.core.log")
 Log:configure_notifications(vim.notify)

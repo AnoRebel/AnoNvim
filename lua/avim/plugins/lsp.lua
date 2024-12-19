@@ -1,6 +1,6 @@
 local defaults = require("avim.core.defaults")
-local lsp_utils = require("avim.utils.lsp")
-local utils = require("avim.utils")
+local lsp_utils = require("avim.utilities.lsp")
+local utilities = require("avim.utilities")
 
 return {
   {
@@ -54,7 +54,6 @@ return {
       },
       {
         "akinsho/flutter-tools.nvim",
-        enabled = defaults.features.flutter,
         cmd = {
           "FlutterRun",
           "FlutterDevices",
@@ -78,36 +77,20 @@ return {
         },
       },
       {
-        "ray-x/go.nvim",
-        enabled = false,
-        dependencies = { -- optional packages
-          "ray-x/guihua.lua",
-          "nvim-treesitter/nvim-treesitter",
-        },
-        config = function()
-          require("go").setup()
-        end,
-        event = { "CmdlineEnter" },
-        ft = { "go", "gomod" },
-        build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
-      },
-      {
         "olexsmir/gopher.nvim",
-        enabled = false,
         dependencies = {
           "nvim-lua/plenary.nvim",
           "nvim-treesitter/nvim-treesitter",
         },
         ft = { "go", "gomod" },
-        build = ":GoInstallDeps",
+        build = function()
+          vim.cmd.GoInstallDeps()
+        end,
         init = function()
-          if defaults.features.dap then
-            require("gopher.dap").setup()
-          end
           -- quick_type
           vim.api.nvim_create_user_command(
             "GoQuickType",
-            'lua require("avim.utils.quicktype").quick_type(<count>, <f-args>)',
+            'lua require("avim.utilities").quick_type(<count>, <f-args>)',
             {
               nargs = "*",
               complete = "file",
@@ -119,12 +102,12 @@ return {
       {
         "williamboman/mason.nvim",
         cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
-        build = ":MasonUpdate", -- :MasonUpdate updates registry contents
+        build = ":MasonUpdate",         -- :MasonUpdate updates registry contents
         config = function(_, opts)
           require("mason").setup({
             -- automatic_installation = true,
             ui = {
-              border = "none", -- "rounded",
+              border = "none",               -- "rounded",
               icons = {
                 package_installed = "",
                 package_pending = "",
@@ -164,6 +147,11 @@ return {
             end
           end)
         end,
+        keys = {
+          { "<leader>pm", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "Mason" },
+          -- { "<leader>pl", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "[Mason] Log" },
+          -- { "<leader>pr", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "[Mason] Update" },
+        },
       },
       {
         "williamboman/mason-lspconfig.nvim",
@@ -178,13 +166,6 @@ return {
         opts = { ensure_installed = nil, automatic_installation = true },
         config = function(_, opts)
           require("mason-null-ls").setup(opts)
-        end,
-      },
-      {
-        "jay-babu/mason-nvim-dap.nvim",
-        enabled = defaults.features.dap,
-        config = function()
-          require("mason-nvim-dap").setup({ ensure_installed = nil, automatic_installation = false })
         end,
       },
       {
@@ -210,22 +191,22 @@ return {
       },
       {
         "ray-x/lsp_signature.nvim",
-        event = "VeryLazy",
+        event = "LspAttach",
         config = function()
           require("lsp_signature").setup({
             bind = true,
             handler_opts = {
-              border = "shadow", -- double, rounded, single, shadow, none, or a table of borders
+              border = "shadow",               -- double, rounded, single, shadow, none, or a table of borders
             },
             transparency = 70,
             hint_prefix = " ",
             max_height = 22,
-            max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
-            floating_window_off_x = 5, -- adjust float windows x position.
-            floating_window_off_y = function() -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
-              local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
+            max_width = 120,                                                 -- max_width of signature floating_window, line will be wrapped if exceed max_width
+            floating_window_off_x = 5,                                       -- adjust float windows x position.
+            floating_window_off_y = function()                               -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
+              local linenr = vim.api.nvim_win_get_cursor(0)[1]               -- buf line number
               local pumheight = vim.o.pumheight
-              local winline = vim.fn.winline() -- line number in the window
+              local winline = vim.fn.winline()                               -- line number in the window
               local winheight = vim.fn.winheight(0)
 
               -- window top
@@ -254,8 +235,8 @@ return {
           library = {
             -- _G.get_runtime_dir() .. "/lazy/luvit-meta/library",
             { path = "luvit-meta/library", words = { "vim%.uv" } },
-            { path = "avim", words = { "avim" } },
-            { path = "lazy.nvim", words = { "avim" } },
+            { path = "avim",               words = { "avim" } },
+            { path = "lazy.nvim",          words = { "avim" } },
             -- You can also add plugins you always want to have loaded.
             -- Useful if the plugin has globals or types you want to use
             -- vim.env.LAZY .. "/LazyVim", -- see below
@@ -269,27 +250,45 @@ return {
         cmd = { "VenvSelect", "VenvSelectCached", "VenvSelectCurrent" },
         opts = {
           auto_refresh = true,
-          dap_enabled = defaults.features.dap,
         },
       },
       {
         "b0o/schemastore.nvim",
-        version = false, -- last release is way too old,
+        version = false,         -- last release is way too old,
       },
       {
         "rmagatti/goto-preview",
         event = "LspAttach",
-        config = function()
-          require("goto-preview").setup({
-            width = 120, -- Width of the floating window
-            height = 15, -- Height of the floating window
-            border = "rounded", -- { "↖", "─", "┐", "│", "┘", "─", "└", "│" }, -- Border characters of the floating window
-            opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
-            resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
-            dismiss_on_move = true, -- Dismiss the floating window when moving the cursor.
-            preview_window_title = { enable = true, position = "left" }, -- Whether to set the preview window title as the filename
-          })
-        end,
+        opts = {
+          width = 120,                                                           -- Width of the floating window
+          height = 15,                                                           -- Height of the floating window
+          border = "rounded",                                                    -- { "↖", "─", "┐", "│", "┘", "─", "└", "│" }, -- Border characters of the floating window
+          opacity = nil,                                                         -- 0-100 opacity level of the floating window where 100 is fully transparent.
+          resizing_mappings = false,                                             -- Binds arrow keys to resizing the floating window.
+          dismiss_on_move = true,                                                -- Dismiss the floating window when moving the cursor.
+          preview_window_title = { enable = true, position = "left" },           -- Whether to set the preview window title as the filename
+        },
+        keys = {
+          {
+            "gpd",
+            "<cmd>lua require('goto-preview').goto_preview_definition()<CR>",
+            desc = "Preview Definition(s)",
+            noremap = true
+          },
+          {
+            "gpi",
+            "<cmd>lua require('goto-preview').goto_preview_implementation()<CR>",
+            desc = "Preview Implementation(s)",
+            noremap = true
+          },
+          -- Only set if you have telescope installed
+          {
+            "gpr",
+            "<cmd>lua require('goto-preview').goto_preview_references()<CR>",
+            desc = "Preview Reference(s)",
+            noremap = true
+          },
+        },
       },
       {
         "lewis6991/hover.nvim",
@@ -298,13 +297,8 @@ return {
             init = function()
               -- Require providers
               require("hover.providers.lsp")
-              -- require('hover.providers.gh')
-              -- require('hover.providers.gh_user')
-              if defaults.features.dap then
-                require("hover.providers.dap")
-              end
-              require("hover.providers.fold_preview")
               require("hover.providers.diagnostic")
+              require("hover.providers.fold_preview")
               require("hover.providers.man")
               require("hover.providers.dictionary")
             end,
@@ -320,31 +314,72 @@ return {
             },
             mouse_delay = 1000,
           })
+        end,
+        keys = {
+          { "K",  "<cmd>lua require('hover').hover()<CR>",        desc = "Peek or Hover",      remap = true },
+          { "gK", "<cmd>lua require('hover').hover_select()<cr>", desc = "[hover.nvim] Select" },
+          -- { "K", lsp_utils.peek_or_hover,  desc = "Peek or Hover", remap = true },
+          --     utilities.map("n", "gK", require("hover").hover_select, { desc = "[hover.nvim] Select" })
+          --     { "<Up>", function()
+          --         require("hover").hover_switch("previous")
+          --     end, desc = "[hover.nvim] Previous Source" },
+          --     {
+          --         "<Down>",
+          --         function()
+          --             require("hover").hover_switch("next")
+          --         end,
+          --         desc = "[hover.nvim] Next Source"
+          --     },
+          --     {
+          --         "<C-p>",
+          --         function()
+          --             require("hover").hover_switch("previous")
+          --         end,
+          --         desc = "[hover.nvim] Previous Source"
+          --     },
+          --     {
+          --         "<C-n>",
+          --         function()
+          --             require("hover").hover_switch("next")
+          --         end,
+          --         desc = "[hover.nvim] Next Source"
+          --     },
 
-          -- Setup keymaps
-          -- utils.map("n", "gK", require("hover").hover_select, { desc = "[hover.nvim] Select" })
-          -- utils.map("n", "<Up>", function()
-          --   require("hover").hover_switch("previous")
-          -- end, { desc = "[hover.nvim] Previous Source" })
-          -- utils.map("n", "<Down>", function()
-          --   require("hover").hover_switch("next")
-          -- end, { desc = "[hover.nvim] Next Source" })
-          -- utils.map("n", "<C-p>", function()
-          --   require("hover").hover_switch("previous")
-          -- end, { desc = "[hover.nvim] Previous Source" })
-          -- utils.map("n", "<C-n>", function()
-          --   require("hover").hover_switch("next")
-          -- end, { desc = "[hover.nvim] Next Source" })
-
-          -- Mouse support
-          -- utils.map("n", "<MouseMove>", require("hover").hover_mouse, { desc = "[hover.nvim] Mouse" })
-          -- vim.o.mousemoveevent = true
+          --     -- Mouse support
+          --     { "<MouseMove>", require("hover").hover_mouse, desc = "[hover.nvim] Mouse" },
+          --     -- vim.o.mousemoveevent = true
+        },
+      },
+      {
+        "VidocqH/lsp-lens.nvim",
+        event = "BufReadPost",
+        config = function()
+          local SymbolKind = vim.lsp.protocol.SymbolKind
+          require("lsp-lens").setup({
+            enable = true,
+            include_declaration = true,             -- Reference include declaration
+            sections = {                            -- Enable / Disable specific request, formatter example looks 'Format Requests'
+              definition = function(count)
+                return "D: " .. count
+              end,
+              references = function(count)
+                return "R: " .. count
+              end,
+              implements = function(count)
+                return "I: " .. count
+              end,
+              git_authors = false,
+            },
+            target_symbol_kinds = {
+              SymbolKind.Function,
+              SymbolKind.Method,
+              SymbolKind.Interface,
+              SymbolKind.Class,
+              SymbolKind.Struct,
+            },
+          })
         end,
       },
-      -- {
-      --   "catgoose/vue-goto-definition.nvim",
-      --   event = "BufReadPre",
-      -- },
     },
     config = function()
       local fn = vim.fn
@@ -369,7 +404,7 @@ return {
           buf_set_option("tagfunc", "v:lua.vim.lsp.tagfunc")
         end
         if client.server_capabilities.codeLensProvider then
-          local lens, _ = pcall(vim.api.nvim_get_autocmds, { group = "LspCodelens" })
+          local lens, _ = pcall(api.nvim_get_autocmds, { group = "LspCodelens" })
           if not lens then
             api.nvim_create_augroup("LspCodelens", { clear = true })
           end
@@ -380,55 +415,39 @@ return {
             command = "silent! lua vim.lsp.codelens.refresh()",
           })
         end
-        if defaults.features.navic and client.server_capabilities.documentSymbolProvider then
-          require("nvim-navic").attach(client, bufnr)
-        end
-        -- NOTE: To visually messy
-        -- if client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-        --   local au_inlay_hints = vim.api.nvim_create_augroup("ts_inlay_hints", { clear = false })
-        --
-        --   vim.api.nvim_create_autocmd({ "InsertLeave" }, {
-        --     group = au_inlay_hints,
-        --     buffer = bufnr,
-        --     callback = function()
-        --       vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-        --     end,
-        --   })
-        --
-        --   vim.api.nvim_create_autocmd({ "InsertEnter" }, {
-        --     group = au_inlay_hints,
-        --     buffer = bufnr,
-        --     callback = function()
-        --       vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-        --     end,
-        --   })
-        --
-        --   local mode = vim.api.nvim_get_mode().mode
-        --   vim.lsp.inlay_hint.enable(mode == "n" or mode == "v", { bufnr = bufnr })
-        -- end
         if client.server_capabilities.documentHighlightProvider then
-          api.nvim_create_autocmd("CursorHold", {
+          api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
             buffer = bufnr,
             -- command = "lua vim.lsp.buf.document_highlight()",
-            callback = vim.lsp.buf.document_highlight,
+            callback = lsp.buf.document_highlight,
             -- group = vim.g.colors_name ~= "oxocarbon" and "LspHighlight" or nil,
             -- group = "lsp_document_highlight",
             desc = "Document Highlight",
           })
-          api.nvim_create_autocmd("CursorMoved", {
+          api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
             buffer = bufnr,
             -- command = "lua vim.lsp.buf.clear_references()",
-            callback = vim.lsp.buf.clear_references,
+            callback = lsp.buf.clear_references,
             -- group = vim.g.colors_name ~= "oxocarbon" and "LspHighlight" or nil,
             -- group = "lsp_document_highlight",
             desc = "Clear All the References",
           })
         end
         -- Fix startup error by modifying/disabling semantic tokens for omnisharp
-        if require("lspconfig").util.root_pattern("deno.json", "deno.jsonc")(vim.fn.getcwd()) then
-          if client.name == "tsserver" or client.name == "vtsls" or client.name == "volar" then
-            client.stop()
-          end
+        --[[ if require("lspconfig").util.root_pattern("deno.json", "deno.jsonc")(vim.fn.getcwd()) then
+                    if client.name == "vtsls" or client.name == "volar" then
+                        client.stop()
+                    end
+                end ]]
+        if lsp_utils.is_enabled("denols") and lsp_utils.is_enabled("vtsls") then
+          local is_deno = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
+          lsp_utils.disable("vtsls", is_deno)
+          lsp_utils.disable("denols", function(root_dir, config)
+            if not is_deno(root_dir) then
+              config.settings.deno.enable = false
+            end
+            return false
+          end)
         end
         -------------------------------------------------------------------------------
         --- Keymaps
@@ -440,141 +459,98 @@ return {
           "typescriptreact",
           "vue",
         }
-        utils.map("n", "<leader>l", "<cmd>LspInfo<cr>", { desc = "Lsp Info" })
-        utils.map("n", "K", "<cmd>lua require('hover').hover()<CR>", { desc = "Peek or Hover", remap = true })
-        -- utils.map("n", "K", lsp_utils.peek_or_hover, { desc = "Peek or Hover", remap = true })
+        utilities.map("n", "<leader>l", "<cmd>LspInfo<cr>", { desc = "Lsp Info" })
         if lsp_utils.has(bufnr, "signatureHelp") then
-          utils.map("i", "<c-k>", vim.lsp.buf.signature_help, { desc = "Signature Help" })
-          utils.map("n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>", { desc = "Signature Help" })
+          utilities.map("i", "<c-k>", vim.lsp.buf.signature_help, { desc = "Signature Help" })
+          utilities.map("n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>", { desc = "Signature Help" })
         end
-        utils.map("n", "gK", "<cmd>lua require('hover').hover_select()<cr>", { desc = "[hover.nvim] Select" })
-        utils.map("n", "<leader>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { desc = "Type Definitions" })
-        utils.map("n", "<leader>ra", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "Rename" })
+        utilities.map("n", "<leader>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>",
+          { desc = "Type Definitions" })
+        utilities.map("n", "<leader>ra", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "Rename" })
         if lsp_utils.has(bufnr, "codeAction") then
-          -- utils.map({ "<leader>ca", vim.lsp.buf.code_action, desc = "Code Action", mode = { "n", "v" }, has = "codeAction" })
-          utils.map(
+          utilities.map(
             { "n", "v" },
             "<leader>ca",
             "<cmd>lua require('actions-preview').code_actions()<CR>",
             { desc = "Code Actions" }
           )
-          -- utils.map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
-          -- ["<leader>ca"] = { "<cmd>lua vim.lsp.buf.code_action()<CR>", { desc="Code Actions", })
+          -- utilities.map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
         end
-        utils.map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Floating Diagnostics" })
-        utils.map("n", "gF", "<cmd>Telescope diagnostics<CR>", { desc = "Telescope Diagnostics" })
-        utils.map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { desc = "Previous Diagnostics" })
-        utils.map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", { desc = "Next Diagnostics" })
-        utils.map("n", "<leader>cf", "<cmd>lua require('avim.utils').format()<CR>", { desc = "Format Document" })
-        -- ["<leader>fm"] = { "<cmd>lua vim.lsp.buf.format {async = true}<CR>", "Format Document", })
-        utils.map(
-          { "n", "v" },
-          "<leader>cl",
-          "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<CR>",
-          { desc = "Inlay Hints" }
-        )
+        utilities.map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Floating Diagnostics" })
+        utilities.map("n", "gF", "<cmd>Telescope diagnostics<CR>", { desc = "Telescope Diagnostics" })
+        utilities.map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { desc = "Previous Diagnostics" })
+        utilities.map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", { desc = "Next Diagnostics" })
+        utilities.map("n", "<leader>cf", "<cmd>lua vim.lsp.buf.format({ timeout_ms = 3000 })<CR>",
+          { desc = "Format Document" })
         if lsp_utils.has(bufnr, "codeLens") then
-          utils.map({ "n", "v" }, "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", { desc = "Run Codelens" })
+          utilities.map({ "n", "v" }, "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>",
+            { desc = "Run Codelens" })
         end
         if vim.tbl_contains(fts, vim.bo.filetype) then
-          utils.map("n", "gD", function()
+          utilities.map("n", "gD", function()
             local params = vim.lsp.util.make_position_params()
-            utils.lsp_execute({
+            utilities.lsp_execute({
               command = "typescript.goToSourceDefinition",
               arguments = { params.textDocument.uri, params.position },
               open = true,
             })
           end, { desc = "Goto Source Definition" })
-          utils.map("n", "gR", function()
-            utils.lsp_execute({
+          utilities.map("n", "gR", function()
+            utilities.lsp_execute({
               command = "typescript.findAllFileReferences",
               arguments = { vim.uri_from_bufnr(0) },
               open = true,
             })
           end, { desc = "File References" })
-          utils.map("n", "<leader>co", utils.lsp_action["source.organizeImports"], { desc = "Organize Imports" })
-          utils.map(
+          utilities.map("n", "<leader>co", utilities.lsp_action["source.organizeImports"],
+            { desc = "Organize Imports" })
+          utilities.map(
             "n",
             "<leader>cM",
-            utils.lsp_action["source.addMissingImports.ts"],
+            utilities.lsp_action["source.addMissingImports.ts"],
             { desc = "Add missing imports" }
           )
-          utils.map("n", "<leader>cu", utils.lsp_action["source.removeUnused.ts"], { desc = "Remove unused imports" })
-          utils.map("n", "<leader>cD", utils.lsp_action["source.fixAll.ts"], { desc = "Fix all diagnostics" })
-          utils.map("n", "<leader>cV", function()
-            utils.lsp_execute({ command = "typescript.selectTypeScriptVersion" })
+          utilities.map("n", "<leader>cu", utilities.lsp_action["source.removeUnused.ts"],
+            { desc = "Remove unused imports" })
+          utilities.map("n", "<leader>cD", utilities.lsp_action["source.fixAll.ts"],
+            { desc = "Fix all diagnostics" })
+          utilities.map("n", "<leader>cV", function()
+            utilities.lsp_execute({ command = "typescript.selectTypeScriptVersion" })
           end, { desc = "Select TS workspace version" })
         end
-        utils.map("n", "g", nil, { name = "goto" })
+        utilities.map("n", "g", nil, { name = "goto" })
         if lsp_utils.has(bufnr, "definition") then
-          utils.map("n", "gd", vim.lsp.buf.definition, { desc = "Goto Definition" })
+          utilities.map("n", "gd", vim.lsp.buf.definition, { desc = "Goto Definition" })
         end
-        utils.map("n", "gr", vim.lsp.buf.references, { desc = "References", nowait = true })
-        utils.map("n", "gi", vim.lsp.buf.implementation, { desc = "Goto Implementation" })
-        utils.map("n", "gy", vim.lsp.buf.type_definition, { desc = "Goto T[y]pe Definition" })
-        utils.map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
+        utilities.map("n", "gr", vim.lsp.buf.references, { desc = "References", nowait = true })
+        utilities.map("n", "gi", vim.lsp.buf.implementation, { desc = "Goto Implementation" })
+        utilities.map("n", "gy", vim.lsp.buf.type_definition, { desc = "Goto T[y]pe Definition" })
+        utilities.map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
         if lsp_utils.has(bufnr, "rename") then
-          utils.map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
+          utilities.map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
         end
         ---
-        utils.map("n", "gp", nil, { name = "󰍉 Peek" })
-        utils.map(
+        utilities.map("n", "gp", nil, { name = "󰍉 Peek" })
+        utilities.map(
           "n",
           "gpd",
-          "<cmd>lua require('avim.utils.peek').Peek('definition')<CR>",
+          "<cmd>lua require('avim.utilities.peek').Peek('definition')<CR>",
           { desc = "[Peek] Definition(s)" }
         )
-        utils.map(
+        utilities.map(
           "n",
           "<leader>gpt",
-          "<cmd>lua require('avim.utils.peek').Peek('typeDefinition')<CR>",
+          "<cmd>lua require('avim.utilities.peek').Peek('typeDefinition')<CR>",
           { desc = "[Peek] Type Definition(s)" }
         )
-        utils.map(
+        utilities.map(
           "n",
           "<leader>gpI",
-          "<cmd>lua require('avim.utils.peek').Peek('implementation')<CR>",
+          "<cmd>lua require('avim.utilities.peek').Peek('implementation')<CR>",
           { desc = "[Peek] Implementation(s)" }
-        )
-        utils.map(
-          "n",
-          "gpd",
-          "<cmd>lua require('goto-preview').goto_preview_definition()<CR>",
-          { desc = "Preview Definition(s)", noremap = true }
-        )
-        utils.map(
-          "n",
-          "gpi",
-          "<cmd>lua require('goto-preview').goto_preview_implementation()<CR>",
-          { desc = "Preview Implementation(s)", noremap = true }
-        )
-        -- Only set if you have telescope installed
-        utils.map(
-          "n",
-          "gpr",
-          "<cmd>lua require('goto-preview').goto_preview_references()<CR>",
-          { desc = "Preview Reference(s)", noremap = true }
         )
         -------------------------------------------------------------------------------
       end
-      api.nvim_create_augroup("_filetype_settings", {})
-      api.nvim_create_autocmd("FileType", {
-        group = "_filetype_settings",
-        pattern = { "lua" },
-        desc = "fix gf functionality inside .lua files",
-        callback = function()
-          ---@diagnostic disable: assign-type-mismatch
-          -- credit: https://github.com/sam4llis/nvim-lua-gf
-          vim.opt_local.include = [[\v<((do|load)file|require|reload)[^''"]*[''"]\zs[^''"]+]]
-          vim.opt_local.includeexpr = "substitute(v:fname,'\\.','/','g')"
-          vim.opt_local.suffixesadd:prepend(".lua")
-          vim.opt_local.suffixesadd:prepend("init.lua")
-
-          for _, path in pairs(api.nvim_list_runtime_paths()) do
-            vim.opt_local.path:append(path .. "/lua")
-          end
-        end,
-      })
 
       -- Lsp Handlers
       lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
@@ -584,12 +560,13 @@ return {
         config = config or {}
         config.border = "rounded"
         lsp.handlers.hover(_, result, ctx, config)
+        -- lsp.handlers["textDocument/hover"](_, result, ctx, config)
       end
       lsp.handlers["textDocument/signatureHelp"] = lsp.with(lsp.handlers.signature_help, {
-        border = "rounded", -- "single",
+        border = "rounded",         -- "single",
       })
       lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-        local ts_lsp = { "tsserver", "vtsls", "volar", "svelte", "astro" }
+        local ts_lsp = { "deno", "vtsls", "volar", "svelte", "astro" }
         local clients = lsp.get_clients({ id = ctx.client_id })
         if vim.tbl_contains(ts_lsp, clients[1].name) then
           local filtered_result = {
@@ -609,15 +586,16 @@ return {
       local capabilities = vim.tbl_deep_extend(
         "force",
         {},
-        lsp.protocol.make_client_capabilities(),
-        require("cmp_nvim_lsp").default_capabilities(),
-        require("lsp-file-operations").default_capabilities() or {}
+        lsp.protocol.make_client_capabilities()
       )
-      -- local capabilities = lsp.protocol.make_client_capabilities()
-      -- local status_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-      -- if status_ok then
-      --   capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-      -- end
+      local fileOps, file_operations = pcall(require, "lsp-file-operations")
+      if fileOps then
+        capabilities = vim.tbl_deep_extend("force", {}, capabilities, file_operations.default_capabilities())
+      end
+      local status_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+      if status_ok then
+        capabilities = vim.tbl_deep_extend("force", {}, capabilities, cmp_nvim_lsp.default_capabilities())
+      end
       capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
       capabilities.workspace.didChangeWorkspaceFolders = {
         dynamicRegistration = true,
@@ -643,67 +621,65 @@ return {
           },
         },
       }
-      require("avim.utils.lsp").setup()
 
       local mason_lsp = require("mason-lspconfig")
 
       local lspconfig = require("lspconfig")
-      if defaults.features.flutter then
-        require("flutter-tools").setup({
-          widget_guides = {
-            enabled = true,
+
+      require("flutter-tools").setup({
+        widget_guides = {
+          enabled = true,
+        },
+        dev_log = {
+          enabled = true,
+          notify_errors = true,           -- if there is an error whilst running then notify the user
+        },
+        dev_tools = {
+          autostart = true,           -- autostart devtools server if not detected
+        },
+        lsp = {
+          color = { -- show the derived colours for dart variables
+            enabled = true, -- whether or not to highlight color variables at all, only supported on flutter >= 2.10
+            background = false, -- highlight the background
+            background_color = nil, -- required, when background is transparent (i.e. background_color = { r = 19, g = 17, b = 24},)
+            foreground = true, -- highlight the foreground
+            virtual_text = false, -- show the highlight using virtual text
+            virtual_text_str = "■", -- the virtual text character to highlight
           },
-          dev_log = {
-            enabled = true,
-            notify_errors = true, -- if there is an error whilst running then notify the user
+          on_attach = on_attach,
+          capabilities = capabilities,           -- e.g. lsp_status capabilities
+          --- OR you can specify a function to deactivate or change or control how the config is created
+          -- capabilities = function(config)
+          -- 	config.specificThingIDontWant = false
+          -- 	return config
+          -- end,
+          -- see the link below for details on each option:
+          -- https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#client-workspace-configuration
+          settings = {
+            showTodos = true,
+            completeFunctionCalls = true,
+            -- analysisExcludedFolders = { "<path-to-flutter-sdk-packages>" },
+            renameFilesWithClasses = "prompt",             -- "always"
+            enableSnippets = true,
           },
-          dev_tools = {
-            autostart = true, -- autostart devtools server if not detected
+        },
+        decorations = {
+          statusline = {
+            -- set to true to be able use the 'flutter_tools_decorations.app_version' in your statusline
+            -- this will show the current version of the flutter app from the pubspec.yaml file
+            app_version = true,
+            -- set to true to be able use the 'flutter_tools_decorations.device' in your statusline
+            -- this will show the currently running device if an application was started with a specific
+            -- device
+            device = true,
           },
-          lsp = {
-            color = { -- show the derived colours for dart variables
-              enabled = true, -- whether or not to highlight color variables at all, only supported on flutter >= 2.10
-              background = false, -- highlight the background
-              background_color = nil, -- required, when background is transparent (i.e. background_color = { r = 19, g = 17, b = 24},)
-              foreground = true, -- highlight the foreground
-              virtual_text = false, -- show the highlight using virtual text
-              virtual_text_str = "■", -- the virtual text character to highlight
-            },
-            on_attach = on_attach,
-            capabilities = capabilities, -- e.g. lsp_status capabilities
-            --- OR you can specify a function to deactivate or change or control how the config is created
-            -- capabilities = function(config)
-            -- 	config.specificThingIDontWant = false
-            -- 	return config
-            -- end,
-            -- see the link below for details on each option:
-            -- https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#client-workspace-configuration
-            settings = {
-              showTodos = true,
-              completeFunctionCalls = true,
-              -- analysisExcludedFolders = { "<path-to-flutter-sdk-packages>" },
-              renameFilesWithClasses = "prompt", -- "always"
-              enableSnippets = true,
-            },
-          },
-          decorations = {
-            statusline = {
-              -- set to true to be able use the 'flutter_tools_decorations.app_version' in your statusline
-              -- this will show the current version of the flutter app from the pubspec.yaml file
-              app_version = true,
-              -- set to true to be able use the 'flutter_tools_decorations.device' in your statusline
-              -- this will show the currently running device if an application was started with a specific
-              -- device
-              device = true,
-            },
-          },
-          debugger = {
-            enabled = defaults.features.dap,
-            run_via_dap = defaults.features.dap,
-          },
-        })
-        require("telescope").load_extension("flutter")
-      end
+        },
+        -- debugger = {
+        --   enabled = defaults.features.dap,
+        --   run_via_dap = defaults.features.dap,
+        -- },
+      })
+      require("telescope").load_extension("flutter")
 
       -- See `:h mason-lspconfig.setup_handlers()`
       -- @param handlers table<string, fun(server_name: string)>
@@ -897,6 +873,7 @@ return {
                   library = {
                     [fn.expand("$VIMRUNTIME/lua")] = true,
                     [fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true,
+                    [_G.get_avim_base_dir()] = true,
                   },
                   maxPreload = 100000,
                   preloadFileSize = 10000,
@@ -921,25 +898,6 @@ return {
           -- 				"python-type-stubs",
           -- 			})
           -- 		end,
-        end,
-        ["sourcery"] = function()
-          lspconfig.sourcery.setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            init_options = {
-              --- The Sourcery token for authenticating the user.
-              --- This is retrieved from the Sourcery website and must be
-              --- provided by each user. The extension must provide a
-              --- configuration option for the user to provide this value.
-              -- token = nil, -- Either add here or will be checked if `sourcery login` is done
-
-              --- The extension's name and version as defined by the extension.
-              extension_version = "vim.lsp",
-
-              --- The editor's name and version as defined by the editor.
-              editor_version = "avim",
-            },
-          })
         end,
         ["tailwindcss"] = function()
           capabilities.textDocument.colorProvider = { dynamicRegistration = false }
@@ -980,17 +938,12 @@ return {
               vtsls = {
                 tsserver = {
                   globalPlugins = {
-                    -- {
-                    --   name = "@vue/typescript-plugin",
-                    --   location = vim.fn.expand("$HOME")
-                    --     .. "/.local/share/mise/installs/node/20.17.0/lib/node_modules/@vue/typescript-plugin",
-                    --   configNamespace = "typescript",
-                    --   languages = { "javascript", "typescript", "vue" },
-                    -- },
                     {
                       name = "@vue/typescript-plugin",
-                      location = lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                      location = lsp_utils.get_pkg_path("vue-language-server",
+                        "node_modules/@vue/language-server"),
                       languages = { "vue" },
+                        -- languages = { "javascript", "typescript", "vue" },
                       configNamespace = "typescript",
                       enableForWorkspaceTypeScriptVersions = true,
                     },
@@ -1005,6 +958,12 @@ return {
                 },
               },
               typescript = {
+                tsserver = {
+                  pluginPaths = {
+                      -- "@vue/typescript-plugin",
+                      lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                  },
+                },
                 updateImportsOnFileMove = { enabled = "always" },
                 suggest = {
                   completeFunctionCalls = true,
@@ -1025,10 +984,10 @@ return {
               },
               javascript = {
                 inlayHints = {
-                  includeInlayParameterNameHints = "all", -- 'none' | 'literals' | 'all';
+                  includeInlayParameterNameHints = "all",                   -- 'none' | 'literals' | 'all';
                   includeInlayParameterNameHintsWhenArgumentMatchesName = false,
                   includeInlayFunctionParameterTypeHints = true,
-                  includeInlayVariableTypeHints = true, -- false
+                  includeInlayVariableTypeHints = true,                   -- false
                   includeInlayVariableTypeHintsWhenTypeMatchesName = false,
                   includeInlayPropertyDeclarationTypeHints = true,
                   includeInlayFunctionLikeReturnTypeHints = true,
@@ -1044,22 +1003,22 @@ return {
                 completeFunctionCalls = true,
               },
             },
-            -- before_init = function(params, config)
-            --   local result = vim
-            --     .system({ "npm", "query", "#vue" }, { cwd = params.workspaceFolders[1].name, text = true })
-            --     :wait()
-            --   if result.stdout ~= "[]" then
-            --     local vuePluginConfig = {
-            --       name = "@vue/typescript-plugin",
-            --       location = require("mason-registry").get_package("vue-language-server"):get_install_path()
-            --         .. "/node_modules/@vue/language-server",
-            --       languages = { "vue" },
-            --       configNamespace = "typescript",
-            --       enableForWorkspaceTypeScriptVersions = true,
-            --     }
-            --     table.insert(config.settings.vtsls.tsserver.globalPlugins, vuePluginConfig)
-            --   end
-            -- end,
+            before_init = function(params, config)
+              local result = vim
+                .system({ "npm", "query", "#vue" }, { cwd = params.workspaceFolders[1].name, text = true })
+                :wait()
+              if result.stdout ~= "[]" then
+                local vuePluginConfig = {
+                  name = "@vue/typescript-plugin",
+                  location = require("mason-registry").get_package("vue-language-server"):get_install_path()
+                    .. "/node_modules/@vue/language-server",
+                  languages = { "vue" },
+                  configNamespace = "typescript",
+                  enableForWorkspaceTypeScriptVersions = true,
+                }
+                table.insert(config.settings.vtsls.tsserver.globalPlugins, vuePluginConfig)
+              end
+            end,
           })
           -- end
         end,
@@ -1100,10 +1059,11 @@ return {
       }
       require("ufo").setup({
         provider_selector = function(bufnr, filetype, buftype)
-          return ftMap[filetype] or { "lsp", "indent" } -- 'lsp' | 'treesitter' | 'indent'
+          return ftMap[filetype] or { "lsp", "indent" }           -- 'lsp' | 'treesitter' | 'indent'
         end,
-        fold_virt_text_handler = require("avim.utils").fold_handler,
+        fold_virt_text_handler = require("avim.utilities").fold_handler,
       })
+      require("avim.utilities.lsp").setup()
 
       -- This setup() function is exactly the same as lspconfig's setup function (:help lspconfig-quickstart)
       vim.cmd([[ do User LspAttachBuffers ]])

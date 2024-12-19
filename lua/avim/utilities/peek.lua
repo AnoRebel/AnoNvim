@@ -1,9 +1,19 @@
-local api = vim.api
+---@class avim.utilities.peek
+---@field floating_buf any
+---@field floating_win any
+---@field prev_result any
+---@field Peek fun(what: string): nil
+---@field PopupPeek fun(what: string): nil
+---@field ClosePeek fun(): nil
+---@field set_cursor_to_prev_pos fun(winnr: any): nil
+---@field open_file fun(): nil
 local M = {
 	floating_buf = nil,
 	floating_win = nil,
 	prev_result = nil,
 }
+
+local api = vim.api
 
 local function create_floating_file(location, opts)
 	vim.validate({
@@ -143,7 +153,7 @@ function M.Peek(what)
 			M.floating_buf,
 			"n",
 			"<CR>",
-			":lua require('avim.utils.peek').open_file()<CR>",
+			":lua require('avim.utilities.peek').open_file()<CR>",
 			{ noremap = true, silent = true }
 		)
 	else

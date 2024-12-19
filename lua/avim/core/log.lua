@@ -1,3 +1,16 @@
+---@class avim.log
+---@field add_entry fun(level: string, msg: any, event: any)
+---@field configure_notifications fun(nvim_notify: any)
+---@field debug fun(msg: any, event: any)
+---@field error fun(msg: any, event: any)
+---@field get_logger fun(): table|nil
+---@field get_path fun(): string
+---@field info fun(msg: any, event: any)
+---@field init fun(): table|nil
+---@field levels table
+---@field set_level fun(level: string)
+---@field trace fun(msg: any, event: any)
+---@field warn fun(msg: any, event: any)
 local Log = {}
 
 Log.levels = {
@@ -154,7 +167,7 @@ end
 ---Retrieves the path of the logfile
 ---@return string path of the logfile
 function Log:get_path()
-  return string.format("%s/%s.log", require("avim.utils").get_cache_dir(), "avim")
+  return string.format("%s/%s.log", require("avim.utilities").get_cache_dir(), "avim")
 end
 
 ---Add a log entry at TRACE level

@@ -1,3 +1,8 @@
+---@class avim.utilities.constants
+---@field nonfile_bufs table
+---@field mode_color table
+---@field mode_colors table
+---@field modes table
 local M = {}
 
 -- these are filetypes that are not actual files, but rather meta buffers

@@ -1,6 +1,6 @@
 local Util = require("util")
 
----@class util.root
+---@class avim.utilities.root
 ---@overload fun(): string
 local M = setmetatable({}, {
   __call = function(m)

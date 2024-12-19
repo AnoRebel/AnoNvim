@@ -1,4 +1,4 @@
-local utils = require("avim.utils")
+local utilities = require("avim.utilities")
 
 return {
     "nvim-telescope/telescope.nvim",
@@ -184,37 +184,37 @@ return {
         -------------------------------------------------------------------------------
         --- Keymaps
         -------------------------------------------------------------------------------
-        utils.map({ "n", "v" }, "<leader>f", nil, { name = "󰥩 Finder" })
-        utils.map({ "n", "v" }, "<leader>fb", "<cmd>Telescope buffers <CR>", { desc = "Buffer List" })
-        utils.map(
+        utilities.map({ "n", "v" }, "<leader>f", nil, { name = "󰥩 Finder" })
+        utilities.map({ "n", "v" }, "<leader>fb", "<cmd>Telescope buffers <CR>", { desc = "Buffer List" })
+        utilities.map(
             { "n", "v" },
             "<leader>fB",
             "<cmd>Telescope current_buffer_fuzzy_find <CR>",
             { desc = "Fuzzy Buffer List" }
         )
-        utils.map({ "n", "v" }, "<leader>ff", "<cmd>Telescope find_files <CR>", { desc = "Find Files" })
-        utils.map(
+        utilities.map({ "n", "v" }, "<leader>ff", "<cmd>Telescope find_files <CR>", { desc = "Find Files" })
+        utilities.map(
             { "n", "v" },
             "<leader>fa",
             "<cmd>Telescope find_files follow=true no_ignore=true hidden=true <CR>",
             { desc = "All Files" }
         )
-        utils.map({ "n", "v" }, "<leader>fC", "<cmd>Telescope git_commits <CR>", { desc = "Git Commits" })
-        utils.map({ "n", "v" }, "<leader>fc", "<cmd>Telescope commands <CR>", { desc = "Commands" })
-        utils.map({ "n", "v" }, "<leader>fh", "<cmd>Telescope command_history<CR>", { desc = "Command History" })
-        -- utils.map({ "n", "v" }, "<leader>ft", "<cmd>Telescope git_status <CR>", { desc = "Git Status" })
-        -- utils.map({ "n", "v" }, "<leader>fh", "<cmd>Telescope help_tags <CR>", { desc = "Help Tags" })
-        utils.map({ "n", "v" }, "<leader>fw", "<cmd>Telescope live_grep <CR>", { desc = "Live Search" })
-        utils.map({ "n", "v" }, "<leader>fo", "<cmd>Telescope oldfiles <CR>", { desc = "Old Files" })
-        utils.map({ "n", "v" }, "<leader>fu", "<cmd>lua require('avim.utils.theme_picker')()<CR>", { desc = "Themes" })
-        utils.map({ "n", "v" }, "<leader>fk", "<cmd>Telescope keymaps <CR>", { desc = "Key Mappings" })
-        utils.map({ "n", "v" }, "<leader>fm", "<cmd>Telescope man_pages <CR>", { desc = "Man Pages" })
-        utils.map({ "n", "v" }, "<leader>fr", "<cmd>Telescope resume <CR>", { desc = "Resume" })
-        utils.map({ "n", "v" }, "<leader>fD", "<cmd>Telescope lsp_document_symbols <CR>", { desc = "Document Symbols" })
+        utilities.map({ "n", "v" }, "<leader>fC", "<cmd>Telescope git_commits <CR>", { desc = "Git Commits" })
+        utilities.map({ "n", "v" }, "<leader>fc", "<cmd>Telescope commands <CR>", { desc = "Commands" })
+        utilities.map({ "n", "v" }, "<leader>fh", "<cmd>Telescope command_history<CR>", { desc = "Command History" })
+        -- utilities.map({ "n", "v" }, "<leader>ft", "<cmd>Telescope git_status <CR>", { desc = "Git Status" })
+        -- utilities.map({ "n", "v" }, "<leader>fh", "<cmd>Telescope help_tags <CR>", { desc = "Help Tags" })
+        utilities.map({ "n", "v" }, "<leader>fw", "<cmd>Telescope live_grep <CR>", { desc = "Live Search" })
+        utilities.map({ "n", "v" }, "<leader>fo", "<cmd>Telescope oldfiles <CR>", { desc = "Old Files" })
+        utilities.map({ "n", "v" }, "<leader>fu", "<cmd>lua require('avim.utilities.theme_picker')()<CR>", { desc = "Themes" })
+        utilities.map({ "n", "v" }, "<leader>fk", "<cmd>Telescope keymaps <CR>", { desc = "Key Mappings" })
+        utilities.map({ "n", "v" }, "<leader>fm", "<cmd>Telescope man_pages <CR>", { desc = "Man Pages" })
+        utilities.map({ "n", "v" }, "<leader>fr", "<cmd>Telescope resume <CR>", { desc = "Resume" })
+        utilities.map({ "n", "v" }, "<leader>fD", "<cmd>Telescope lsp_document_symbols <CR>", { desc = "Document Symbols" })
 
         -- Flutter tools
-        -- utils.map("n", "<leader>fd", "<cmd>Telescope flutter commands <CR>", { desc = "Flutter" })
-        -- utils.map("n", "<leader>ft", "<cmd>FlutterOutlineToggle<CR>", { desc = "Flutter Toggle Outline" })
+        -- utilities.map("n", "<leader>fd", "<cmd>Telescope flutter commands <CR>", { desc = "Flutter" })
+        -- utilities.map("n", "<leader>ft", "<cmd>FlutterOutlineToggle<CR>", { desc = "Flutter Toggle Outline" })
         -------------------------------------------------------------------------------
     end,
 }
