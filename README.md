@@ -1,6 +1,6 @@
 # AnoNvim
 
-![AnoNvim](.media/avim-5.png)
+![AnoNvim](.media/dashboard_alt.png)
 
 A modern, feature-rich Neovim configuration focused on providing a complete development environment. Built with Lua and
 designed for extensibility.
@@ -188,9 +188,9 @@ Note: `<leader>` key is mapped to the `Space` key
 
 <details><summary>Screenshots (Click to expand)</summary>
 
-![AnoNvim](.media/dashboard_alt.png) ![Dashboard](.media/dashboard.png) ![NeoTree](.media/neotree.png)
-![Keymaps](.media/keymaps.png) ![Search and Replace](.media/search_and_replace.png) ![Themes](.media/themes.png)
-![Terminal](.media/terminal.png) ![Database](.media/database.png)
+![Dashboard](.media/dashboard.png) ![NeoTree](.media/neotree.png) ![Keymaps](.media/keymaps.png)
+![Search and Replace](.media/search_and_replace.png) ![Themes](.media/themes.png) ![Terminal](.media/terminal.png)
+![Database](.media/database.png)
 
 </details>
 
