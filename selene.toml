@@ -1,6 +1,3 @@
-# Selene configuration for AnoNvim
-# Reference: https://kampfkarren.github.io/selene/usage/configuration.html
-
 # Use Vim standard library
 std = "vim"
 
@@ -28,13 +25,3 @@ empty_if = "warn"              # Warn about empty if statements
 shadowing = "warn"             # Warn about shadowing variables
 undefined_variable = "warn"    # Warn about undefined variables
 unused_variable = "warn"       # Warn about unused variables
-
-# Specific to Neovim development
-# [vim]
-# Define additional Neovim-specific globals
-# globals = [
-    # "vim",        # Neovim API
-    # "assert",     # Lua assert function
-    # "after",      # Module namespace
-    # "avim",       # AnoNvim namespace
-# ]

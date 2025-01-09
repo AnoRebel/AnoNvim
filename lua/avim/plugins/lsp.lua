@@ -102,12 +102,12 @@ return {
       {
         "williamboman/mason.nvim",
         cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
-        build = ":MasonUpdate",         -- :MasonUpdate updates registry contents
+        build = ":MasonUpdate", -- :MasonUpdate updates registry contents
         config = function(_, opts)
           require("mason").setup({
             -- automatic_installation = true,
             ui = {
-              border = "none",               -- "rounded",
+              border = "none", -- "rounded",
               icons = {
                 package_installed = "",
                 package_pending = "",
@@ -196,17 +196,17 @@ return {
           require("lsp_signature").setup({
             bind = true,
             handler_opts = {
-              border = "shadow",               -- double, rounded, single, shadow, none, or a table of borders
+              border = "shadow", -- double, rounded, single, shadow, none, or a table of borders
             },
             transparency = 70,
             hint_prefix = " ",
             max_height = 22,
-            max_width = 120,                                                 -- max_width of signature floating_window, line will be wrapped if exceed max_width
-            floating_window_off_x = 5,                                       -- adjust float windows x position.
-            floating_window_off_y = function()                               -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
-              local linenr = vim.api.nvim_win_get_cursor(0)[1]               -- buf line number
+            max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
+            floating_window_off_x = 5, -- adjust float windows x position.
+            floating_window_off_y = function() -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
+              local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
               local pumheight = vim.o.pumheight
-              local winline = vim.fn.winline()                               -- line number in the window
+              local winline = vim.fn.winline() -- line number in the window
               local winheight = vim.fn.winheight(0)
 
               -- window top
@@ -230,13 +230,15 @@ return {
       {
         "folke/lazydev.nvim",
         ft = "lua",
+        cmd = "LazyDev",
         dependencies = { "Bilal2453/luvit-meta", lazy = true },
         opts = {
           library = {
-            -- _G.get_runtime_dir() .. "/lazy/luvit-meta/library",
-            { path = "luvit-meta/library", words = { "vim%.uv" } },
-            { path = "avim",               words = { "avim" } },
-            { path = "lazy.nvim",          words = { "avim" } },
+            -- { path = "luvit-meta/library", words = { "vim%.uv" } },
+            { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+            { path = "avim", words = { "avim" } },
+            { path = "lazy.nvim", words = { "avim" } },
+            { path = "snacks.nvim", words = { "Snacks" } },
             -- You can also add plugins you always want to have loaded.
             -- Useful if the plugin has globals or types you want to use
             -- vim.env.LAZY .. "/LazyVim", -- see below
@@ -254,39 +256,39 @@ return {
       },
       {
         "b0o/schemastore.nvim",
-        version = false,         -- last release is way too old,
+        version = false, -- last release is way too old,
       },
       {
         "rmagatti/goto-preview",
         event = "LspAttach",
         opts = {
-          width = 120,                                                           -- Width of the floating window
-          height = 15,                                                           -- Height of the floating window
-          border = "rounded",                                                    -- { "↖", "─", "┐", "│", "┘", "─", "└", "│" }, -- Border characters of the floating window
-          opacity = nil,                                                         -- 0-100 opacity level of the floating window where 100 is fully transparent.
-          resizing_mappings = false,                                             -- Binds arrow keys to resizing the floating window.
-          dismiss_on_move = true,                                                -- Dismiss the floating window when moving the cursor.
-          preview_window_title = { enable = true, position = "left" },           -- Whether to set the preview window title as the filename
+          width = 120, -- Width of the floating window
+          height = 15, -- Height of the floating window
+          border = "rounded", -- { "↖", "─", "┐", "│", "┘", "─", "└", "│" }, -- Border characters of the floating window
+          opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
+          resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
+          dismiss_on_move = true, -- Dismiss the floating window when moving the cursor.
+          preview_window_title = { enable = true, position = "left" }, -- Whether to set the preview window title as the filename
         },
         keys = {
           {
             "gpd",
             "<cmd>lua require('goto-preview').goto_preview_definition()<CR>",
             desc = "Preview Definition(s)",
-            noremap = true
+            noremap = true,
           },
           {
             "gpi",
             "<cmd>lua require('goto-preview').goto_preview_implementation()<CR>",
             desc = "Preview Implementation(s)",
-            noremap = true
+            noremap = true,
           },
           -- Only set if you have telescope installed
           {
             "gpr",
             "<cmd>lua require('goto-preview').goto_preview_references()<CR>",
             desc = "Preview Reference(s)",
-            noremap = true
+            noremap = true,
           },
         },
       },
@@ -316,7 +318,7 @@ return {
           })
         end,
         keys = {
-          { "K",  "<cmd>lua require('hover').hover()<CR>",        desc = "Peek or Hover",      remap = true },
+          { "K", "<cmd>lua require('hover').hover()<CR>", desc = "Peek or Hover", remap = true },
           { "gK", "<cmd>lua require('hover').hover_select()<cr>", desc = "[hover.nvim] Select" },
           -- { "K", lsp_utils.peek_or_hover,  desc = "Peek or Hover", remap = true },
           --     utilities.map("n", "gK", require("hover").hover_select, { desc = "[hover.nvim] Select" })
@@ -357,8 +359,8 @@ return {
           local SymbolKind = vim.lsp.protocol.SymbolKind
           require("lsp-lens").setup({
             enable = true,
-            include_declaration = true,             -- Reference include declaration
-            sections = {                            -- Enable / Disable specific request, formatter example looks 'Format Requests'
+            include_declaration = true, -- Reference include declaration
+            sections = { -- Enable / Disable specific request, formatter example looks 'Format Requests'
               definition = function(count)
                 return "D: " .. count
               end,
@@ -461,11 +463,10 @@ return {
         }
         utilities.map("n", "<leader>l", "<cmd>LspInfo<cr>", { desc = "Lsp Info" })
         if lsp_utils.has(bufnr, "signatureHelp") then
-          utilities.map("i", "<c-k>", vim.lsp.buf.signature_help, { desc = "Signature Help" })
+          utilities.map("i", "<c-k>", lsp.buf.signature_help, { desc = "Signature Help" })
           utilities.map("n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>", { desc = "Signature Help" })
         end
-        utilities.map("n", "<leader>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>",
-          { desc = "Type Definitions" })
+        utilities.map("n", "<leader>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { desc = "Type Definitions" })
         utilities.map("n", "<leader>ra", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "Rename" })
         if lsp_utils.has(bufnr, "codeAction") then
           utilities.map(
@@ -480,54 +481,77 @@ return {
         utilities.map("n", "gF", "<cmd>Telescope diagnostics<CR>", { desc = "Telescope Diagnostics" })
         utilities.map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { desc = "Previous Diagnostics" })
         utilities.map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", { desc = "Next Diagnostics" })
-        utilities.map("n", "<leader>cf", "<cmd>lua vim.lsp.buf.format({ timeout_ms = 3000 })<CR>",
-          { desc = "Format Document" })
+        utilities.map(
+          "n",
+          "<leader>cf",
+          "<cmd>lua vim.lsp.buf.format({ timeout_ms = 3000 })<CR>",
+          { desc = "Format Document" }
+        )
         if lsp_utils.has(bufnr, "codeLens") then
-          utilities.map({ "n", "v" }, "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>",
-            { desc = "Run Codelens" })
+          utilities.map({ "n", "v" }, "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", { desc = "Run Codelens" })
+        end
+        if lsp_utils.is_enabled("elixirls") then
+          utilities.map("n", "<leader>cp", function()
+            local params = lsp.util.make_position_params()
+            lsp_utils.execute({
+              command = "manipulatePipes:serverid",
+              arguments = { "toPipe", params.textDocument.uri, params.position.line, params.position.character },
+            })
+          end, { desc = "To Pipe" })
+          utilities.map("n", "<leader>cP", function()
+            local params = lsp.util.make_position_params()
+            lsp_utils.execute({
+              command = "manipulatePipes:serverid",
+              arguments = { "fromPipe", params.textDocument.uri, params.position.line, params.position.character },
+            })
+          end, { desc = "From Pipe" })
         end
         if vim.tbl_contains(fts, vim.bo.filetype) then
           utilities.map("n", "gD", function()
-            local params = vim.lsp.util.make_position_params()
-            utilities.lsp_execute({
+            local params = lsp.util.make_position_params()
+            lsp_utils.execute({
               command = "typescript.goToSourceDefinition",
               arguments = { params.textDocument.uri, params.position },
               open = true,
             })
           end, { desc = "Goto Source Definition" })
           utilities.map("n", "gR", function()
-            utilities.lsp_execute({
+            lsp_utils.execute({
               command = "typescript.findAllFileReferences",
               arguments = { vim.uri_from_bufnr(0) },
               open = true,
             })
           end, { desc = "File References" })
-          utilities.map("n", "<leader>co", utilities.lsp_action["source.organizeImports"],
-            { desc = "Organize Imports" })
+          --if lsp_utils.is_enabled("ruff") or lsp_utils.is_enabled("svelte") then
+          utilities.map("n", "<leader>co", lsp_utils.action["source.organizeImports"], { desc = "Organize Imports" })
+          --end
           utilities.map(
             "n",
             "<leader>cM",
-            utilities.lsp_action["source.addMissingImports.ts"],
+            lsp_utils.action["source.addMissingImports.ts"],
             { desc = "Add missing imports" }
           )
-          utilities.map("n", "<leader>cu", utilities.lsp_action["source.removeUnused.ts"],
-            { desc = "Remove unused imports" })
-          utilities.map("n", "<leader>cD", utilities.lsp_action["source.fixAll.ts"],
-            { desc = "Fix all diagnostics" })
+          utilities.map(
+            "n",
+            "<leader>cu",
+            lsp_utils.action["source.removeUnused.ts"],
+            { desc = "Remove unused imports" }
+          )
+          utilities.map("n", "<leader>cD", lsp_utils.action["source.fixAll.ts"], { desc = "Fix all diagnostics" })
           utilities.map("n", "<leader>cV", function()
-            utilities.lsp_execute({ command = "typescript.selectTypeScriptVersion" })
+            lsp_utils.execute({ command = "typescript.selectTypeScriptVersion" })
           end, { desc = "Select TS workspace version" })
         end
         utilities.map("n", "g", nil, { name = "goto" })
         if lsp_utils.has(bufnr, "definition") then
-          utilities.map("n", "gd", vim.lsp.buf.definition, { desc = "Goto Definition" })
+          utilities.map("n", "gd", lsp.buf.definition, { desc = "Goto Definition" })
         end
-        utilities.map("n", "gr", vim.lsp.buf.references, { desc = "References", nowait = true })
-        utilities.map("n", "gi", vim.lsp.buf.implementation, { desc = "Goto Implementation" })
-        utilities.map("n", "gy", vim.lsp.buf.type_definition, { desc = "Goto T[y]pe Definition" })
-        utilities.map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
+        utilities.map("n", "gr", lsp.buf.references, { desc = "References", nowait = true })
+        utilities.map("n", "gi", lsp.buf.implementation, { desc = "Goto Implementation" })
+        utilities.map("n", "gy", lsp.buf.type_definition, { desc = "Goto T[y]pe Definition" })
+        utilities.map("n", "gD", lsp.buf.declaration, { desc = "Goto Declaration" })
         if lsp_utils.has(bufnr, "rename") then
-          utilities.map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
+          utilities.map("n", "<leader>cr", lsp.buf.rename, { desc = "Rename" })
         end
         ---
         utilities.map("n", "gp", nil, { name = "󰍉 Peek" })
@@ -563,7 +587,7 @@ return {
         -- lsp.handlers["textDocument/hover"](_, result, ctx, config)
       end
       lsp.handlers["textDocument/signatureHelp"] = lsp.with(lsp.handlers.signature_help, {
-        border = "rounded",         -- "single",
+        border = "rounded", -- "single",
       })
       lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
         local ts_lsp = { "deno", "vtsls", "volar", "svelte", "astro" }
@@ -583,11 +607,7 @@ return {
         vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
       end
 
-      local capabilities = vim.tbl_deep_extend(
-        "force",
-        {},
-        lsp.protocol.make_client_capabilities()
-      )
+      local capabilities = vim.tbl_deep_extend("force", {}, lsp.protocol.make_client_capabilities())
       local fileOps, file_operations = pcall(require, "lsp-file-operations")
       if fileOps then
         capabilities = vim.tbl_deep_extend("force", {}, capabilities, file_operations.default_capabilities())
@@ -632,10 +652,10 @@ return {
         },
         dev_log = {
           enabled = true,
-          notify_errors = true,           -- if there is an error whilst running then notify the user
+          notify_errors = true, -- if there is an error whilst running then notify the user
         },
         dev_tools = {
-          autostart = true,           -- autostart devtools server if not detected
+          autostart = true, -- autostart devtools server if not detected
         },
         lsp = {
           color = { -- show the derived colours for dart variables
@@ -647,7 +667,7 @@ return {
             virtual_text_str = "■", -- the virtual text character to highlight
           },
           on_attach = on_attach,
-          capabilities = capabilities,           -- e.g. lsp_status capabilities
+          capabilities = capabilities, -- e.g. lsp_status capabilities
           --- OR you can specify a function to deactivate or change or control how the config is created
           -- capabilities = function(config)
           -- 	config.specificThingIDontWant = false
@@ -659,7 +679,7 @@ return {
             showTodos = true,
             completeFunctionCalls = true,
             -- analysisExcludedFolders = { "<path-to-flutter-sdk-packages>" },
-            renameFilesWithClasses = "prompt",             -- "always"
+            renameFilesWithClasses = "prompt", -- "always"
             enableSnippets = true,
           },
         },
@@ -851,11 +871,17 @@ return {
             capabilities = capabilities,
             settings = {
               Lua = {
+                workspace = {
+                  checkThirdParty = false,
+                },
                 codeLens = {
                   enable = true,
                 },
                 completion = {
                   callSnippet = "Replace",
+                },
+                doc = {
+                  privateName = { "^_" },
                 },
                 hint = {
                   enable = true,
@@ -864,19 +890,6 @@ return {
                   paramName = "Disable",
                   semicolon = "Disable",
                   arrayIndex = "Disable",
-                },
-                diagnostics = {
-                  enable = true,
-                  globals = { "vim", "use", "bit", "avim" },
-                },
-                workspace = {
-                  library = {
-                    [fn.expand("$VIMRUNTIME/lua")] = true,
-                    [fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true,
-                    [_G.get_avim_base_dir()] = true,
-                  },
-                  maxPreload = 100000,
-                  preloadFileSize = 10000,
                 },
               },
             },
@@ -907,6 +920,11 @@ return {
             settings = {
               tailwindCSS = {
                 emmetCompletions = true,
+                includeLanguages = {
+                  elixir = "html-eex",
+                  eelixir = "html-eex",
+                  heex = "html-eex",
+                },
                 -- root_dir = function(fname)
                 --   local util = require "lspconfig.util"
                 --   return util.root_pattern("tailwind.config.js", "tailwind.config.cjs", "tailwind.js", "tailwind.cjs")(fname)
@@ -940,11 +958,17 @@ return {
                   globalPlugins = {
                     {
                       name = "@vue/typescript-plugin",
-                      location = lsp_utils.get_pkg_path("vue-language-server",
-                        "node_modules/@vue/language-server"),
+                      location = lsp_utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
                       languages = { "vue" },
-                        -- languages = { "javascript", "typescript", "vue" },
                       configNamespace = "typescript",
+                      enableForWorkspaceTypeScriptVersions = true,
+                    },
+                    {
+                      name = "typescript-svelte-plugin",
+                      location = lsp_utils.get_pkg_path(
+                        "svelte-language-server",
+                        "/node_modules/typescript-svelte-plugin"
+                      ),
                       enableForWorkspaceTypeScriptVersions = true,
                     },
                   },
@@ -952,16 +976,32 @@ return {
                 enableMoveToFileCodeAction = true,
                 autoUseWorkspaceTsdk = true,
                 experimental = {
+                  maxInlayHintLength = 30,
                   completion = {
                     enableServerSideFuzzyMatch = true,
                   },
                 },
               },
+              javascript = {
+                updateImportsOnFileMove = { enabled = "always" },
+                suggest = {
+                  completeFunctionCalls = true,
+                },
+                inlayHints = {
+                  enumMemberValues = { enabled = true },
+                  functionLikeReturnTypes = { enabled = true },
+                  parameterNames = { enabled = "literals" },
+                  parameterTypes = { enabled = true },
+                  propertyDeclarationTypes = { enabled = true },
+                  variableTypes = { enabled = false },
+                },
+              },
               typescript = {
                 tsserver = {
                   pluginPaths = {
-                      -- "@vue/typescript-plugin",
-                      lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                    -- "@vue/typescript-plugin",
+                    lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                    lsp_utils.get_pkg_path("svelte-language-server", "/node_modules/typescript-svelte-plugin"),
                   },
                 },
                 updateImportsOnFileMove = { enabled = "always" },
@@ -982,43 +1022,7 @@ return {
                   tabSize = vim.o.tabstop,
                 },
               },
-              javascript = {
-                inlayHints = {
-                  includeInlayParameterNameHints = "all",                   -- 'none' | 'literals' | 'all';
-                  includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-                  includeInlayFunctionParameterTypeHints = true,
-                  includeInlayVariableTypeHints = true,                   -- false
-                  includeInlayVariableTypeHintsWhenTypeMatchesName = false,
-                  includeInlayPropertyDeclarationTypeHints = true,
-                  includeInlayFunctionLikeReturnTypeHints = true,
-                  includeInlayEnumMemberValueHints = true,
-                },
-                format = {
-                  indentSize = vim.o.shiftwidth,
-                  convertTabsToSpaces = vim.o.expandtab,
-                  tabSize = vim.o.tabstop,
-                },
-              },
-              completions = {
-                completeFunctionCalls = true,
-              },
             },
-            before_init = function(params, config)
-              local result = vim
-                .system({ "npm", "query", "#vue" }, { cwd = params.workspaceFolders[1].name, text = true })
-                :wait()
-              if result.stdout ~= "[]" then
-                local vuePluginConfig = {
-                  name = "@vue/typescript-plugin",
-                  location = require("mason-registry").get_package("vue-language-server"):get_install_path()
-                    .. "/node_modules/@vue/language-server",
-                  languages = { "vue" },
-                  configNamespace = "typescript",
-                  enableForWorkspaceTypeScriptVersions = true,
-                }
-                table.insert(config.settings.vtsls.tsserver.globalPlugins, vuePluginConfig)
-              end
-            end,
           })
           -- end
         end,
@@ -1034,7 +1038,7 @@ return {
             -- filetypes = has_vue and { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" } or { "vue" },
             init_options = {
               vue = {
-                hybridMode = false,
+                hybridMode = true,
               },
               -- typescript = {
               --   tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
@@ -1059,7 +1063,7 @@ return {
       }
       require("ufo").setup({
         provider_selector = function(bufnr, filetype, buftype)
-          return ftMap[filetype] or { "lsp", "indent" }           -- 'lsp' | 'treesitter' | 'indent'
+          return ftMap[filetype] or { "lsp", "indent" } -- 'lsp' | 'treesitter' | 'indent'
         end,
         fold_virt_text_handler = require("avim.utilities").fold_handler,
       })

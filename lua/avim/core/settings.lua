@@ -7,10 +7,10 @@ if vim.fn.has("nvim-0.9") == 1 then
 end
 vim.t.bufs = api.nvim_list_bufs()
 if #api.nvim_list_uis() == 0 then
-  set.shortmess = ""   -- try to prevent echom from cutting messages off or prompting
-  set.more = false     -- don't pause listing when screen is filled
+  set.shortmess = "" -- try to prevent echom from cutting messages off or prompting
+  set.more = false -- don't pause listing when screen is filled
   set.cmdheight = 9999 -- helps avoiding |hit-enter| prompts.
-  set.columns = 9999   -- set the widest screen possible
+  set.columns = 9999 -- set the widest screen possible
   set.swapfile = false -- don't use a swap file
 else
   g.mapleader = " "
@@ -24,34 +24,33 @@ else
   set.jumpoptions = "stack,view"
   set.confirm = true
   set.fileencoding = "utf-8" -- the encoding written to a file
-  set.conceallevel = 0       -- so that `` is visible in markdown files
-  set.laststatus = 3         -- global statusline
+  set.conceallevel = 0 -- so that `` is visible in markdown files
+  set.laststatus = 3 -- global statusline
   set.title = true
   -- set.titlestring = "AnoNvim" -- "%<%F%=%l/%L - nvim" -- what the title of the window will be set to
-  set.clipboard = vim.env.SSH_TTY and "" or "unnamedplus"         -- Sync with system clipboard
+  set.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
   set.cmdheight = 1
-  set.cul = true                                                  -- cursor line
+  set.cul = true -- cursor line
   set.completeopt = { "menu", "menuone", "noinsert", "noselect" } -- Completion opions for code completion
   set.cursorline = true
-  set.cursorlineopt =
-  "screenline,number"                                             -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
-  set.emoji = true                                                -- Turn on emojis
-  set.pumheight = 10                                              -- pop up menu height
-  set.showtabline = 2                                             -- always show tabs
-  set.formatoptions:remove("cro")                                 -- auto-wrap comments, don't auto insert comment on o/O and enter
+  set.cursorlineopt = "screenline,number" -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
+  set.emoji = true -- Turn on emojis
+  set.pumheight = 10 -- pop up menu height
+  set.showtabline = 2 -- always show tabs
+  set.formatoptions:remove("cro") -- auto-wrap comments, don't auto insert comment on o/O and enter
 
   -- Add mouse movement events for bufferline
   -- set.mousemoveevent = true
   -- vim.o.mousemoveevent = true
 
   -- Indentline
-  set.expandtab = true      -- Use spaces instead of tabs
-  set.shiftwidth = 2        -- Size of an indent
-  set.smartindent = true    -- Insert indents automatically
+  set.expandtab = true -- Use spaces instead of tabs
+  set.shiftwidth = 2 -- Size of an indent
+  set.smartindent = true -- Insert indents automatically
   set.autoindent = true
   set.preserveindent = true -- Preserve indent structure as much as possible
-  set.softtabstop = 2       -- Number of spaces tabs count for
-  set.shiftround = true     -- Round indent
+  set.softtabstop = 2 -- Number of spaces tabs count for
+  set.shiftround = true -- Round indent
 
   -- Folding (Finally)
   -- vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
@@ -84,13 +83,16 @@ else
   vim.o.switchbuf = "useopen"
 
   set.hidden = true
-  set.ignorecase = true                                           -- Ignore case
-  set.infercase = true                                            -- Infer cases in keyword completion
-  set.smartcase = true                                            -- Don't ignore case with capitals
-  set.inccommand = "nosplit"                                      -- for incsearch while sub
-  set.splitbelow = true                                           -- Put new windows below current
+  set.grepformat = "%f:%l:%c:%m"
+  set.grepprg = "rg --vimgrep"
+  set.ignorecase = true -- Ignore case
+  set.infercase = true -- Infer cases in keyword completion
+  set.smartcase = true -- Don't ignore case with capitals
+  set.inccommand = "nosplit" -- for incsearch while sub
+  set.splitbelow = true -- Put new windows below current
   set.splitkeep = vim.fn.has("nvim-0.9") == 1 and "screen" or nil -- Maintain code view when splitting
-  set.splitright = true                                           -- Put new windows right of current
+  set.splitright = true -- Put new windows right of current
+  set.smoothscroll = true
   -- set.termguicolors = true -- True color support
   if vim.fn.has("termguicolors") == 1 then
     g.t_8f = "[[38;2;%lu;%lu;%lum"
@@ -106,12 +108,12 @@ else
   set.mouse = "a" -- Use the mouse in all modes
 
   -- Misc
-  set.showmatch = true                                -- Show matching brackets by flickering
-  set.showcmd = false                                 -- Do not show the mode
-  set.showmode = false                                -- Do not show the mode
-  set.scrolloff = 3                                   -- minimal number of screen lines to keep above and below the cursor.
-  set.sidescrolloff = 3                               -- The minimal number of columns to keep to the left and to the right of the cursor if 'nowrap' is set
-  set.wildmode = "list:longest"                       -- Command-line completion mode
+  set.showmatch = true -- Show matching brackets by flickering
+  set.showcmd = false -- Do not show the mode
+  set.showmode = false -- Do not show the mode
+  set.scrolloff = 3 -- minimal number of screen lines to keep above and below the cursor.
+  set.sidescrolloff = 3 -- The minimal number of columns to keep to the left and to the right of the cursor if 'nowrap' is set
+  set.wildmode = "list:longest" -- Command-line completion mode
   set.wildignore = { "*/.git/*", "*/node_modules/*" } -- Ignore these files/folders
 
   -- Numbers
@@ -145,9 +147,8 @@ else
   --   W = true, -- Do not show "written" in command line when writing
   -- }
 
-  set.textwidth = 120                                                                  -- Total allowed width on the screen
-  set.sessionoptions =
-  "globals,buffers,curdir,folds,tabpages,winpos,winsize,terminal"                      -- Session options to store in the session
+  set.textwidth = 120 -- Total allowed width on the screen
+  set.sessionoptions = "globals,buffers,curdir,folds,tabpages,winpos,winsize,terminal" -- Session options to store in the session
 
   -- min 1, max 4 signs
   vim.o.signcolumn = "auto" -- "auto:1-4"
@@ -168,11 +169,12 @@ else
 
   vim.diagnostic.config({
     virtual_text = {
-      prefix = "",
+      --prefix = "",
+      prefix = "●",
     },
     float = {
       focusable = true,
-      source = true,
+      source = "if_many",
       border = "rounded",
       style = "minimal",
       format = function(diagnostic)
@@ -216,7 +218,7 @@ else
     filename = {
       [".env"] = "dotenv",
       [".eslintrc.json"] = "jsonc", -- assuming nx project.json
-      ["project.json"] = "jsonc",   -- assuming nx project.json
+      ["project.json"] = "jsonc", -- assuming nx project.json
       [".yamlfmt"] = "yaml",
       ["vifmrc"] = "vim",
     },

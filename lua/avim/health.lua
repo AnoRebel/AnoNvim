@@ -19,47 +19,47 @@ local programs = {
     type = "error",
     msg = "Required for git functionality",
     version_cmd = "git --version",
-    min_version = "2.19.0"
+    min_version = "2.19.0",
   },
   {
     cmd = "node",
     type = "warn",
     msg = "Required for LSP and formatting",
     version_cmd = "node --version",
-    min_version = "20.0.0"
+    min_version = "20.0.0",
   },
   {
     cmd = "lazygit",
     type = "warn",
     msg = "Used for git TUI (Optional)",
-    version_cmd = "lazygit --version"
+    version_cmd = "lazygit --version",
   },
   {
     cmd = "go",
     type = "warn",
     msg = "Required for Go development",
     version_cmd = "go version",
-    min_version = "1.20.0"
+    min_version = "1.20.0",
   },
   {
     cmd = "rg",
     type = "warn",
     msg = "Used for searching files and folders",
-    version_cmd = "rg --version"
+    version_cmd = "rg --version",
   },
   {
     cmd = { "fd", "fd-find" },
     type = "warn",
     msg = "Used for searching files and folders",
-    version_cmd = "fd --version"
+    version_cmd = "fd --version",
   },
   {
     cmd = { "python", "python3" },
     type = "warn",
     msg = "Required for Python development",
     version_cmd = "python3 --version",
-    min_version = "3.7.0"
-  }
+    min_version = "3.7.0",
+  },
 }
 
 ---Get clean version string from command output
@@ -67,11 +67,13 @@ local programs = {
 ---@return string|nil version Version string or nil if failed
 local function get_program_version(cmd)
   local handle = io.popen(cmd .. " 2>&1")
-  if not handle then return nil end
-  
+  if not handle then
+    return nil
+  end
+
   local output = handle:read("*a")
   handle:close()
-  
+
   -- Extract version number (assumes format like X.Y.Z)
   local version = output:match("[%d]+%.[%d]+%.[%d]+")
   return version
@@ -82,25 +84,31 @@ end
 ---@param required string Required version
 ---@return boolean meets_requirement
 local function version_meets_requirement(current, required)
-  if not current or not required then return true end
-  
+  if not current or not required then
+    return true
+  end
+
   local function parse_version(v)
     local major, minor, patch = v:match("(%d+)%.(%d+)%.(%d+)")
     return {
       tonumber(major) or 0,
       tonumber(minor) or 0,
-      tonumber(patch) or 0
+      tonumber(patch) or 0,
     }
   end
-  
+
   local cur = parse_version(current)
   local req = parse_version(required)
-  
+
   for i = 1, 3 do
-    if cur[i] > req[i] then return true end
-    if cur[i] < req[i] then return false end
+    if cur[i] > req[i] then
+      return true
+    end
+    if cur[i] < req[i] then
+      return false
+    end
   end
-  
+
   return true
 end
 
@@ -123,7 +131,7 @@ end
 function M.check_program(program)
   -- Normalize command to array
   local cmds = type(program.cmd) == "string" and { program.cmd } or program.cmd
-  
+
   -- Check for executable
   local found = false
   local found_cmd
@@ -134,12 +142,12 @@ function M.check_program(program)
       break
     end
   end
-  
+
   if not found then
     vim.health[program.type](format_error(program, "is not installed"))
     return false
   end
-  
+
   -- Check version if required
   if program.version_cmd and program.min_version then
     local version = get_program_version(program.version_cmd)
@@ -147,30 +155,30 @@ function M.check_program(program)
       vim.health.warn(format_error(program, "version check failed"))
       return false
     end
-    
+
     if not version_meets_requirement(version, program.min_version) then
       vim.health[program.type](format_error(program, "version is too old"))
       return false
     end
-    
+
     vim.health.ok(string.format("`%s` is installed (version %s)", found_cmd, version))
   else
     vim.health.ok(string.format("`%s` is installed: %s", found_cmd, program.msg))
   end
-  
+
   return true
 end
 
 ---Perform health checks
 function M.check()
   vim.health.start("AnoNvim Health Check")
-  
+
   -- Version information
   local v = vim.version()
   local version_str = string.format("%d.%d.%d", v.major, v.minor, v.patch)
   vim.health.info("AnoNvim Version: " .. _G.avim.version)
   vim.health.info("Neovim Version: v" .. version_str)
-  
+
   -- Check Neovim version
   if v.prerelease then
     vim.health.warn("Neovim nightly is not officially supported and may have breaking changes")
@@ -179,7 +187,7 @@ function M.check()
   else
     vim.health.error("Neovim >= 0.10 is required")
   end
-  
+
   -- Check XDG directories
   local xdg_vars = {
     ["XDG_DATA_HOME"] = vim.env.XDG_DATA_HOME or vim.fn.expand("~/.local/share"),
@@ -187,7 +195,7 @@ function M.check()
     ["XDG_STATE_HOME"] = vim.env.XDG_STATE_HOME or vim.fn.expand("~/.local/state"),
     ["XDG_CACHE_HOME"] = vim.env.XDG_CACHE_HOME or vim.fn.expand("~/.cache"),
   }
-  
+
   for name, path in pairs(xdg_vars) do
     if vim.fn.isdirectory(path) == 1 then
       vim.health.ok(string.format("%s: %s", name, path))
@@ -195,7 +203,7 @@ function M.check()
       vim.health.warn(string.format("%s directory does not exist: %s", name, path))
     end
   end
-  
+
   -- Check required programs
   for _, program in ipairs(programs) do
     M.check_program(program)

@@ -1,20 +1,11 @@
-# StyLua configuration for AnoNvim
-# Reference: https://github.com/JohnnyMorganz/StyLua#configuration
-
 # Indentation settings
 indent_type = "Spaces"     # Use spaces for indentation
 indent_width = 2           # Use 2 spaces per indentation level
-
-# Line formatting
 column_width = 120         # Maximum line length
-line_endings = "Unix"      # Use Unix-style line endings (LF)
 
 # String formatting
 quote_style = "AutoPreferDouble"  # Prefer double quotes but keep existing when mixed
 
-# Function call formatting
-call_parentheses = "Always"       # Always use parentheses in function calls
-
-# Table formatting
-collapse_simple_statement = "Never"  # Don't collapse simple statements
-column_table_width = 80             # Separate width for table columns
+# Import sorting
+[sort_requires]
+enabled = true        # Sort require statements

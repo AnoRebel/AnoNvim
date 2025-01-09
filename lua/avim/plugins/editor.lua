@@ -1,16 +1,13 @@
-local autocmd = vim.api.nvim_create_autocmd
-local augroup = vim.api.nvim_create_augroup
-local defaults = require("avim.core.defaults")
 local utilities = require("avim.utilities")
 
 local highlight = {
-    "RainbowRed",
-    "RainbowYellow",
-    "RainbowBlue",
-    "RainbowOrange",
-    "RainbowGreen",
-    "RainbowViolet",
-    "RainbowCyan",
+  "RainbowRed",
+  "RainbowYellow",
+  "RainbowBlue",
+  "RainbowOrange",
+  "RainbowGreen",
+  "RainbowViolet",
+  "RainbowCyan",
 }
 
 vim.cmd([[
@@ -33,53 +30,53 @@ vim.g.suda_smart_edit = 1
 vim.g.rainbow_delimiters = { highlight = highlight }
 
 function _G.qftf(info)
-    local items
-    local ret = {}
-    -- The name of item in list is based on the directory of quickfix window.
-    -- Change the directory for quickfix window make the name of item shorter.
-    -- It's a good opportunity to change current directory in quickfixtextfunc :)
-    --
-    -- local alterBufnr = vim.fn.bufname('#') -- alternative buffer is the buffer before enter qf window
-    -- local root = getRootByAlterBufnr(alterBufnr)
-    -- vim.cmd(('noa lcd %s'):format(vim.fn.fnameescape(root)))
-    --
-    if info.quickfix == 1 then
-        items = vim.fn.getqflist({ id = info.id, items = 0 }).items
-    else
-        items = vim.fn.getloclist(info.winid, { id = info.id, items = 0 }).items
-    end
-    local limit = 31
-    local fnameFmt1, fnameFmt2 = "%-" .. limit .. "s", "…%." .. (limit - 1) .. "s"
-    local validFmt = "%s │%5d:%-3d│%s %s"
-    for i = info.start_idx, info.end_idx do
-        local e = items[i]
-        local fname = ""
-        local str
-        if e.valid == 1 then
-            if e.bufnr > 0 then
-                fname = vim.fn.bufname(e.bufnr)
-                if fname == "" then
-                    fname = "[No Name]"
-                else
-                    fname = fname:gsub("^" .. vim.env.HOME, "~")
-                end
-                -- char in fname may occur more than 1 width, ignore this issue in order to keep performance
-                if #fname <= limit then
-                    fname = fnameFmt1:format(fname)
-                else
-                    fname = fnameFmt2:format(fname:sub(1 - limit))
-                end
-            end
-            local lnum = e.lnum > 99999 and -1 or e.lnum
-            local col = e.col > 999 and -1 or e.col
-            local qtype = e.type == "" and "" or " " .. e.type:sub(1, 1):upper()
-            str = validFmt:format(fname, lnum, col, qtype, e.text)
+  local items
+  local ret = {}
+  -- The name of item in list is based on the directory of quickfix window.
+  -- Change the directory for quickfix window make the name of item shorter.
+  -- It's a good opportunity to change current directory in quickfixtextfunc :)
+  --
+  -- local alterBufnr = vim.fn.bufname('#') -- alternative buffer is the buffer before enter qf window
+  -- local root = getRootByAlterBufnr(alterBufnr)
+  -- vim.cmd(('noa lcd %s'):format(vim.fn.fnameescape(root)))
+  --
+  if info.quickfix == 1 then
+    items = vim.fn.getqflist({ id = info.id, items = 0 }).items
+  else
+    items = vim.fn.getloclist(info.winid, { id = info.id, items = 0 }).items
+  end
+  local limit = 31
+  local fnameFmt1, fnameFmt2 = "%-" .. limit .. "s", "…%." .. (limit - 1) .. "s"
+  local validFmt = "%s │%5d:%-3d│%s %s"
+  for i = info.start_idx, info.end_idx do
+    local e = items[i]
+    local fname = ""
+    local str
+    if e.valid == 1 then
+      if e.bufnr > 0 then
+        fname = vim.fn.bufname(e.bufnr)
+        if fname == "" then
+          fname = "[No Name]"
         else
-            str = e.text
+          fname = fname:gsub("^" .. vim.env.HOME, "~")
         end
-        table.insert(ret, str)
+        -- char in fname may occur more than 1 width, ignore this issue in order to keep performance
+        if #fname <= limit then
+          fname = fnameFmt1:format(fname)
+        else
+          fname = fnameFmt2:format(fname:sub(1 - limit))
+        end
+      end
+      local lnum = e.lnum > 99999 and -1 or e.lnum
+      local col = e.col > 999 and -1 or e.col
+      local qtype = e.type == "" and "" or " " .. e.type:sub(1, 1):upper()
+      str = validFmt:format(fname, lnum, col, qtype, e.text)
+    else
+      str = e.text
     end
-    return ret
+    table.insert(ret, str)
+  end
+  return ret
 end
 
 vim.o.qftf = "{info -> v:lua._G.qftf(info)}"
@@ -93,13 +90,13 @@ vim.cmd([[
 --- Keymaps
 -----------------------------------------------------------------------
 local function termcodes(str)
-    return vim.api.nvim_replace_termcodes(str, true, true, true)
+  return vim.api.nvim_replace_termcodes(str, true, true, true)
 end
 utilities.map(
-    "n",
-    "<leader>ur",
-    "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>",
-    { desc = "Redraw / Clear hlsearch / Diff Update" }
+  "n",
+  "<leader>ur",
+  "<Cmd>nohlsearch<Bar>diffupdate<Bar>normal! <C-L><CR>",
+  { desc = "Redraw / Clear hlsearch / Diff Update" }
 )
 utilities.map("x", "<A-k>", "<cmd>move '<-2<CR>gv-gv", { desc = "Move Selection Up" })
 utilities.map("x", "<A-j>", "<cmd>move '>+1<CR>gv-gv", { desc = "Move Selection Down" })
@@ -110,57 +107,58 @@ utilities.map("v", "p", "p<cmd>let @+=@0<CR>", { desc = "Paste" })
 -- utilities.map("v", "<S-Tab>", "<gv", { desc = "Tab Backwards" })
 utilities.map({ "i", "n", "x", "s" }, "<C-s>", "<CMD>w<CR><esc>", { desc = "Save File" })
 utilities.map({ "i", "n", "x", "v" }, "<C-S-w>", "<cmd>wa<CR><esc>", { desc = "Save All" })
-utilities.map({ "i", "n", "v" }, "<Esc>", function()
-    vim.cmd.nohlsearch() -- clear highlights
-    vim.cmd.echo()       -- clear short-message
-    vim.api.nvim_feedkeys(termcodes("<esc>"), "n", false)
+utilities.map({ "i", "n", "s" }, "<esc>", function()
+  vim.cmd.nohlsearch() -- clear highlights
+  --vim.cmd.echo()       -- clear short-message
+  vim.api.nvim_feedkeys(termcodes("<esc>"), "n", false)
+  return "<esc>"
 end, { desc = "Clear Visuals", silent = true })
 utilities.map({ "n", "v" }, "<C-,>", function()
-    vim.api.nvim_feedkeys(termcodes("<esc>"), "n", false)
-    -- TODO: Not sure about this one
-    require("trouble").close()  -- close trouble
-    require("notify").dismiss() -- clear notifications
-    require("noice").cmd("dismiss")
-    require("goto-preview").close_all_win()
-    vim.cmd.nohlsearch() -- clear highlights
-    vim.cmd.echo()       -- clear short-message
+  vim.api.nvim_feedkeys(termcodes("<esc>"), "n", false)
+  -- TODO: Not sure about this one
+  require("trouble").close() -- close trouble
+  require("notify").dismiss() -- clear notifications
+  require("noice").cmd("dismiss")
+  require("goto-preview").close_all_win()
+  vim.cmd.nohlsearch() -- clear highlights
+  vim.cmd.echo() -- clear short-message
 end, { desc = "Clear All Visuals", silent = true })
 ---
 utilities.map(
-    { "n", "x" },
-    "n",
-    "<Cmd>lua require('avim.utilities').nN('n')<CR>",
-    { desc = "Next Search Item", noremap = true, silent = true }
+  { "n", "x" },
+  "n",
+  "<Cmd>lua require('avim.utilities').nN('n')<CR>",
+  { desc = "Next Search Item", noremap = true, silent = true }
 )
 utilities.map(
-    { "n", "x" },
-    "N",
-    "<Cmd>lua require('avim.utilities').nN('N')<CR>",
-    { desc = "Previous Search Item", noremap = true, silent = true }
+  { "n", "x" },
+  "N",
+  "<Cmd>lua require('avim.utilities').nN('N')<CR>",
+  { desc = "Previous Search Item", noremap = true, silent = true }
 )
 utilities.map(
-    "n",
-    "*",
-    "[[*<Cmd>lua require('hlslens').start()<CR>]]",
-    { desc = "Start * Search", noremap = true, silent = true }
+  "n",
+  "*",
+  "[[*<Cmd>lua require('hlslens').start()<CR>]]",
+  { desc = "Start * Search", noremap = true, silent = true }
 )
 utilities.map(
-    "n",
-    "#",
-    "[[#<Cmd>lua require('hlslens').start()<CR>]]",
-    { desc = "Start # Search", noremap = true, silent = true }
+  "n",
+  "#",
+  "[[#<Cmd>lua require('hlslens').start()<CR>]]",
+  { desc = "Start # Search", noremap = true, silent = true }
 )
 utilities.map(
-    "n",
-    "g*",
-    "[[g*<Cmd>lua require('hlslens').start()<CR>]]",
-    { desc = "Start g* Search", noremap = true, silent = true }
+  "n",
+  "g*",
+  "[[g*<Cmd>lua require('hlslens').start()<CR>]]",
+  { desc = "Start g* Search", noremap = true, silent = true }
 )
 utilities.map(
-    "n",
-    "g#",
-    "[[g#<Cmd>lua require('hlslens').start()<CR>]]",
-    { desc = "Start g# Search", noremap = true, silent = true }
+  "n",
+  "g#",
+  "[[g#<Cmd>lua require('hlslens').start()<CR>]]",
+  { desc = "Start g# Search", noremap = true, silent = true }
 )
 -- Movement
 utilities.map({ "n", "v" }, "<C-h>", "<C-n><C-w>h", { desc = "Move to Left Window", silent = true })
@@ -169,8 +167,18 @@ utilities.map({ "n", "v" }, "<C-k>", "<C-n><C-w>k", { desc = "Move to Top Window
 utilities.map({ "n", "v" }, "<C-l>", "<C-n><C-w>l", { desc = "Move to Right Window", silent = true })
 utilities.map({ "n", "v" }, "<A-Up>", "<cmd>resize -2<CR>", { desc = "Decrease Window Height", silent = true })
 utilities.map({ "n", "v" }, "<A-Down>", "<cmd>resize +2<CR>", { desc = "Increase Window Height", silent = true })
-utilities.map({ "n", "v" }, "<A-Left>", "<cmd>vertical resize -2<CR>", { desc = "Decrease Window Width", silent = true })
-utilities.map({ "n", "v" }, "<A-Right>", "<cmd>vertical resize +2<CR>", { desc = "Increase Window Width", silent = true })
+utilities.map(
+  { "n", "v" },
+  "<A-Left>",
+  "<cmd>vertical resize -2<CR>",
+  { desc = "Decrease Window Width", silent = true }
+)
+utilities.map(
+  { "n", "v" },
+  "<A-Right>",
+  "<cmd>vertical resize +2<CR>",
+  { desc = "Increase Window Width", silent = true }
+)
 
 -- File System
 utilities.map("n", "<C-q>", "<cmd>q <CR>", { desc = "Quit Editor" })
@@ -206,375 +214,460 @@ utilities.map({ "n", "v" }, "<leader>x", nil, { name = " Trouble" })
 -----------------------------------------------------------------------
 
 return {
-    { "nvim-lua/plenary.nvim" },
-    { "editorconfig/editorconfig-vim", event = "BufReadPre" },
-    { "tpope/vim-repeat",              event = "VeryLazy" },
-    { "tpope/vim-abolish",             event = "VeryLazy" },
-    {
-        "Tastyep/structlog.nvim",
-        lazy = false,
+  { "nvim-lua/plenary.nvim" },
+  { "editorconfig/editorconfig-vim", event = "BufReadPre" },
+  { "tpope/vim-repeat", event = "VeryLazy" },
+  { "tpope/vim-abolish", event = "VeryLazy" },
+  {
+    "Tastyep/structlog.nvim",
+    lazy = false,
+  },
+  {
+    "lambdalisue/suda.vim",
+    cmd = { "SudaRead", "SudaWrite" },
+    keys = {
+      { "<leader>W", "<cmd>SudaWrite<CR>", desc = "Suda Write" },
     },
-    { "lambdalisue/suda.vim", cmd = { "SudaRead", "SudaWrite" } },
-    { "lbrayner/vim-rzip",    lazy = false },
-    { "tpope/vim-dotenv" },
-    {
-        "folke/which-key.nvim",
-        event = "BufWinEnter",
-        opts = {
-            preset = "helix", -- "classic" | "helix"
-            -- add operators that will trigger motion and text object completion
-            -- to enable all native operators, set the preset / operators plugin above
-            -- defer = { gc = "Comments" },
-            icons = {
-                breadcrumb = "»", -- symbol used in the command line area that shows your active key combo
-                separator = "", -- "➜", -- symbol used between a key and it's label
-                group = " ", -- "+", -- symbol prepended to a group
-            },
-            win = {
-                border = "rounded", -- none, single, double, shadow
-            },
-        },
-        keys = {
-            {
-                "<leader>?",
-                function()
-                    require("which-key").show({ global = false })
-                end,
-                desc = "Buffer Local Keymaps (which-key)",
-            },
-        },
+  },
+  { "lbrayner/vim-rzip", lazy = false },
+  { "tpope/vim-dotenv" },
+  {
+    "folke/which-key.nvim",
+    event = "BufWinEnter",
+    opts = {
+      preset = "helix", -- "classic" | "helix"
+      -- add operators that will trigger motion and text object completion
+      -- to enable all native operators, set the preset / operators plugin above
+      -- defer = { gc = "Comments" },
+      icons = {
+        breadcrumb = "»", -- symbol used in the command line area that shows your active key combo
+        separator = "", -- "➜", -- symbol used between a key and it's label
+        group = " ", -- "+", -- symbol prepended to a group
+      },
+      win = {
+        border = "rounded", -- none, single, double, shadow
+      },
     },
-    {
-        "shellRaining/hlchunk.nvim",
-        enabled = true,
-        event = { "BufReadPre", "BufNewFile" },
-        config = function()
-            require("hlchunk").setup({
-                chunk = {
-                    enable = false,
-                },
-                indent = {
-                    -- enable = true,
-                    chars = {
-                        "│",
-                        "¦",
-                        "┆",
-                        "┊",
-                    },
-                },
-                line_num = {
-                    -- enable = true,
-                    style = "#806d9c", -- Violet
-                    -- "#c21f30", -- maple red
-                    use_treesitter = true,
-                },
-                blank = {
-                    -- enable = true,
-                    chars = {
-                        "․",
-                    },
-                    style = {
-                        { vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID("Whitespace")), "fg", "gui"), "" },
-                    },
-                },
-            })
+    keys = {
+      {
+        "<leader>?",
+        function()
+          require("which-key").show({ global = false })
         end,
+        desc = "Buffer Local Keymaps (which-key)",
+      },
     },
-    { "HiPhish/rainbow-delimiters.nvim" },
-    {
-        "numToStr/Comment.nvim",
-        event = "BufRead",
-        dependencies = {
-            "JoosepAlviste/nvim-ts-context-commentstring",
+  },
+  {
+    "shellRaining/hlchunk.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require("hlchunk").setup({
+        chunk = {
+          enable = true,
+          -- textobject = "ic",
+          chars = {
+            right_arrow = "─",
+          },
         },
-        config = function()
-            require("Comment").setup({
-                mappings = {
-                    basic = true,
-                    extra = true,
-                    extended = true,
-                },
-                pre_hook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook(),
-            })
+        indent = {
+          enable = false,
+          chars = {
+            "│",
+            "¦",
+            "┆",
+            "┊",
+          },
+        },
+        line_num = {
+          enable = false,
+          style = "#806d9c", -- Violet
+          -- "#c21f30", -- maple red
+          priority = 10,
+          use_treesitter = false,
+        },
+        blank = {
+          enable = true,
+          chars = {
+            " ",
+            -- "․",
+            -- "⁚",
+            -- "⁖",
+            -- "⁘",
+            -- "⁙",
+          },
+          style = {
+            { bg = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.hlID("cursorline")), "bg", "gui") },
+            { bg = "", fg = "" },
+            -- { bg = "#434437" },
+            -- { bg = "#2f4440" },
+            -- { bg = "#433054" },
+            -- { bg = "#284251" },
+          },
+        },
+      })
+    end,
+  },
+  { "HiPhish/rainbow-delimiters.nvim" },
+  {
+    "numToStr/Comment.nvim",
+    event = "BufRead",
+    dependencies = {
+      "JoosepAlviste/nvim-ts-context-commentstring",
+    },
+    config = function()
+      require("Comment").setup({
+        mappings = {
+          basic = true,
+          extra = true,
+          extended = true,
+        },
+        pre_hook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook(),
+      })
+    end,
+    keys = {
+      { "<C-/>", "<cmd>lua require('Comment.api').toggle.linewise.current()<CR>", desc = "Comment" },
+      {
+        "<C-/>",
+        function()
+          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, false, true), "nx", false)
+          require("Comment.api").toggle.linewise(vim.fn.visualmode())
         end,
-        keys = {
-            { "<C-/>", "<cmd>lua require('Comment.api').toggle.linewise.current()<CR>", desc = "Comment" },
-            {
-                "<C-/>",
-                function()
-                    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, false, true), "nx", false)
-                    require("Comment.api").toggle.linewise(vim.fn.visualmode())
-                end,
-                mode = { "v" },
-                desc = "Comment Selection"
-            },
-            {
-                "<C-/>",
-                function()
-                    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, false, true), "nx", false)
-                    require("Comment.api").toggle.blockwise(vim.fn.visualmode())
-                end,
-                mode = { "x" },
-                desc = "Comment Selection"
-            },
-        },
-    },
-    {
-        "folke/todo-comments.nvim",
-        cmd = { "TodoTrouble", "TodoTelescope" },
-        event = "BufReadPost",
-        dependencies = { "nvim-lua/plenary.nvim" },
-        config = true,
-        keys = {
-            -- { "<leader>tq", ":TodoQuickFix<CR>",  mode = { "n", "v" }, desc = "Todo Quickfix" },
-            -- { "<leader>td", ":TodoTelescope<CR>",  mode = { "n", "v" }, desc = "Telescope Todo" },
-            -- { "<leader>ts", ":TodoTelescope keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme" },
-            -- { "<leader>tS", ":TodoTrouble keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme (Trouble)" },
-        },
-    },
-    {
-        "olimorris/persisted.nvim",
-        event = "VimEnter",
-        dependencies = { "nvim-telescope/telescope.nvim" },
-        config = function()
-            require("persisted").setup({
-                save_dir = vim.fn.stdpath("state") .. "/sessions/", -- utilities.join_paths(_G.get_state_dir(), "sessions"),
-                autoload = false,
-                autosave = true,
-                use_git_branch = true,
-                should_autosave = function()
-                    -- do not autosave if the alpha dashboard is the current filetype
-                    if vim.bo.filetype == "alpha" then
-                        return false
-                    end
-                    return true
-                end,
-            })
+        mode = { "v" },
+        desc = "Comment Selection",
+      },
+      {
+        "<C-/>",
+        function()
+          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, false, true), "nx", false)
+          require("Comment.api").toggle.blockwise(vim.fn.visualmode())
         end,
-        keys = {
-            { "<A-s>", "<cmd>Telescope persisted<cr>", mode = { "n", "v" }, desc = "List Session" },
-        },
+        mode = { "x" },
+        desc = "Comment Selection",
+      },
     },
-    {
-        "Bekaboo/dropbar.nvim",
-        event = "BufReadPost",
-        -- optional, but required for fuzzy finder support
-        dependencies = {
-            "nvim-telescope/telescope-fzf-native.nvim", -- optional dependency
-            "nvim-tree/nvim-web-devicons",              -- optional dependency
-        },
+  },
+  {
+    "folke/todo-comments.nvim",
+    cmd = { "TodoTrouble", "TodoTelescope" },
+    event = "BufReadPost",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = true,
+    keys = {
+      -- { "<leader>tq", ":TodoQuickFix<CR>",  mode = { "n", "v" }, desc = "Todo Quickfix" },
+      -- { "<leader>td", ":TodoTelescope<CR>",  mode = { "n", "v" }, desc = "Telescope Todo" },
+      -- { "<leader>ts", ":TodoTelescope keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme" },
+      -- { "<leader>tS", ":TodoTrouble keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme (Trouble)" },
     },
-    {
-        "lewis6991/satellite.nvim",
-        event = "BufReadPost",
-        opts = {
-            excluded_filetypes = { "neo-tree", "NvimTree" },
-        },
-    },
-    {
-        "hedyhli/outline.nvim",
-        cmd = { "Outline", "OutlineOpen" },
-        opts = { show_numbers = true, show_relative_numbers = true, auto_preview = true },
-        keys = {
-            { "<F8>", "<cmd>Outline<CR>", mode = { "n", "i", "v" }, desc = "Symbols Outline", silent = true },
-        },
-    },
-    {
-        "otavioschwanck/arrow.nvim",
-        event = "BufReadPost",
-        config = function()
-            require("arrow").setup({
-                show_icons = true,
-                leader_key = ";",          -- Recommended to be a single key
-                buffer_leader_key = ",",   -- Per Buffer Mappings
-                separate_by_branch = true, -- Bookmarks will be separated by git branch
-                always_show_path = false,
-                window = {
-                    border = "rounded",
-                },
-                per_buffer_config = {
-                    satellite = { -- defualt to nil, display arrow index in scrollbar at every update
-                        enable = true,
-                    },
-                },
-            })
+  },
+  {
+    "olimorris/persisted.nvim",
+    event = "VimEnter",
+    dependencies = { "nvim-telescope/telescope.nvim" },
+    config = function()
+      require("persisted").setup({
+        save_dir = vim.fn.stdpath("state") .. "/sessions/", -- utilities.join_paths(_G.get_state_dir(), "sessions"),
+        autoload = false,
+        autosave = true,
+        use_git_branch = true,
+        should_autosave = function()
+          -- do not autosave if the alpha dashboard is the current filetype
+          if vim.bo.filetype == "alpha" then
+            return false
+          end
+          return true
         end,
-        keys = {
-            { ";" },
-            { "," },
-            --     { "H", '<cmd>lua require("arrow.persist").previous()<CR>',  mode = { "n", "v" }, desc = "" },
-            --     { "L", '<CMD>lua require("arrow.persist").next()<CR>',  mode = { "n", "v" }, desc = "" },
-            --     { "<C-s>", '<CMD> lua require("arrow.persist").toggle()<CR>',  mode = { "n", "v" }, desc = "" },
-        },
+      })
+    end,
+    keys = {
+      { "<A-s>", "<cmd>Telescope persisted<cr>", mode = { "n", "v" }, desc = "List Session" },
     },
-    {
-        "kevinhwang91/nvim-bqf",
-        ft = { "qf" },
-        command = { "BqfToggle", "BqfAutoToggle" },
-        opts = {
-            auto_enable = true,
-            auto_resize_height = true, -- highly recommended enable
-            func_map = {
-                split = "h",
-                vsplit = "v",
-            },
-            filter = {
-                fzf = {
-                    extra_opts = { "--bind", "ctrl-o:toggle-all", "--delimiter", "│", "--prompt", "> " },
-                },
-            },
-        },
+  },
+  {
+    "Bekaboo/dropbar.nvim",
+    event = "BufReadPost",
+    -- optional, but required for fuzzy finder support
+    dependencies = {
+      "nvim-telescope/telescope-fzf-native.nvim", -- optional dependency
+      "nvim-tree/nvim-web-devicons", -- optional dependency
     },
-    {
-        "brenton-leighton/multiple-cursors.nvim",
-        version = "*",
-        opts = {},
-        keys = {
-            { "<A-j>",         "<Cmd>MultipleCursorsAddDown<CR>",          mode = { "n", "x" },      desc = "Add cursor and move down" },
-            { "<A-k>",         "<Cmd>MultipleCursorsAddUp<CR>",            mode = { "n", "x" },      desc = "Add cursor and move up" },
+  },
+  {
+    "lewis6991/satellite.nvim",
+    event = "BufReadPost",
+    opts = {
+      excluded_filetypes = { "neo-tree", "NvimTree" },
+    },
+  },
+  {
+    "hedyhli/outline.nvim",
+    cmd = { "Outline", "OutlineOpen" },
+    opts = { show_numbers = true, show_relative_numbers = true, auto_preview = true },
+    keys = {
+      { "<F8>", "<cmd>Outline<CR>", mode = { "n", "i", "v" }, desc = "Symbols Outline", silent = true },
+    },
+  },
+  {
+    "otavioschwanck/arrow.nvim",
+    event = "BufReadPost",
+    config = function()
+      require("arrow").setup({
+        show_icons = true,
+        leader_key = ";", -- Recommended to be a single key
+        buffer_leader_key = ",", -- Per Buffer Mappings
+        separate_by_branch = true, -- Bookmarks will be separated by git branch
+        always_show_path = false,
+        window = {
+          border = "rounded",
+        },
+        per_buffer_config = {
+          satellite = { -- defualt to nil, display arrow index in scrollbar at every update
+            enable = true,
+          },
+        },
+      })
+    end,
+    keys = {
+      { ";" },
+      { "," },
+      --     { "H", '<cmd>lua require("arrow.persist").previous()<CR>',  mode = { "n", "v" }, desc = "" },
+      --     { "L", '<CMD>lua require("arrow.persist").next()<CR>',  mode = { "n", "v" }, desc = "" },
+      --     { "<C-s>", '<CMD> lua require("arrow.persist").toggle()<CR>',  mode = { "n", "v" }, desc = "" },
+    },
+  },
+  {
+    "kevinhwang91/nvim-bqf",
+    ft = { "qf" },
+    command = { "BqfToggle", "BqfAutoToggle" },
+    opts = {
+      auto_enable = true,
+      auto_resize_height = true, -- highly recommended enable
+      func_map = {
+        split = "h",
+        vsplit = "v",
+      },
+      filter = {
+        fzf = {
+          extra_opts = { "--bind", "ctrl-o:toggle-all", "--delimiter", "│", "--prompt", "> " },
+        },
+      },
+    },
+  },
+  {
+    "brenton-leighton/multiple-cursors.nvim",
+    version = "*",
+    opts = {},
+    keys = {
+      {
+        "<A-j>",
+        "<Cmd>MultipleCursorsAddDown<CR>",
+        mode = { "n", "x" },
+        desc = "Add cursor and move down",
+      },
+      {
+        "<A-k>",
+        "<Cmd>MultipleCursorsAddUp<CR>",
+        mode = { "n", "x" },
+        desc = "Add cursor and move up",
+      },
 
-            { "<A-Up>",        "<Cmd>MultipleCursorsAddUp<CR>",            mode = { "n", "i", "x" }, desc = "Add cursor and move up" },
-            { "<A-Down>",      "<Cmd>MultipleCursorsAddDown<CR>",          mode = { "n", "i", "x" }, desc = "Add cursor and move down" },
+      {
+        "<A-Up>",
+        "<Cmd>MultipleCursorsAddUp<CR>",
+        mode = { "n", "i", "x" },
+        desc = "Add cursor and move up",
+      },
+      {
+        "<A-Down>",
+        "<Cmd>MultipleCursorsAddDown<CR>",
+        mode = { "n", "i", "x" },
+        desc = "Add cursor and move down",
+      },
 
-            { "<A-LeftMouse>", "<Cmd>MultipleCursorsMouseAddDelete<CR>",   mode = { "n", "i" },      desc = "Add or remove cursor" },
+      {
+        "<A-LeftMouse>",
+        "<Cmd>MultipleCursorsMouseAddDelete<CR>",
+        mode = { "n", "i" },
+        desc = "Add or remove cursor",
+      },
 
-            { "<A-a>",         "<Cmd>MultipleCursorsAddMatches<CR>",       mode = { "n", "x" },      desc = "Add cursors to cword" },
-            { "<A-A>",         "<Cmd>MultipleCursorsAddMatchesV<CR>",      mode = { "n", "x" },      desc = "Add cursors to cword in previous area" },
+      {
+        "<A-a>",
+        "<Cmd>MultipleCursorsAddMatches<CR>",
+        mode = { "n", "x" },
+        desc = "Add cursors to cword",
+      },
+      {
+        "<A-A>",
+        "<Cmd>MultipleCursorsAddMatchesV<CR>",
+        mode = { "n", "x" },
+        desc = "Add cursors to cword in previous area",
+      },
 
-            { "<A-d>",         "<Cmd>MultipleCursorsAddJumpNextMatch<CR>", mode = { "n", "x" },      desc = "Add cursor and jump to next cword" },
-            { "<A-D>",         "<Cmd>MultipleCursorsJumpNextMatch<CR>",    mode = { "n", "x" },      desc = "Jump to next cword" },
-            -- { "<Leader>l",     "<Cmd>MultipleCursorsLock<CR>",             mode = { "n", "x" },      desc = "Lock virtual cursors" },
-        },
+      {
+        "<A-d>",
+        "<Cmd>MultipleCursorsAddJumpNextMatch<CR>",
+        mode = { "n", "x" },
+        desc = "Add cursor and jump to next cword",
+      },
+      {
+        "<A-D>",
+        "<Cmd>MultipleCursorsJumpNextMatch<CR>",
+        mode = { "n", "x" },
+        desc = "Jump to next cword",
+      },
+      -- { "<Leader>l",     "<Cmd>MultipleCursorsLock<CR>",             mode = { "n", "x" },      desc = "Lock virtual cursors" },
     },
-    {
-        "kylechui/nvim-surround",
-        version = "*", -- Use for stability; omit to use `main` branch for the latest features
-        event = "VeryLazy",
-        config = true,
+  },
+  {
+    "kylechui/nvim-surround",
+    version = "*", -- Use for stability; omit to use `main` branch for the latest features
+    event = "VeryLazy",
+    config = true,
+  },
+  -- Editor Visuals
+  {
+    "windwp/nvim-autopairs",
+    event = "BufRead",
+    opts = {
+      fast_wrap = {},
+      disable_filetype = { "TelescopePrompt", "vim", "clap_input" },
     },
-    -- Editor Visuals
-    {
-        "windwp/nvim-autopairs",
-        event = "BufRead",
-        opts = {
-            fast_wrap = {},
-            disable_filetype = { "TelescopePrompt", "vim", "clap_input" },
-        },
+  },
+  {
+    "toppair/peek.nvim",
+    event = { "VeryLazy" },
+    build = "deno task --quiet build:fast",
+    init = function()
+      local peek = require("peek")
+      vim.api.nvim_create_user_command("PeekOpen", peek.open, {})
+      vim.api.nvim_create_user_command("PeekClose", peek.close, {})
+      vim.api.nvim_create_user_command("Peek", function()
+        if peek.is_open() then
+          peek.close()
+        else
+          peek.open()
+        end
+      end, {})
+    end,
+    opts = {
+      auto_load = true,
+      close_on_bdelete = true,
+      syntax = true,
+      theme = "dark",
+      update_on_change = true,
+      app = "min-browser", -- vim.env.BROWSER,
+      filetype = { "markdown" },
+      throttle_at = 200000,
+      throttle_time = "auto",
     },
-    {
-        "toppair/peek.nvim",
-        event = { "VeryLazy" },
-        build = "deno task --quiet build:fast",
-        init = function()
-            local peek = require("peek")
-            vim.api.nvim_create_user_command("PeekOpen", peek.open, {})
-            vim.api.nvim_create_user_command("PeekClose", peek.close, {})
-            vim.api.nvim_create_user_command("Peek", function()
-                if peek.is_open() then
-                    peek.close()
-                else
-                    peek.open()
-                end
-            end, {})
-        end,
-        opts = {
-            auto_load = true,
-            close_on_bdelete = true,
-            syntax = true,
-            theme = "dark",
-            update_on_change = true,
-            app = "min-browser", -- vim.env.BROWSER,
-            filetype = { "markdown" },
-            throttle_at = 200000,
-            throttle_time = "auto",
+    ft = "markdown",
+  },
+  {
+    "folke/trouble.nvim",
+    cmd = { "Trouble", "TroubleRefresh", "TroubleToggle", "TroubleClose" },
+    opts = {
+      keys = {
+        j = "next",
+        k = "prev",
+        ["<Tab>"] = "jump",
+      },
+      ---@type table<string, trouble.Mode>
+      modes = {
+        preview = {
+          mode = "diagnostics",
+          preview = {
+            type = "split",
+            relative = "win",
+            position = "right",
+            size = 0.3,
+          },
         },
-        ft = "markdown",
+        -- preview_float = {
+        --   mode = "diagnostics",
+        --   preview = {
+        --     type = "float",
+        --     relative = "editor",
+        --     border = "rounded",
+        --     title = "Preview",
+        --     title_pos = "center",
+        --     position = { 0, -2 },
+        --     size = { width = 0.3, height = 0.3 },
+        --     zindex = 200,
+        --   },
+        -- },
+      },
     },
-    {
-        "folke/trouble.nvim",
-        cmd = { "Trouble", "TroubleRefresh", "TroubleToggle", "TroubleClose" },
-        opts = {
-            keys = {
-                j = "next",
-                k = "prev",
-                ["<Tab>"] = "jump",
-            },
-            ---@type table<string, trouble.Mode>
-            modes = {
-                preview = {
-                    mode = "diagnostics",
-                    preview = {
-                        type = "split",
-                        relative = "win",
-                        position = "right",
-                        size = 0.3,
-                    },
-                },
-                -- preview_float = {
-                --   mode = "diagnostics",
-                --   preview = {
-                --     type = "float",
-                --     relative = "editor",
-                --     border = "rounded",
-                --     title = "Preview",
-                --     title_pos = "center",
-                --     position = { 0, -2 },
-                --     size = { width = 0.3, height = 0.3 },
-                --     zindex = 200,
-                --   },
-                -- },
-            },
-        },
-        keys = {
-            { "<leader>xd", "<cmd>Trouble diagnostics toggle<CR>",     mode = { "n", "v" }, desc = "Diagnostics (Trouble)" },
-            {
-                "<leader>xb",
-                "<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
-                mode = { "n", "v" },
-                desc = "Buffer Diagnostics (Trouble)"
-            },
-            { "<leader>xf", "<cmd>Trouble lsp_definitions toggle<CR>", mode = { "n", "v" }, desc = "LSP Definitions (Trouble)" },
-            {
-                "<leader>xc",
-                "<cmd>Trouble lsp_declarations toggle<CR>",
-                mode = { "n", "v" },
-                desc = "LSP Declarations (Trouble)"
-            },
-            {
-                "<leader>xi",
-                "<cmd>Trouble lsp_implementations toggle<CR>",
-                mode = { "n", "v" },
-                desc = "LSP Implementations (Trouble)"
-            },
-            { "<leader>xr", "<cmd>Trouble lsp_references toggle<CR>",  mode = { "n", "v" }, desc = "LSP References (Trouble)" },
-            {
-                "<leader>xt",
-                "<cmd>Trouble lsp_type_definitions toggle<CR>",
-                mode = { "n", "v" },
-                desc = "LSP Type Definitions (Trouble)"
-            },
-            {
-                "<leader>xx",
-                "<cmd>Trouble lsp_document_symbols toggle<CR>",
-                mode = { "n", "v" },
-                desc = "LSP Document Symbols (Trouble)"
-            },
-            {
-                "<leader>xs",
-                ":Trouble symbols toggle pinned=true results.win.relative=win results.win.position=right<CR>",
-                mode = { "n", "v" },
-                desc = "Symbols (Trouble)"
-            },
-            { "<leader>xS", ":Trouble symbols toggle focus=false<CR>", mode = { "n", "v" }, desc = "Symbols (Trouble)" },
-            { "<leader>xl", ":Trouble loclist toggle<CR>",             mode = { "n", "v" }, desc = "Location List (Trouble)" },
-            { "<leader>xq", ":Trouble qflist toggle<CR>",              mode = { "n", "v" }, desc = "Quickfix List (Trouble)" },
-            -- utilities.map({ "n", "v" }, "<leader>tx", ":Trouble telescope toggle<CR>", { desc = "Telescope (Trouble)" })
-            -- utilities.map(
-            --   { "n", "v" },
-            --   "gR",
-            --   ":Trouble lsp toggle focus=false win.position=right<CR>",
-            --   { desc = "LSP Definitions / references / ... (Trouble)" }
-            -- )
-        },
+    keys = {
+      { "<leader>xd", "<cmd>Trouble diagnostics toggle<CR>", mode = { "n", "v" }, desc = "Diagnostics (Trouble)" },
+      {
+        "<leader>xb",
+        "<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
+        mode = { "n", "v" },
+        desc = "Buffer Diagnostics (Trouble)",
+      },
+      {
+        "<leader>xf",
+        "<cmd>Trouble lsp_definitions toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP Definitions (Trouble)",
+      },
+      {
+        "<leader>xc",
+        "<cmd>Trouble lsp_declarations toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP Declarations (Trouble)",
+      },
+      {
+        "<leader>xi",
+        "<cmd>Trouble lsp_implementations toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP Implementations (Trouble)",
+      },
+      {
+        "<leader>xr",
+        "<cmd>Trouble lsp_references toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP References (Trouble)",
+      },
+      {
+        "<leader>xt",
+        "<cmd>Trouble lsp_type_definitions toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP Type Definitions (Trouble)",
+      },
+      {
+        "<leader>xx",
+        "<cmd>Trouble lsp_document_symbols toggle<CR>",
+        mode = { "n", "v" },
+        desc = "LSP Document Symbols (Trouble)",
+      },
+      {
+        "<leader>xs",
+        ":Trouble symbols toggle pinned=true results.win.relative=win results.win.position=right<CR>",
+        mode = { "n", "v" },
+        desc = "Symbols (Trouble)",
+      },
+      { "<leader>xS", ":Trouble symbols toggle focus=false<CR>", mode = { "n", "v" }, desc = "Symbols (Trouble)" },
+      {
+        "<leader>xl",
+        ":Trouble loclist toggle<CR>",
+        mode = { "n", "v" },
+        desc = "Location List (Trouble)",
+      },
+      {
+        "<leader>xq",
+        ":Trouble qflist toggle<CR>",
+        mode = { "n", "v" },
+        desc = "Quickfix List (Trouble)",
+      },
+      -- utilities.map({ "n", "v" }, "<leader>tx", ":Trouble telescope toggle<CR>", { desc = "Telescope (Trouble)" })
+      -- utilities.map(
+      --   { "n", "v" },
+      --   "gR",
+      --   ":Trouble lsp toggle focus=false win.position=right<CR>",
+      --   { desc = "LSP Definitions / references / ... (Trouble)" }
+      -- )
     },
+  },
 }

@@ -26,7 +26,7 @@ local utilities = require("avim.utilities")
 ---@return table settings Platform-specific settings
 local function get_platform_settings()
   local settings = {}
-  
+
   if fn.has("macunix") == 1 then
     settings.concurrency = 4
     settings.checker = { concurrency = 1 }
@@ -34,7 +34,7 @@ local function get_platform_settings()
     settings.concurrency = 2
     settings.git = { timeout = 500 }
   end
-  
+
   return settings
 end
 
@@ -43,28 +43,28 @@ end
 local function get_runtime_paths()
   local home = fn.expand("$HOME")
   local base_dir = _G.get_avim_base_dir()
-  
+
   return {
     -- Base paths
     base_dir,
     utilities.join_paths(base_dir, "after"),
-    
+
     -- Data paths
     utilities.join_paths(utilities.get_runtime_dir(), "lazy"),
     utilities.join_paths(utilities.get_runtime_dir(), "lazy", "lazy.nvim"),
-    
+
     -- Cache paths
     utilities.get_cache_dir(),
     utilities.join_paths(utilities.get_cache_dir(), "after"),
-    
+
     -- State paths
     utilities.get_state_dir(),
     utilities.join_paths(utilities.get_state_dir(), "after"),
-    
+
     -- Config paths
     utilities.get_config_dir(),
     utilities.join_paths(utilities.get_config_dir(), "after"),
-    
+
     -- Lua paths
     utilities.join_paths(home, ".luarocks/share/lua/5.1/?/init.lua"),
     utilities.join_paths(home, ".luarocks/share/lua/5.1/?.lua"),
@@ -130,13 +130,13 @@ M.options = {
 ---@return boolean success Whether initialization was successful
 function M:init()
   local lazypath = utilities.join_paths(utilities.get_runtime_dir(), "lazy", "lazy.nvim")
-  
+
   -- Check if lazy.nvim is already installed
   if vim.uv.fs_stat(lazypath) then
     vim.opt.rtp:prepend(lazypath)
     return true
   end
-  
+
   -- Clone lazy.nvim
   Log:debug("Cloning lazy.nvim")
   local ok, output = pcall(fn.system, {
@@ -146,17 +146,17 @@ function M:init()
     "https://github.com/folke/lazy.nvim.git",
     lazypath,
   })
-  
+
   if not ok or fn.empty(output) ~= 1 then
     Log:error("Failed to clone lazy.nvim: " .. (output or ""))
     return false
   end
-  
+
   -- Setup installation notification
   local oldcmdheight = vim.opt.cmdheight:get()
   vim.opt.cmdheight = 1
   vim.notify("Please wait while plugins are installed...")
-  
+
   -- Create autocmd for post-installation
   vim.api.nvim_create_autocmd("User", {
     once = true,
@@ -164,7 +164,7 @@ function M:init()
     callback = function()
       vim.cmd.bw()
       vim.opt.cmdheight = oldcmdheight
-      
+
       -- Load essential plugins
       for _, module in ipairs({ "nvim-treesitter", "mason" }) do
         local success = pcall(require, module)
@@ -174,11 +174,11 @@ function M:init()
           Log:warn("Failed to load " .. module)
         end
       end
-      
+
       utilities.notify("Mason is installing packages if configured, check status with :Mason")
     end,
   })
-  
+
   vim.opt.rtp:prepend(lazypath)
   return true
 end
@@ -187,18 +187,18 @@ end
 ---@return boolean success Whether loading was successful
 function M.load()
   Log:debug("Loading plugins")
-  
+
   -- Check if lazy.nvim is available
   local ok, lazy = pcall(require, "lazy")
   if not ok then
     Log:warn("Lazy is not installed, skipping plugin loading")
     return false
   end
-  
+
   -- Apply platform-specific settings
   local platform_settings = get_platform_settings()
   M.options = vim.tbl_deep_extend("force", M.options, platform_settings)
-  
+
   -- Setup plugins
   local success = xpcall(function()
     lazy.setup("avim.plugins", M.options)
@@ -206,12 +206,12 @@ function M.load()
     Log:error("Failed to setup plugins: " .. debug.traceback(err))
     return false
   end)
-  
+
   if not success then
     Log:warn("Problems detected while loading plugins")
     return false
   end
-  
+
   return true
 end
 

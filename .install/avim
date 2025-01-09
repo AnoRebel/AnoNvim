@@ -39,8 +39,5 @@ export ANONVIM_CACHE_DIR
 export ANONVIM_LOG_DIR
 export ANONVIM_BASE_DIR
 
-# Set app name if not already set
-NVIM_APPNAME=${NVIM_APPNAME:-avim}
-
 # Launch Neovim with AnoNvim configuration
-exec -a "$NVIM_APPNAME" nvim -u "$ANONVIM_BASE_DIR/init.lua" "$@"
+exec nvim -u "$ANONVIM_BASE_DIR/init.lua" "$@"
