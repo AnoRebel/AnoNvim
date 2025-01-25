@@ -620,10 +620,10 @@ return {
       capabilities.workspace.didChangeWorkspaceFolders = {
         dynamicRegistration = true,
       }
-      -- capabilities.textDocument.foldingRange = {
-      --   dynamicRegistration = false,
-      --   lineFoldingOnly = true,
-      -- }
+      capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true,
+      }
       capabilities.textDocument.completion.completionItem = {
         documentationFormat = { "markdown", "plaintext" },
         snippetSupport = true,
@@ -780,14 +780,6 @@ return {
               },
               useFlatConfig = true,
             },
-            -- on_attach = function(client, bufnr)
-            -- 	if client.server_capabilities.documentFormattingProvider then
-            -- 		vim.api.nvim_create_autocmd("BufWritePre", {
-            -- 			buffer = bufnr,
-            -- 			command = "EslintFixAll",
-            -- 		})
-            -- 	end
-            -- end,
             on_attach = on_attach,
             capabilities = capabilities,
           })
@@ -1060,8 +1052,16 @@ return {
       local ftMap = {
         vim = "indent",
         vue = { "treesitter", "indent" },
+        python = { "indent" },
+        git = "",
       }
       require("ufo").setup({
+        open_fold_hl_timeout = 150,
+        close_fold_kinds_for_ft = {
+          default = { "imports", "comment" },
+          json = { "array" },
+          c = { "comment", "region" },
+        },
         provider_selector = function(bufnr, filetype, buftype)
           return ftMap[filetype] or { "lsp", "indent" } -- 'lsp' | 'treesitter' | 'indent'
         end,

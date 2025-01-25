@@ -32,19 +32,20 @@ local deps = {
     config = function()
       require("codeium").setup({
         enable_chat = true,
-        enable_cmp_source = true,
+        enable_cmp_source = false,
         virtual_text = {
           enabled = true,
           map_keys = true,
           key_bindings = {
             -- Accept the current completion.
-            accept = "<Tab>",
+            -- accept = "<Tab>",
+            accept = "<M-.>",
             -- Accept the next word.
             -- accept_word = false,
             -- Accept the next line.
             -- accept_line = false,
             -- Clear the virtual text.
-            clear = "<C-e>",
+            clear = "<M-e>",
             -- Cycle to the next completion.
             -- next = "<M-]>",
             -- Cycle to the previous completion.
@@ -142,6 +143,11 @@ local source_mapping = {
   codeium = "[CODE]", -- icons.rocket .. "[CODE]",
   cmp_dbee = "[DBEE]", -- icons.db .. "[DBEE]",
 }
+
+local has_ecolog, _ = pcall(require, "ecolog")
+if has_ecolog then
+  table.insert(sources, { name = "ecolog" })
+end
 
 return {
   {
