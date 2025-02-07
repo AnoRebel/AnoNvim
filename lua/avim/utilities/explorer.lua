@@ -1,4 +1,4 @@
-local utils = require("avim.utilities")
+local utilities = require("avim.utilities")
 
 local function get_telescope_opts(state, path)
   return {
@@ -65,7 +65,7 @@ end
 ---@field trash_visual fun(state: any)
 local global_commands = {
   system_open = function(state)
-    utils.system_open(state.tree:get_node():get_id())
+    utilities.system_open(state.tree:get_node():get_id())
   end,
   telescope_find = function(state)
     local node = state.tree:get_node()
@@ -262,7 +262,7 @@ local global_commands = {
     if node.type == "message" then
       return
     end
-    local _, name = utils.split_path(node.path)
+    local _, name = require("neo-tree.utils").split_path(node.path)
     local msg = string.format("Are you sure you want to trash '%s'?", name)
     inputs.confirm(msg, function(confirmed)
       if not confirmed then

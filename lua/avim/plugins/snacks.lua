@@ -3,42 +3,6 @@ return {
     "folke/snacks.nvim",
     priority = 1000,
     lazy = false,
-    opts = {
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      -- refer to the configuration section below
-      animate = { enabled = true },
-      bigfile = { enabled = true },
-      bufdelete = { enabled = true },
-      dim = { enabled = true },
-      git = { enabled = true },
-      indent = { enabled = false },
-      lazygit = { enabled = true },
-      notifier = { enabled = true, timeout = 5000 },
-      rename = { enabled = false },
-      toggle = { enabled = true },
-      quickfile = { enabled = true },
-      scope = { enabled = false },
-      scratch = {
-        enabled = true,
-        root = vim.env.HOME .. "/Documents/obsidian/notes",
-      },
-      statuscolumn = { enabled = true },
-      scroll = { enabled = false },
-      -- styles = {},
-      words = { enabled = false },
-      zen = {
-        enabled = true,
-        show = {
-          statusline = true,
-          tabline = true,
-        },
-        zoom = {
-          backdrop = true,
-          -- width = 0.85,
-        },
-      },
-    },
     init = function()
       vim.api.nvim_create_autocmd("User", {
         pattern = "VeryLazy",
@@ -74,6 +38,83 @@ return {
         end,
       })
     end,
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+      animate = { enabled = true },
+      bigfile = { enabled = true },
+      bufdelete = { enabled = true },
+      dim = { enabled = true },
+      git = { enabled = true },
+      indent = { enabled = false },
+      lazygit = { enabled = true },
+      notifier = { enabled = true, timeout = 5000 },
+      rename = { enabled = false },
+      toggle = { enabled = true },
+      quickfile = { enabled = true },
+      scope = { enabled = false },
+      scratch = {
+        enabled = true,
+        root = vim.env.HOME .. "/Documents/obsidian/notes",
+      },
+      statuscolumn = { enabled = true },
+      scroll = { enabled = false },
+      -- styles = {},
+      words = { enabled = false },
+      zen = {
+        enabled = true,
+        show = {
+          statusline = true,
+          tabline = true,
+        },
+        zoom = {
+          backdrop = true,
+          -- width = 0.85,
+        },
+      },
+      dashboard = {
+        enabled = false,
+        preset = {
+          header = require("avim.utilities.banners")["random"],
+        },
+        keys = {
+          { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
+          { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+          { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+          { icon = " ", key = "o", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+          {
+            icon = "",
+            key = "r",
+            desc = "Recent Sessions",
+            action = "<cmd>Telescope persisted<cr>",
+            enabled = package.loaded.persisted ~= nil,
+          },
+          {
+            icon = " ",
+            key = "s",
+            desc = "Restore Session",
+            section = "session",
+            enabled = package.loaded.persisted ~= nil,
+          },
+          { icon = "󰒲 ", key = "l", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
+          {
+            icon = " ",
+            key = "m",
+            desc = "Mason",
+            action = ":Mason",
+            enabled = package.loaded.mason ~= nil,
+          },
+          { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+        },
+        sections = {
+          { section = "header", height = 20, gap = 1 },
+          { section = "keys", gap = 1, padding = 1 },
+          { section = "startup" },
+          { section = "terminal", cmd = "fortune -o -a vimtips", hl = "header", padding = 1, indent = 8 },
+        },
+      },
+    },
     keys = {
       {
         "<leader>q",

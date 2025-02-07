@@ -26,7 +26,7 @@ local programs = {
     type = "warn",
     msg = "Required for LSP and formatting",
     version_cmd = "node --version",
-    min_version = "20.0.0",
+    min_version = "20.18.0",
   },
   {
     cmd = "lazygit",
@@ -39,7 +39,7 @@ local programs = {
     type = "warn",
     msg = "Required for Go development",
     version_cmd = "go version",
-    min_version = "1.20.0",
+    min_version = "1.23.0",
   },
   {
     cmd = "rg",
@@ -58,7 +58,7 @@ local programs = {
     type = "warn",
     msg = "Required for Python development",
     version_cmd = "python3 --version",
-    min_version = "3.7.0",
+    min_version = "3.10.0",
   },
 }
 

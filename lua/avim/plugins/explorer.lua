@@ -46,10 +46,8 @@ return {
       keymaps = {
         ["-"] = false,
         ["g."] = false,
-        ["<C-l>"] = false,
-        ["<C-p>"] = false,
-        ["<C-s>"] = "actions.change_sort",
-        ["<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open the entry in a vertical split" },
+        ["<C-l>"] = "actions.change_sort",
+        ["<C-p>"] = { "actions.select", opts = { vertical = true }, desc = "Open the entry in a vertical split" },
         ["C"] = "actions.parent",
         ["K"] = "actions.preview",
         ["R"] = "actions.refresh",

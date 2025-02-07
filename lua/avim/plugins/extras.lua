@@ -81,14 +81,6 @@ return {
     },
   },
   {
-    "max397574/colortils.nvim",
-    enabled = false,
-    cmd = "Colortils",
-    opts = {
-      default_format = "hex", -- "rgb" || "hsl"
-    },
-  },
-  {
     "vuki656/package-info.nvim",
     dependencies = "MunifTanjim/nui.nvim",
     config = true,
@@ -98,20 +90,14 @@ return {
     cmd = { "Codi", "CodiNew", "CodiSelect" },
   },
   {
-    "Wansmer/treesj",
-    cmd = { "TSJToggle", "TSJSplit", "TSJJoin" },
-    opts = {
-      use_default_keymaps = false,
-    },
+    "echasnovski/mini.splitjoin",
+    opts = {},
     keys = {
       {
         "<space>j",
-        "<cmd>lua require('treesj').toggle()<cr>",
+        "<cmd>lua MiniSplitjoin.toggle()<cr>",
         desc = "Toggle node under cursor (split if one-line and join if multiline)",
       },
-      -- { '<space>m', "<cmd>lua require('treesj').toggle()<cr>", desc = "Toggle node under cursor (split if one-line and join if multiline)" },
-      -- { '<space>j', "<cmd>lua require('treesj').join()<cr>",   desc = "Split node under cursor" },
-      -- { '<space>s', "<cmd>lua require('treesj').split()<cr>",  desc = "Join node under cursor" },
     },
   },
   {

@@ -441,12 +441,41 @@ return {
       "nvim-telescope/telescope-fzf-native.nvim", -- optional dependency
       "nvim-tree/nvim-web-devicons", -- optional dependency
     },
+    opts = {
+      bar = {
+        -- below adds dropbar to oil windows
+        enable = function(buf, win, _)
+          if
+            not vim.api.nvim_buf_is_valid(buf)
+            or not vim.api.nvim_win_is_valid(win)
+            or vim.fn.win_gettype(win) ~= ""
+            or vim.wo[win].winbar ~= ""
+            or vim.bo[buf].ft == "help"
+          then
+            return false
+          end
+
+          local stat = vim.uv.fs_stat(vim.api.nvim_buf_get_name(buf))
+          if stat and stat.size > 1024 * 1024 then
+            return false
+          end
+
+          return vim.bo[buf].ft == "markdown"
+            or vim.bo[buf].ft == "oil" -- enable in oil buffers
+            or pcall(vim.treesitter.get_parser, buf)
+            or not vim.tbl_isempty(vim.lsp.get_clients({
+              bufnr = buf,
+              method = "textDocument/documentSymbol",
+            }))
+        end,
+      },
+    },
   },
   {
     "lewis6991/satellite.nvim",
     event = "BufReadPost",
     opts = {
-      excluded_filetypes = { "neo-tree", "NvimTree" },
+      excluded_filetypes = { "neo-tree" },
     },
   },
   {
@@ -583,35 +612,6 @@ return {
       fast_wrap = {},
       disable_filetype = { "TelescopePrompt", "vim", "clap_input" },
     },
-  },
-  {
-    "toppair/peek.nvim",
-    event = { "VeryLazy" },
-    build = "deno task --quiet build:fast",
-    init = function()
-      local peek = require("peek")
-      vim.api.nvim_create_user_command("PeekOpen", peek.open, {})
-      vim.api.nvim_create_user_command("PeekClose", peek.close, {})
-      vim.api.nvim_create_user_command("Peek", function()
-        if peek.is_open() then
-          peek.close()
-        else
-          peek.open()
-        end
-      end, {})
-    end,
-    opts = {
-      auto_load = true,
-      close_on_bdelete = true,
-      syntax = true,
-      theme = "dark",
-      update_on_change = true,
-      app = "min-browser", -- vim.env.BROWSER,
-      filetype = { "markdown" },
-      throttle_at = 200000,
-      throttle_time = "auto",
-    },
-    ft = "markdown",
   },
   {
     "folke/trouble.nvim",
