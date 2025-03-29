@@ -21,7 +21,7 @@ declare -r ANONVIM_BASE_DIR="${AVIM_DIRS[data]}/avim"
 # Dependencies
 declare -A DEPS=(
 	[npm]="neovim tree-sitter-cli"
-	[pip]="python-pynvim"
+	[pip]="python3-pynvim"
 	[cargo]="fd-find ripgrep"
 )
 
@@ -114,6 +114,8 @@ function install_deps() {
 	local type="$1"
 	local deps="${DEPS[$type]}"
 	local cmd=""
+
+	detect_platform
 
 	case "$type" in
 	npm) cmd="npm install -g" ;;
