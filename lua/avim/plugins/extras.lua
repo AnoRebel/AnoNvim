@@ -59,6 +59,13 @@ end
 
 return {
   {
+    "wakatime/vim-wakatime",
+    lazy = false,
+    -- init = function()
+    --   vim.g.wakatime_CLIPath = vim.env.HOME .. "/.wakatime/wakatime-cli"
+    -- end,
+  },
+  {
     "mistricky/codesnap.nvim",
     enabled = false,
     build = "make",

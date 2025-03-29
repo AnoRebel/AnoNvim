@@ -263,7 +263,8 @@ return {
           color = { fg = constants.mode_color[vim.fn.mode()], bg = "Normal" },
           separator = { right = "" },
           on_click = function()
-            vim.cmd("Neotree filesystem left toggle")
+            -- vim.cmd("Neotree filesystem left toggle")
+            Snacks.explorer()
           end,
         },
       },
@@ -341,7 +342,7 @@ return {
           cond = conditions.hide_in_width,
           color = { bg = "Normal" },
           on_click = function(clicks, button, modifiers)
-            require("toggleterm").lazygit_toggle()
+            Snacks.lazygit()
           end,
         },
       },
@@ -379,7 +380,16 @@ return {
           cond = conditions.has_session,
           separator = { left = "" }, -- "" },
           on_click = function(clicks, button, modifiers)
-            require("avim.utilities").loadsession()
+            if "l" == button then
+              if vim.g.persisting then
+                vim.cmd("SessionLoad")
+              else
+                vim.cmd("SessionSelect")
+              end
+            end
+            if "r" == button then
+              vim.cmd("SessionSelect")
+            end
           end,
         },
         { "location", color = { fg = constants.mode_colors[vim.fn.mode()], bg = "Normal" } },
@@ -395,6 +405,9 @@ return {
           cond = conditions.hide_in_width,
           color = { fg = constants.mode_color[vim.api.nvim_get_mode().mode], bg = "Normal" },
           separator = { right = "" },
+          on_click = function()
+            Snacks.explorer()
+          end,
         },
       },
       lualine_c = {
@@ -405,9 +418,13 @@ return {
       lualine_y = {},
       lualine_z = {
         {
-          sessions,
-          color = { fg = vim.g.persisting and "#7EA9A7" or "#EFB839", bg = "Normal" },
-          cond = conditions.has_session,
+          "branch",
+          icon = "",
+          cond = conditions.hide_in_width,
+          color = { bg = "Normal" },
+          on_click = function(clicks, button, modifiers)
+            Snacks.lazygit()
+          end,
         },
         { "location", color = { fg = constants.mode_colors[vim.fn.mode()], bg = "Normal" } },
         { "progress", color = { fg = constants.mode_colors[vim.fn.mode()], bg = "Normal" } },

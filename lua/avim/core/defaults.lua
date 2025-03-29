@@ -11,7 +11,7 @@
 ---@field mappings table
 local M = {}
 
-M.version = "v2.7.0"
+M.version = "v3.0.0"
 
 ---- UI -----
 M.ui = {
@@ -32,7 +32,7 @@ M.servers = {
   "dotls",
   "elixirls",
   "emmet_language_server",
-  "eslint",
+  -- "eslint",
   "gopls",
   "html",
   "intelephense",
@@ -50,7 +50,7 @@ M.servers = {
 }
 
 M.packages = {
-  -- "eslint_d",
+  "eslint_d",
   "goimports-reviser",
   "golines",
   "gomodifytags",

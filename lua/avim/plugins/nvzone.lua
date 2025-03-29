@@ -3,6 +3,14 @@ return {
     "nvzone/typr",
     dependencies = "nvzone/volt",
     opts = {},
+    init = function()
+      local ok, cmp = pcall(require, "cmp")
+      if ok then
+        cmp.setup.filetype("typr", {
+          enabled = false,
+        })
+      end
+    end,
     cmd = { "Typr", "TyprStats" },
   },
   {

@@ -185,8 +185,8 @@ utilities.map("n", "<C-q>", "<cmd>q <CR>", { desc = "Quit Editor" })
 utilities.map("n", ">", "<cmd>><CR>", { desc = "Indent Forwards" })
 utilities.map("n", "<", "<cmd><<CR>", { desc = "Indent Backward" })
 -- Move lines Up and Down
-utilities.map("n", "<A-j>", "<cmd>move .+1<CR>==", { desc = "Move Line Up" })
-utilities.map("n", "<A-k>", "<cmd>move .-2<CR>==", { desc = "Move Line Down" })
+utilities.map("n", "<A-j>", "<cmd>move .+1<CR>==", { desc = "Move Line Down" })
+utilities.map("n", "<A-k>", "<cmd>move .-2<CR>==", { desc = "Move Line Up" })
 utilities.map("n", "<A-u>", "viwU<ESC>", { desc = "Change To Uppercase", silent = true })
 
 ---
@@ -260,12 +260,13 @@ return {
   },
   {
     "philosofonusus/ecolog.nvim",
-    -- Optional: you can add some keybindings
-    -- (I personally use lspsaga so check out lspsaga integration or lsp integration for a smoother experience without separate keybindings)
     keys = {
       { "<leader>ge", "<cmd>EcologGoto<cr>", desc = "Go to env file" },
       { "<leader>gpe", "<cmd>EcologPeek<cr>", desc = "Ecolog peek variable" },
       { "<leader>gps", "<cmd>EcologSelect<cr>", desc = "Switch env file" },
+      { "<leader>gpc", "<cmd>EcologCopy<cr>", desc = "Copy var to clipboard" },
+      { "<leader>gpl", "<cmd>EcologShelterLinePeek<cr>", desc = "Ecolog Line Peek" },
+      { "<leader>gpo", "<cmd>EcologShelterToggle<cr>", desc = "Ecolog Toggle" },
     },
     -- Lazy loading is done internally
     lazy = false,
@@ -273,6 +274,10 @@ return {
       integrations = {
         nvim_cmp = true, -- If you dont plan to use nvim_cmp set to false, enabled by default
         lsp = false,
+        statusline = {
+          hidden_mode = true,
+        },
+        snacks = true,
       },
       -- Enables shelter mode for sensitive values
       shelter = {
@@ -294,10 +299,12 @@ return {
           cmp = true, -- Mask values in completion
           peek = false, -- Mask values in peek view
           files = true,
-          telescope = false, -- Mask values in telescope integration
+          telescope = true, -- Mask values in telescope integration
           telescope_previewer = false, -- Mask values in telescope preview buffers
           fzf = false, -- Mask values in fzf picker
           fzf_previewer = false, -- Mask values in fzf preview buffers
+          snacks = true,
+          snacks_previewer = false,
         },
       },
       -- true by default, enables built-in types (database_url, url, etc.)
@@ -414,21 +421,31 @@ return {
     "olimorris/persisted.nvim",
     event = "VimEnter",
     dependencies = { "nvim-telescope/telescope.nvim" },
-    config = function()
-      require("persisted").setup({
-        save_dir = vim.fn.stdpath("state") .. "/sessions/", -- utilities.join_paths(_G.get_state_dir(), "sessions"),
-        autoload = false,
-        autosave = true,
-        use_git_branch = true,
-        should_autosave = function()
-          -- do not autosave if the alpha dashboard is the current filetype
-          if vim.bo.filetype == "alpha" then
-            return false
+    init = function()
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "PersistedSavePre",
+        callback = function()
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.bo[buf].filetype == "codecompanion" then
+              vim.api.nvim_buf_delete(buf, { force = true })
+            end
           end
-          return true
         end,
       })
     end,
+    opts = {
+      save_dir = vim.fn.stdpath("state") .. "/sessions/", -- utilities.join_paths(_G.get_state_dir(), "sessions"),
+      autoload = false,
+      autosave = true,
+      use_git_branch = true,
+      should_autosave = function()
+        -- do not autosave if the alpha dashboard is the current filetype
+        if vim.bo.filetype == "alpha" then
+          return false
+        end
+        return true
+      end,
+    },
     keys = {
       { "<A-s>", "<cmd>Telescope persisted<cr>", mode = { "n", "v" }, desc = "List Session" },
     },
@@ -535,29 +552,52 @@ return {
   {
     "brenton-leighton/multiple-cursors.nvim",
     version = "*",
-    opts = {},
+    opts = {
+      pre_hook = function()
+        vim.opt.cursorline = false
+        vim.cmd("NoMatchParen")
+        require("cmp").setup({ enabled = false })
+        require("nvim-autopairs").disable()
+      end,
+      post_hook = function()
+        vim.opt.cursorline = true
+        vim.cmd("DoMatchParen")
+        require("cmp").setup({ enabled = true })
+        require("nvim-autopairs").enable()
+      end,
+      custom_key_maps = {
+        {
+          "n",
+          "<Leader>|",
+          function()
+            require("multiple-cursors").align()
+          end,
+        },
+        {
+          { "n", "i" },
+          "<C-/>",
+          function()
+            vim.cmd("normal gcc")
+          end,
+        },
+        {
+          "v",
+          "<C-/>",
+          function()
+            vim.cmd("normal gc")
+          end,
+        },
+      },
+    },
     keys = {
       {
-        "<A-j>",
-        "<Cmd>MultipleCursorsAddDown<CR>",
-        mode = { "n", "x" },
-        desc = "Add cursor and move down",
-      },
-      {
-        "<A-k>",
-        "<Cmd>MultipleCursorsAddUp<CR>",
-        mode = { "n", "x" },
-        desc = "Add cursor and move up",
-      },
-
-      {
-        "<A-Up>",
+        "<leader><Up>",
         "<Cmd>MultipleCursorsAddUp<CR>",
         mode = { "n", "i", "x" },
         desc = "Add cursor and move up",
       },
       {
-        "<A-Down>",
+        "<leader><Down>",
         "<Cmd>MultipleCursorsAddDown<CR>",
         mode = { "n", "i", "x" },
         desc = "Add cursor and move down",
@@ -577,7 +617,7 @@ return {
         desc = "Add cursors to cword",
       },
       {
-        "<A-A>",
+        "<A-v>",
         "<Cmd>MultipleCursorsAddMatchesV<CR>",
         mode = { "n", "x" },
         desc = "Add cursors to cword in previous area",
@@ -590,12 +630,12 @@ return {
         desc = "Add cursor and jump to next cword",
       },
       {
-        "<A-D>",
+        "<A-w>",
         "<Cmd>MultipleCursorsJumpNextMatch<CR>",
         mode = { "n", "x" },
         desc = "Jump to next cword",
       },
-      -- { "<Leader>l",     "<Cmd>MultipleCursorsLock<CR>",             mode = { "n", "x" },      desc = "Lock virtual cursors" },
+      { "<A-l>", "<Cmd>MultipleCursorsLockToggle<CR>", mode = { "n", "x" }, desc = "Toggle locking virtual cursors" },
     },
   },
   {

@@ -14,6 +14,7 @@ return {
           disabled_filetypes = { "neo-tree" },
         }),
         b.diagnostics.revive,
+        require("none-ls.diagnostics.eslint_d"),
         -- Formatting
         b.formatting.stylua,
         b.formatting.shfmt,
@@ -26,6 +27,7 @@ return {
         b.formatting.golines,
         b.formatting.tidy,
         -- b.formatting.isort,
+        require("none-ls.formatting.eslint_d"),
         b.formatting.prettierd.with({
           env = {
             PRETTIERD_DEFAULT_CONFIG = vim.fn.expand(_G.get_avim_base_dir() .. "/.configs/formatters/.prettierrc.json"),
@@ -43,6 +45,7 @@ return {
           disabled_filetypes = { "neo-tree" },
         }),
         b.code_actions.refactoring,
+        require("none-ls.code_actions.eslint_d"),
         -- Hover
         b.hover.dictionary,
         b.hover.printenv,

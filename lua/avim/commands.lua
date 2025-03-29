@@ -8,8 +8,11 @@ local usercmd = api.nvim_create_user_command
 local Log = require("avim.core.log")
 local utilities = require("avim.utilities")
 
-local function augroup(name)
-  return api.nvim_create_augroup("avim_" .. name, { clear = true })
+local function augroup(name, opts)
+  if opts == nil then
+    opts = { clear = true }
+  end
+  return api.nvim_create_augroup("avim_" .. name, opts)
 end
 
 ---Create user commands
@@ -412,6 +415,50 @@ function M.setup()
         print(vim.inspect(e.data)) -- print the table that lists the programs that were installed
         vim.notify(vim.inspect(e.data)) -- notify the table that lists the programs that were installed
       end)
+    end,
+  })
+  autocmd("LspAttach", {
+    group = augroup("_tailwind_filter"),
+    desc = "Filter tailwindcss completions to reduced lag",
+    callback = function()
+      for _, client in pairs(vim.lsp.get_clients({})) do
+        if client.name == "tailwindcss" then
+          client.server_capabilities.completionProvider.triggerCharacters =
+            { '"', "'", "`", ".", "(", "[", "!", "/", ":" }
+        end
+      end
+    end,
+  })
+  autocmd("LspDetach", {
+    group = augroup("_user_lsp_config", { clear = false }),
+    desc = "Kill the LS process if no buffers are attached to the client",
+    callback = function(args)
+      vim.lsp.buf.clear_references()
+
+      vim.defer_fn(function()
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+
+        if client then
+          local clients = vim.lsp.get_clients({ id = args.data.client_id })
+          local count = 0
+
+          if clients and #clients > 0 then
+            local remaining_client = clients[1]
+
+            if remaining_client.attached_buffers then
+              for buf_id in pairs(remaining_client.attached_buffers) do
+                if buf_id ~= args.buf then
+                  count = count + 1
+                end
+              end
+            end
+          end
+          if count == 0 then
+            vim.notify("Stopping lingering Language Server", vim.log.levels.INFO, { title = "LSP" })
+            client:stop()
+          end
+        end
+      end, 200)
     end,
   })
   ---@type table<number, {token:lsp.ProgressToken, msg:string, done:boolean}[]>

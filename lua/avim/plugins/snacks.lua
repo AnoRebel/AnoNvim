@@ -47,10 +47,11 @@ return {
       bufdelete = { enabled = true },
       dim = { enabled = true },
       git = { enabled = true },
+      image = { enabled = true },
       indent = { enabled = false },
       lazygit = { enabled = true },
-      notifier = { enabled = true, timeout = 5000 },
-      rename = { enabled = false },
+      notifier = { enabled = true, timeout = 3500 },
+      rename = { enabled = true },
       toggle = { enabled = true },
       quickfile = { enabled = true },
       scope = { enabled = false },
@@ -61,7 +62,7 @@ return {
       statuscolumn = { enabled = true },
       scroll = { enabled = false },
       -- styles = {},
-      words = { enabled = false },
+      words = { enabled = true },
       zen = {
         enabled = true,
         show = {
@@ -176,11 +177,7 @@ return {
       {
         "<C-z>",
         function()
-          if Snacks.zen.enabled then
-            Snacks.dim.disable()
-          else
-            Snacks.dim.enable()
-          end
+          Snacks.toggle.dim():toggle()
           Snacks.toggle.zen():toggle()
         end,
         mode = { "n", "v" },
@@ -292,6 +289,66 @@ return {
           Snacks.terminal.toggle(false, { win = { relative = "editor", position = "bottom" } })
         end,
         desc = "[Terminal] Toggle Horizontal",
+      },
+      {
+        mode = { "n", "v" },
+        "<leader>ty",
+        function()
+          Snacks.terminal.toggle("yazi", { win = { relative = "editor", position = "float" } })
+        end,
+        desc = "[Terminal] Toggle Yazi",
+      },
+    },
+  },
+  {
+    "DestopLine/scratch-runner.nvim",
+    dependencies = "folke/snacks.nvim",
+    opts = {
+      sources = {
+        javascript = { "node" },
+        typescript = { "bun" },
+        python = function(filepath)
+          vim.uv = vim.uv or vim.loop
+          local on_windows = vim.uv.os_name().sysname == "Windows_NT"
+          return {
+            on_windows and "py" or "python3",
+            filepath,
+            "-",
+            vim.version().build, -- Pass Neovim version as an argument
+          }
+        end,
+        golang = function(filepath)
+          return {
+            "go",
+            "run",
+            filepath,
+            "-",
+            vim.version().build, -- Pass Neovim version as an argument
+          }
+        end,
+      },
+    },
+    keys = {
+      {
+        mode = { "n", "v" },
+        "<leader>..",
+        function()
+          ---@diagnostic disable-next-line: missing-fields
+          Snacks.scratch()
+        end,
+        desc = "Open current filetype scratch window",
+      },
+      {
+        mode = { "n", "v" },
+        "<leader>./",
+        function()
+          local filetypes = vim.fn.getcompletion("", "filetype")
+          ---@diagnostic disable-next-line: missing-fields
+          Snacks.picker.select(filetypes, nil, function(ft)
+            Snacks.scratch({ ft = ft })
+          end)
+        end,
+        desc = "Open some filetype scratch window",
       },
     },
   },
