@@ -185,7 +185,7 @@ function M.check()
   elseif vim.fn.has("nvim-0.10") == 1 then
     vim.health.ok("Using stable Neovim >= 0.10")
   else
-    vim.health.error("Neovim >= 0.10 is required")
+    vim.health.error("Neovim > 0.10 is required")
   end
 
   -- Check XDG directories

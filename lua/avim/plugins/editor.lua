@@ -406,21 +406,18 @@ return {
   },
   {
     "folke/todo-comments.nvim",
-    cmd = { "TodoTrouble", "TodoTelescope" },
+    cmd = { "TodoTrouble" },
     event = "BufReadPost",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = true,
     keys = {
       -- { "<leader>tq", ":TodoQuickFix<CR>",  mode = { "n", "v" }, desc = "Todo Quickfix" },
-      -- { "<leader>td", ":TodoTelescope<CR>",  mode = { "n", "v" }, desc = "Telescope Todo" },
-      -- { "<leader>ts", ":TodoTelescope keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme" },
       -- { "<leader>tS", ":TodoTrouble keywords=TODO,FIX,FIXME<CR>",  mode = { "n", "v" }, desc = "Todo/Fix/Fixme (Trouble)" },
     },
   },
   {
     "olimorris/persisted.nvim",
     event = "VimEnter",
-    dependencies = { "nvim-telescope/telescope.nvim" },
     init = function()
       vim.api.nvim_create_autocmd("User", {
         pattern = "PersistedSavePre",
@@ -447,7 +444,7 @@ return {
       end,
     },
     keys = {
-      { "<A-s>", "<cmd>Telescope persisted<cr>", mode = { "n", "v" }, desc = "List Session" },
+      { "<A-s>", "<cmd>SessionSelect<cr>", mode = { "n", "v" }, desc = "List Session" },
     },
   },
   {
@@ -455,7 +452,6 @@ return {
     event = "BufReadPost",
     -- optional, but required for fuzzy finder support
     dependencies = {
-      "nvim-telescope/telescope-fzf-native.nvim", -- optional dependency
       "nvim-tree/nvim-web-devicons", -- optional dependency
     },
     opts = {
@@ -650,7 +646,7 @@ return {
     event = "BufRead",
     opts = {
       fast_wrap = {},
-      disable_filetype = { "TelescopePrompt", "vim", "clap_input" },
+      disable_filetype = { "vim", "clap_input" },
     },
   },
   {
@@ -751,7 +747,6 @@ return {
         mode = { "n", "v" },
         desc = "Quickfix List (Trouble)",
       },
-      -- utilities.map({ "n", "v" }, "<leader>tx", ":Trouble telescope toggle<CR>", { desc = "Telescope (Trouble)" })
       -- utilities.map(
       --   { "n", "v" },
       --   "gR",

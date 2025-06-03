@@ -7,19 +7,48 @@ return {
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
-      -- "ravitemer/mcphub.nvim",
+      "ravitemer/mcphub.nvim",
+      "ravitemer/codecompanion-history.nvim",
+      {
+        "echasnovski/mini.diff",
+        config = function()
+          local diff = require("mini.diff")
+          diff.setup({
+            -- Disabled by default
+            source = diff.gen_source.none(),
+          })
+        end,
+      },
+      {
+        "HakonHarnes/img-clip.nvim",
+        opts = {
+          filetypes = {
+            codecompanion = {
+              prompt_for_file_name = false,
+              template = "[Image]($FILE_PATH)",
+              use_absolute_path = true,
+            },
+          },
+        },
+      },
     },
     cmd = { "CodeCompanion", "CodeCompanionCmd", "CodeCompanionChat", "CodeCompanionActions" },
     opts = {
       adapters = {
         opts = {
           show_defaults = false,
+          show_model_choices = true,
         },
         gemini = function()
           return require("codecompanion.adapters").extend("gemini", {
             env = {
               model = "gemini-2.0-flash",
               api_key = vim.fn.readfile(_G.get_config_dir() .. "/google.key")[1],
+            },
+            schema = {
+              model = {
+                default = "gemini-2.5-pro-exp-03-25",
+              },
             },
           })
         end,
@@ -38,6 +67,21 @@ return {
             },
           })
         end,
+        openrouter = function()
+          return require("codecompanion.adapters").extend("openai_compatible", {
+            name = "openrouter",
+            formatted_name = "OpenRouter",
+            env = {
+              url = "https://openrouter.ai/api",
+              api_key = vim.fn.readfile(_G.get_config_dir() .. "/openrouter.key")[1],
+            },
+            schema = {
+              model = {
+                default = "deepseek-r1-distill-llama-70b",
+              },
+            },
+          })
+        end,
         githubmodels = function()
           return require("codecompanion.adapters").extend("githubmodels", {
             formatted_name = "Github Models",
@@ -46,7 +90,7 @@ return {
             },
             schema = {
               model = {
-                default = "DeepSeek-R1",
+                default = "claude-3.5-sonnet", -- "DeepSeek-R1",
               },
             },
           })
@@ -55,6 +99,11 @@ return {
           return require("codecompanion.adapters").extend("huggingface", {
             env = {
               api_key = vim.fn.readfile(_G.get_config_dir() .. "/huggingface.key")[1],
+            },
+            schema = {
+              model = {
+                default = "Qwen/Qwen2.5-72B-Instruct",
+              },
             },
           })
         end,
@@ -70,6 +119,12 @@ return {
             user = "AnoNvim",
           },
           slash_commands = {
+            --[[ codebase = {
+              description = "run VectorCode to retrieve the project context.",
+              callback = function()
+                return require("vectorcode.integrations").codecompanion.chat.make_slash_command()
+              end,
+            }, ]]
             ["git_files"] = {
               description = "List git files",
               ---@param chat CodeCompanion.Chat
@@ -88,19 +143,9 @@ return {
               },
             },
           },
-          --[[ tools = {
-            ["mcp"] = {
-              callback = require("mcphub.extensions.codecompanion"),
-              description = "Call tools and resources from the MCP Servers",
-              opts = {
-                -- user_approval = true,
-                requires_approval = true,
-              },
-            },
-          }, ]]
         },
         inline = {
-          adapter = "github",
+          adapter = "githubmodels",
         },
         agent = { adapter = "groq" },
       },
@@ -109,19 +154,61 @@ return {
           provider = "mini_diff",
         },
       },
+      extensions = {
+        history = {
+          enabled = true,
+          opts = {
+            -- Keymap to open history from chat buffer (default: gh)
+            keymap = "gh",
+            -- Automatically generate titles for new chats
+            auto_generate_title = true,
+            ---On exiting and entering neovim, loads the last chat on opening chat
+            continue_last_chat = false,
+            ---When chat is cleared with `gx` delete the chat from history
+            delete_on_clearing_chat = false,
+            -- Picker interface ("telescope" or "snacks" or "default")
+            picker = "snacks",
+            ---Enable detailed logging for history extension
+            enable_logging = false,
+            ---Directory path to save the chats
+            dir_to_save = _G.get_runtime_dir() .. "/codecompanion-history",
+            -- Save all chats by default
+            auto_save = true,
+            -- Keymap to save the current chat manually
+            save_chat_keymap = "sc",
+          },
+        },
+        mcphub = {
+          callback = "mcphub.extensions.codecompanion",
+          opts = {
+            make_vars = true,
+            make_slash_commands = true,
+            show_result_in_chat = true,
+          },
+        },
+        vectorcode = {
+          opts = {
+            add_tool = true,
+          },
+        },
+      },
     },
     keys = {
       { "<leader>ai", "<cmd>CodeCompanion<CR>", mode = { "n", "v" }, desc = " CodeCompanion" },
       { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = " CodeCompanion Chat" },
-      { "<leader>at", "<cmd>Telescope codecompanion<CR>", mode = { "n", "v" }, desc = " CodeCompanion Palette" },
       { "<leader>af", "<cmd>CodeCompanionActions<CR>", mode = { "n", "v" }, desc = " CodeCompanion Actions" },
       { "<leader>ad", "<cmd>CodeCompanionCmd<CR>", mode = { "n", "v" }, desc = " CodeCompanion Command" },
+      { "<leader>ah", "<cmd>CodeCompanionHistory<CR>", mode = { "n", "v" }, desc = " CodeCompanion History" },
+      { "<leader>ae", "<cmd>MCPHub<CR>", mode = { "n", "v" }, desc = " MCP Hub" },
     },
   },
   {
+    "ravitemer/codecompanion-history.nvim",
+    cmd = { "CodeCompanionHistory" },
+  },
+  {
     "ravitemer/mcphub.nvim",
-    enabled = false,
-    cmd = "MCPHub",
+    cmd = { "MCPHub" },
     dependencies = {
       "nvim-lua/plenary.nvim", -- Required for Job and HTTP requests
     },
@@ -129,17 +216,10 @@ return {
     config = function()
       require("mcphub").setup({
         -- Required options
-        port = 3003, -- Port for MCP Hub server
-        -- config = vim.fn.expand("~/mcpservers.json"),  -- Absolute path to config file
         config = _G.get_config_dir() .. "/mcpservers.json",
+        auto_toggle_mcp_servers = true, -- Let LLMs start and stop MCP servers automatically
 
         -- Optional options
-        on_ready = function(hub)
-          -- Called when hub is ready
-        end,
-        on_error = function(err)
-          -- Called on errors
-        end,
         shutdown_delay = 0, -- Wait 0ms before shutting down server after last client exits
         log = {
           level = vim.log.levels.WARN,
@@ -149,5 +229,18 @@ return {
         },
       })
     end,
+  },
+  {
+    "Davidyz/VectorCode",
+    version = "*",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    build = "pipx upgrade vectorcode",
+    opts = {
+      n_query = 1, -- 3,
+      async_opts = {
+        notify = true,
+      },
+    },
+    cmd = { "VectorCode" },
   },
 }

@@ -1,7 +1,6 @@
 local utilities = require("avim.utilities")
 
--- Spectre
--- run command :Spectre
+-- Search and Replace
 utilities.map("n", "<leader>s", nil, { name = "󰛔 Search and Replace" })
 
 return {

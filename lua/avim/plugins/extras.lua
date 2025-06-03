@@ -2,7 +2,7 @@
 vim.g.cheat_default_window_layout = "float" -- "vertical_split" | "split" | "tab"
 -- Undotree
 vim.g.undotree_SplitWidth = 35
-vim.g.undotree_DiffpanelHeight = 10
+vim.g.undotree_DiffpanelHeight = 30
 vim.g.undotree_WindowLayout = 4
 vim.g.undotree_TreeNodeShape = "◉"
 vim.g.undotree_SetFocusWhenToggle = 1
@@ -66,6 +66,20 @@ return {
     -- end,
   },
   {
+    "mikesmithgh/kitty-scrollback.nvim",
+    enabled = false,
+    lazy = true,
+    cmd = {
+      "KittyScrollbackGenerateKittens",
+      "KittyScrollbackCheckHealth",
+      "KittyScrollbackGenerateCommandLineEditing",
+    },
+    event = { "User KittyScrollbackLaunch" },
+    -- version = '*', -- latest stable version, may have breaking changes if major version changed
+    -- version = '^6.0.0', -- pin major version, include fixes and features that do not have breaking changes
+    config = true,
+  },
+  {
     "mistricky/codesnap.nvim",
     enabled = false,
     build = "make",
@@ -101,7 +115,7 @@ return {
     opts = {},
     keys = {
       {
-        "<space>j",
+        "<leader>j",
         "<cmd>lua MiniSplitjoin.toggle()<cr>",
         desc = "Toggle node under cursor (split if one-line and join if multiline)",
       },

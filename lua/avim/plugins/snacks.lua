@@ -49,10 +49,28 @@ return {
       git = { enabled = true },
       image = { enabled = true },
       indent = { enabled = false },
+      input = { enabled = true },
       lazygit = { enabled = true },
       notifier = { enabled = true, timeout = 3500 },
       rename = { enabled = true },
       toggle = { enabled = true },
+      picker = {
+        actions = require("trouble.sources.snacks").actions,
+        win = {
+          input = {
+            keys = {
+              ["<c-t>"] = {
+                "trouble_open",
+                mode = { "n" },
+              },
+              ["<c-t>"] = {
+                "trouble_add",
+                mode = { "i" },
+              },
+            },
+          },
+        },
+      },
       quickfile = { enabled = true },
       scope = { enabled = false },
       scratch = {
@@ -88,7 +106,7 @@ return {
             icon = "",
             key = "r",
             desc = "Recent Sessions",
-            action = "<cmd>Telescope persisted<cr>",
+            action = "<cmd>SessionSelect<cr>",
             enabled = package.loaded.persisted ~= nil,
           },
           {
@@ -118,6 +136,140 @@ return {
     },
     keys = {
       {
+        "<leader>ff",
+        function()
+          Snacks.picker.files()
+        end,
+        mode = { "n", "v" },
+        desc = "Find Files",
+      },
+      {
+        "<leader>fa",
+        function()
+          Snacks.picker.files({ hidden = true, follow = true })
+        end,
+        mode = { "n", "v" },
+        desc = "All Files",
+      },
+      {
+        "<leader>fs",
+        function()
+          Snacks.picker.smart()
+        end,
+        mode = { "n", "v" },
+        desc = "Smart Search",
+      },
+      {
+        "<leader>fw",
+        function()
+          Snacks.picker.grep()
+        end,
+        mode = { "n", "v" },
+        desc = "Live Search",
+      },
+      {
+        "<leader>fo",
+        function()
+          Snacks.picker.recent()
+        end,
+        mode = { "n", "v" },
+        desc = "Recent Files",
+      },
+      {
+        "<leader>fc",
+        function()
+          Snacks.picker.commands()
+        end,
+        mode = { "n", "v" },
+        desc = "Commands",
+      },
+      {
+        "<leader>fh",
+        function()
+          Snacks.picker.command_history()
+        end,
+        mode = { "n", "v" },
+        desc = "Command History",
+      },
+      {
+        "<leader>fk",
+        function()
+          Snacks.picker.keymaps()
+        end,
+        mode = { "n", "v" },
+        desc = "Key Mappings",
+      },
+      {
+        "<leader>fm",
+        function()
+          Snacks.picker.man()
+        end,
+        mode = { "n", "v" },
+        desc = "Man Pages",
+      },
+      {
+        "<leader>fr",
+        function()
+          Snacks.picker.resume()
+        end,
+        mode = { "n", "v" },
+        desc = "Resume",
+      },
+      {
+        "<leader>fp",
+        function()
+          Snacks.picker.lazy()
+        end,
+        mode = { "n", "v" },
+        desc = "Search for Plugin Spec",
+      },
+      {
+        "<leader>fD",
+        function()
+          Snacks.picker.lsp_symbols()
+        end,
+        mode = { "n", "v" },
+        desc = "Document Symbols",
+      },
+      {
+        "<leader>fu",
+        function()
+          Snacks.picker.colorschemes()
+        end,
+        -- "<cmd>lua require('avim.utilities.theme_picker')()<CR>",
+        mode = { "n", "v" },
+        desc = "Themes",
+      },
+      {
+        "<leader>fb",
+        function()
+          Snacks.picker.buffers()
+        end,
+        desc = "Buffer List",
+        mode = { "n", "v" },
+      },
+      {
+        "<leader>fB",
+        function()
+          Snacks.picker.grep_buffers()
+        end,
+        mode = { "n", "v" },
+        desc = "Fuzzy Buffer List",
+      },
+
+      {
+        "<leader>fC",
+        function()
+          Snacks.picker.git_log()
+        end,
+        mode = { "n", "v" },
+        desc = "Git Log",
+      },
+      -- Flutter tools
+      -- utilities.map("n", "<leader>fd", "<cmd>Telescope flutter commands <CR>", { desc = "Flutter" })
+      -- utilities.map("n", "<leader>ft", "<cmd>FlutterOutlineToggle<CR>", { desc = "Flutter Toggle Outline" })
+
+      {
         "<leader>q",
         function()
           Snacks.bufdelete()
@@ -145,20 +297,6 @@ return {
           Snacks.scratch.select()
         end,
         desc = "Select Scratch Buffer",
-      },
-      {
-        "<leader>nb",
-        function()
-          Snacks.scratch({
-            root = vim.env.HOME .. "/Documents/obsidian/notes",
-            win = {
-              position = "bottom",
-              height = 0.4,
-              width = 1,
-            },
-          })
-        end,
-        desc = "Toggle Bottom Scratch Buffer",
       },
       {
         "<leader>nr",
@@ -330,17 +468,7 @@ return {
     },
     keys = {
       {
-        mode = { "n", "v" },
-        "<leader>..",
-        function()
-          ---@diagnostic disable-next-line: missing-fields
-          Snacks.scratch()
-        end,
-        desc = "Open current filetype scratch window",
-      },
-      {
-        mode = { "n", "v" },
-        "<leader>./",
+        "<leader>np",
         function()
           local filetypes = vim.fn.getcompletion("", "filetype")
           ---@diagnostic disable-next-line: missing-fields
@@ -348,6 +476,7 @@ return {
             Snacks.scratch({ ft = ft })
           end)
         end,
+        mode = { "n", "v" },
         desc = "Open some filetype scratch window",
       },
     },

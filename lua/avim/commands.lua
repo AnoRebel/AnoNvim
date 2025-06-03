@@ -5,7 +5,6 @@ local M = {}
 local api = vim.api
 local autocmd = api.nvim_create_autocmd
 local usercmd = api.nvim_create_user_command
-local Log = require("avim.core.log")
 local utilities = require("avim.utilities")
 
 local function augroup(name, opts)
@@ -260,27 +259,6 @@ function M.setup()
       utilities.event("BufsUpdated")
     end,
   })
-  --[[ autocmd("BufDelete", {
-        desc = "Update buffers when deleting buffers",
-        group = augroup("bufferlist"),
-        callback = function(args)
-            for _, tab in ipairs(api.nvim_list_tabpages()) do
-                local bufs = vim.t[tab].bufs
-                if bufs then
-                    for i, bufnr in ipairs(bufs) do
-                        if bufnr == args.buf then
-                            table.remove(bufs, i)
-                            vim.t[tab].bufs = bufs
-                            break
-                        end
-                    end
-                end
-            end
-            vim.t.bufs = vim.tbl_filter(utilities.is_valid, vim.t.bufs)
-            utilities.event("BufsUpdated")
-            vim.cmd.redrawtabline()
-        end,
-    }) ]]
   local fts = {
     "qf",
     "help",
@@ -399,24 +377,6 @@ function M.setup()
     desc = "Hide cursor line on inactive windows",
     command = "setlocal nocursorline",
   })
-  autocmd("User", {
-    pattern = "MasonToolsStartingInstall",
-    callback = function()
-      vim.schedule(function()
-        print("mason-son-tool-installer is starting") -- print the table that lists the programs that were installed
-        vim.notify("Starting...", { title = "mason-tool-installer" }) -- notify the table that lists the programs that were installed
-      end)
-    end,
-  })
-  autocmd("User", {
-    pattern = "MasonToolsUpdateCompleted",
-    callback = function(e)
-      vim.schedule(function()
-        print(vim.inspect(e.data)) -- print the table that lists the programs that were installed
-        vim.notify(vim.inspect(e.data)) -- notify the table that lists the programs that were installed
-      end)
-    end,
-  })
   autocmd("LspAttach", {
     group = augroup("_tailwind_filter"),
     desc = "Filter tailwindcss completions to reduced lag",
@@ -461,50 +421,6 @@ function M.setup()
       end, 200)
     end,
   })
-  ---@type table<number, {token:lsp.ProgressToken, msg:string, done:boolean}[]>
-  -- local progress = vim.defaulttable()
-  -- autocmd("LspProgress", {
-  --     ---@param ev {data: {client_id: integer, params: lsp.ProgressParams}}
-  --     callback = function(ev)
-  --         local client = vim.lsp.get_client_by_id(ev.data.client_id)
-  --         local value = ev.data.params
-  --         .value --[[@as {percentage?: number, title?: string, message?: string, kind: "begin" | "report" | "end"}]]
-  --         if not client or type(value) ~= "table" then
-  --             return
-  --         end
-  --         local p = progress[client.id]
-
-  --         for i = 1, #p + 1 do
-  --             if i == #p + 1 or p[i].token == ev.data.params.token then
-  --                 p[i] = {
-  --                     token = ev.data.params.token,
-  --                     msg = ("[%3d%%] %s%s"):format(
-  --                         value.kind == "end" and 100 or value.percentage or 100,
-  --                         value.title or "",
-  --                         value.message and (" **%s**"):format(value.message) or ""
-  --                     ),
-  --                     done = value.kind == "end",
-  --                 }
-  --                 break
-  --             end
-  --         end
-
-  --         local msg = {} ---@type string[]
-  --         progress[client.id] = vim.tbl_filter(function(v)
-  --             return table.insert(msg, v.msg) or not v.done
-  --         end, p)
-
-  --         local spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
-  --         vim.notify(table.concat(msg, "\n"), "info", {
-  --             id = "lsp_progress",
-  --             title = client.name,
-  --             opts = function(notif)
-  --                 notif.icon = #progress[client.id] == 0 and " "
-  --                     or spinner[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner + 1]
-  --             end,
-  --         })
-  --     end,
-  -- })
 end
 
 return M

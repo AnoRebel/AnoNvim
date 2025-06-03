@@ -285,8 +285,8 @@ return {
             ["R"] = "refresh",
             ["<C-o>"] = "system_open",
             ["<S-CR>"] = "open_and_clear_filter",
-            ["tf"] = "telescope_find",
-            ["tg"] = "telescope_grep",
+            ["gf"] = "picker_find",
+            ["gw"] = "picker_grep",
           },
         },
         filesystem = {

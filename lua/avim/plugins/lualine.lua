@@ -287,8 +287,13 @@ return {
             info = "DiagnosticInfo", -- Changes diagnostics' info color.
             hint = "DiagnosticHint", -- Changes diagnostics' hint color.
           },
-          on_click = function()
-            vim.cmd("Telescope diagnostics")
+          on_click = function(clicks, button, modifiers)
+            if "r" == button then
+              Snacks.picker.diagnostics()
+            end
+            if "l" == button then
+              Snacks.picker.diagnostics_buffer()
+            end
           end,
         },
       },
@@ -302,6 +307,25 @@ return {
           companion_status,
           cond = function()
             return processing
+          end,
+          color = { fg = "#CDD6F4", bg = "Normal" },
+        },
+        --[[ {
+          function()
+            return require("mcphub.extensions.lualine")
+          end,
+          color = { fg = "#CDD6F4", bg = "Normal" },
+        }, ]]
+        {
+          function()
+            return require("vectorcode.integrations").lualine({ show_job_count = true })[1]()
+          end,
+          cond = function()
+            if package.loaded["vectorcode"] == nil then
+              return false
+            else
+              return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
+            end
           end,
           color = { fg = "#CDD6F4", bg = "Normal" },
         },

@@ -15,7 +15,9 @@ vim.g.committia_open_only_vim_starting = 0
 -----------------------------------------------------------------------------
 utilities.map("n", "<leader>g", nil, { name = " Git + DiffView" })
 -- utilities.map("n", "<leader>gc", "<cmd>Telescope git_commits<CR>", { desc = "[Git] Commits" })
-utilities.map("n", "<leader>gs", "<cmd>Telescope git_status<CR>", { desc = "[Git] Status" })
+utilities.map("n", "<leader>gs", function()
+  Snacks.picker.git_status()
+end, { desc = "[Git] Status" })
 -----------------------------------------------------------------------------
 
 return {
@@ -105,7 +107,6 @@ return {
       "nvim-lua/plenary.nvim",
       {
         "chrisgrieser/nvim-tinygit", -- Optional: For Github PR view
-        dependencies = "stevearc/dressing.nvim",
       },
     },
     cmd = { "Fugit2", "Fugit2Graph" },

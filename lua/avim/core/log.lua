@@ -20,6 +20,11 @@ Log.levels = {
   WARN = 4,
   ERROR = 5,
 }
+vim.tbl_add_reverse_lookup = function(tbl)
+  for k, v in pairs(tbl) do
+    tbl[v] = k
+  end
+end
 vim.tbl_add_reverse_lookup(Log.levels)
 
 local notify_opts = {}

@@ -12,24 +12,10 @@ return {
         opts = function()
           local hl = require("actions-preview.highlight")
           return {
-            backend = { "nui", "telescope" },
+            backend = { "snacks", "nui", "telescope" },
             diff = {
               algorithm = "patience",
               ignore_whitespace = true,
-            },
-            telescope = {
-              sorting_strategy = "ascending",
-              layout_strategy = "vertical",
-              winblend = 10,
-              layout_config = {
-                width = 0.8,
-                height = 0.9,
-                prompt_position = "top",
-                preview_cutoff = 20,
-                preview_height = function(_, _, max_lines)
-                  return max_lines - 15
-                end,
-              },
             },
             highlight_command = {
               -- Highlight diff using delta: https://github.com/dandavison/delta
@@ -53,27 +39,9 @@ return {
         opts = { autocmd = { enabled = true } },
       },
       {
-        "akinsho/flutter-tools.nvim",
-        cmd = {
-          "FlutterRun",
-          "FlutterDevices",
-          "FlutterEmulators",
-          "FlutterReload",
-          "FlutterRestart",
-          "FlutterQuit",
-          "FlutterOutlineToggle",
-          "FlutterDevTools",
-          "FlutterDevToolsActivate",
-          "FlutterDetach",
-          "FlutterLspRestart",
-          "FlutterSuper",
-          "FlutterRename",
-          "FlutterReanalyze",
-        },
+        "nvim-flutter/flutter-tools.nvim",
         dependencies = {
           "nvim-lua/plenary.nvim",
-          -- optional for vim.ui.select
-          "stevearc/dressing.nvim",
         },
       },
       {
@@ -84,7 +52,8 @@ return {
         },
         ft = { "go", "gomod" },
         build = function()
-          vim.cmd.GoInstallDeps()
+          -- vim.cmd.GoInstallDeps()
+          require("gopher").install_deps()
         end,
         init = function()
           -- quick_type
@@ -100,62 +69,17 @@ return {
         config = true,
       },
       {
-        "williamboman/mason.nvim",
+        "mason-org/mason.nvim",
         cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
         build = ":MasonUpdate", -- :MasonUpdate updates registry contents
-        config = function(_, opts)
-          require("mason").setup({
-            -- automatic_installation = true,
-            ui = {
-              border = "none", -- "rounded",
-              icons = {
-                package_installed = "",
-                package_pending = "",
-                package_uninstalled = "ﮊ",
-              },
-            },
-          })
-          local mr = require("mason-registry")
-          mr:on("package:install:success", function()
-            vim.defer_fn(function()
-              -- trigger FileType event to possibly load this newly installed LSP server
-              require("lazy.core.handler.event").trigger({
-                event = "FileType",
-                buf = vim.api.nvim_get_current_buf(),
-              })
-            end, 100)
-          end)
-
-          mr.refresh(function()
-            for _, tool in ipairs(vim.tbl_deep_extend("force", {}, opts.ensure_installed or {}, defaults.tools)) do
-              local ok_mlsp, mlsp = pcall(require, "mason-lspconfig")
-              local ok_mnls, mnls = pcall(require, "mason-null-ls.mappings.source")
-              local ok_mdap, mdap = pcall(require, "mason-nvim-dap.mappings.source")
-              if ok_mlsp then
-                tool = mlsp.get_mappings().lspconfig_to_mason[tool] or tool
-              end
-              if ok_mnls then
-                tool = mnls.getPackageFromNullLs(tool) or tool
-              end
-              if ok_mdap then
-                tool = mdap.nvim_dap_to_package[tool] or tool
-              end
-              local p = mr.get_package(tool)
-              if not p:is_installed() then
-                p:install()
-              end
-            end
-          end)
-        end,
+        config = true,
         keys = {
           { "<leader>pm", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "Mason" },
-          -- { "<leader>pl", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "[Mason] Log" },
-          -- { "<leader>pr", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "[Mason] Update" },
         },
       },
       {
-        "williamboman/mason-lspconfig.nvim",
-        opts = { ensure_installed = defaults.servers, automatic_installation = true },
+        "mason-org/mason-lspconfig.nvim",
+        opts = { ensure_installed = defaults.servers },
         config = function(_, opts)
           require("mason-lspconfig").setup(opts)
         end,
@@ -180,6 +104,9 @@ return {
         config = function()
           require("mason-tool-installer").setup({
             ensure_installed = defaults.tools,
+            integrations = {
+              ["mason-nvim-dap"] = false,
+            },
           })
         end,
       },
@@ -204,7 +131,7 @@ return {
             max_width = 120, -- max_width of signature floating_window, line will be wrapped if exceed max_width
             floating_window_off_x = 5, -- adjust float windows x position.
             floating_window_off_y = function() -- adjust float windows y position. e.g. set to -2 can make floating window move up 2 lines
-              local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
+              -- local linenr = vim.api.nvim_win_get_cursor(0)[1] -- buf line number
               local pumheight = vim.o.pumheight
               local winline = vim.fn.winline() -- line number in the window
               local winheight = vim.fn.winheight(0)
@@ -283,7 +210,6 @@ return {
             desc = "Preview Implementation(s)",
             noremap = true,
           },
-          -- Only set if you have telescope installed
           {
             "gpr",
             "<cmd>lua require('goto-preview').goto_preview_references()<CR>",
@@ -384,16 +310,8 @@ return {
       },
     },
     config = function()
-      local fn = vim.fn
       local api = vim.api
       local lsp = vim.lsp
-
-      local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
-
-      for type, icon in pairs(signs) do
-        local hl = "DiagnosticSign" .. type
-        fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-      end
 
       local on_attach = function(client, bufnr)
         local function buf_set_option(...)
@@ -478,7 +396,7 @@ return {
           -- utilities.map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
         end
         utilities.map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Floating Diagnostics" })
-        utilities.map("n", "gF", "<cmd>Telescope diagnostics<CR>", { desc = "Telescope Diagnostics" })
+        utilities.map("n", "gF", "<cmd>Snacks.picker.diagnostics()<CR>", { desc = "Snacks Diagnostics" })
         utilities.map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { desc = "Previous Diagnostics" })
         utilities.map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", { desc = "Next Diagnostics" })
         utilities.map(
@@ -548,6 +466,9 @@ return {
         end
         utilities.map("n", "gr", lsp.buf.references, { desc = "References", nowait = true })
         utilities.map("n", "gi", lsp.buf.implementation, { desc = "Goto Implementation" })
+        utilities.map("n", "gI", function()
+          Snacks.picker.lsp_implementations()
+        end, { desc = "Snack Implementation" })
         utilities.map("n", "gy", lsp.buf.type_definition, { desc = "Goto T[y]pe Definition" })
         utilities.map("n", "gD", lsp.buf.declaration, { desc = "Goto Declaration" })
         if lsp_utils.has(bufnr, "rename") then
@@ -590,7 +511,7 @@ return {
         border = "rounded", -- "single",
       })
       lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-        local ts_lsp = { "deno", "vtsls", "volar", "svelte", "astro" }
+        local ts_lsp = { "deno", "vtsls", "volar", "vue_ls", "svelte", "astro" }
         local clients = lsp.get_clients({ id = ctx.client_id })
         if vim.tbl_contains(ts_lsp, clients[1].name) then
           local filtered_result = {
@@ -647,6 +568,9 @@ return {
       local lspconfig = require("lspconfig")
 
       require("flutter-tools").setup({
+        ui = {
+          notification_style = "plugin",
+        },
         widget_guides = {
           enabled = true,
         },
@@ -699,355 +623,647 @@ return {
         --   run_via_dap = defaults.features.dap,
         -- },
       })
-      require("telescope").load_extension("flutter")
+      -- require("telescope").load_extension("flutter")
 
-      -- See `:h mason-lspconfig.setup_handlers()`
-      -- @param handlers table<string, fun(server_name: string)>
-      mason_lsp.setup_handlers({
-        function(servr)
-          lspconfig[servr].setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-          })
-        end,
-        ["basedpyright"] = function()
-          lspconfig.basedpyright.setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            settings = {
-              basedpyright = {
-                disableOrganizeImports = true,
-                typeCheckingMode = "standard",
-              },
-              pyright = {
-                -- Using Ruff's import organizer
-                disableOrganizeImports = true,
-                typeCheckingMode = "standard",
-              },
-              python = {
-                analysis = {
-                  -- Ignore all files for analysis to exclusively use Ruff for linting
-                  ignore = { "*" },
-                },
+      -- NOTE: v0.10 workaround
+      if vim.lsp.config then
+        vim.lsp.config("*", { capabilities = capabilities, on_attach = on_attach })
+        vim.lsp.config("basedpyright", {
+          on_attach = on_attach,
+          capabilities = capabilities,
+          settings = {
+            basedpyright = {
+              disableOrganizeImports = true,
+              typeCheckingMode = "standard",
+            },
+            pyright = {
+              -- Using Ruff's import organizer
+              disableOrganizeImports = true,
+              typeCheckingMode = "standard",
+            },
+            python = {
+              analysis = {
+                -- Ignore all files for analysis to exclusively use Ruff for linting
+                ignore = { "*" },
               },
             },
-          })
-        end,
-        ["elixirls"] = function()
-          lspconfig.elixirls.setup({
-            cmd = { _G.get_runtime_dir() .. "/mason/packages/elixir-ls/language_server.sh" },
-            on_attach = on_attach,
-            capabilities = capabilities,
-            filetypes = { "elixir", "eelixir", "heex", "surface", "exs" },
-          })
-        end,
-        ["emmet_language_server"] = function()
-          lspconfig.emmet_language_server.setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
-            -- **Note:** only the options listed in the table are supported.
-            init_options = {
-              --- @type string[]
-              showAbbreviationSuggestions = true,
-              --- @type "always" | "never" Defaults to `"always"`
-              showExpandedAbbreviation = "always",
-              --- @type boolean Defaults to `false`
-              showSuggestionsAsSnippets = true,
-            },
-            filetypes = {
-              "html",
-              "css",
-              "scss",
-              "htmldjango",
-              "sass",
-              "javascriptreact",
-              "typescriptreact",
-              "vue",
-              "svelte",
-              "astro",
-            },
-          })
-        end,
+          },
+        })
+        vim.lsp.config("elixirls", {
+          cmd = { _G.get_runtime_dir() .. "/mason/packages/elixir-ls/language_server.sh" },
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = { "elixir", "eelixir", "heex", "surface", "exs" },
+        })
+        vim.lsp.config("emmet_language_server", {
+          on_attach = on_attach,
+          capabilities = capabilities,
+          -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+          -- **Note:** only the options listed in the table are supported.
+          init_options = {
+            --- @type string[]
+            showAbbreviationSuggestions = true,
+            --- @type "always" | "never" Defaults to `"always"`
+            showExpandedAbbreviation = "always",
+            --- @type boolean Defaults to `false`
+            showSuggestionsAsSnippets = true,
+          },
+          filetypes = {
+            "html",
+            "css",
+            "scss",
+            "htmldjango",
+            "sass",
+            "javascriptreact",
+            "typescriptreact",
+            "vue",
+            "svelte",
+            "astro",
+          },
+        })
         -- eslint
-        ["eslint"] = function()
-          lspconfig.eslint.setup({
-            settings = {
-              workingDirectories = { mode = "auto" },
-              -- packageManager = "yarn",
-              experimental = {
-                useFlatConfig = true,
-              },
+        vim.lsp.config("eslint", {
+          settings = {
+            workingDirectories = { mode = "auto" },
+            -- packageManager = "yarn",
+            experimental = {
               useFlatConfig = true,
             },
-            on_attach = on_attach,
-            capabilities = capabilities,
-          })
-        end,
-        ["gopls"] = function()
-          lspconfig.gopls.setup({
-            on_attach = function(client, bufnr)
-              if not client.server_capabilities.semanticTokensProvider then
-                local semantic = client.config.capabilities.textDocument.semanticTokens
-                client.server_capabilities.semanticTokensProvider = {
-                  full = true,
-                  legend = {
-                    tokenTypes = semantic.tokenTypes,
-                    tokenModifiers = semantic.tokenModifiers,
+            useFlatConfig = true,
+          },
+          on_attach = on_attach,
+          capabilities = capabilities,
+        })
+        vim.lsp.config("gopls", {
+          on_attach = function(client, bufnr)
+            if not client.server_capabilities.semanticTokensProvider then
+              local semantic = client.config.capabilities.textDocument.semanticTokens
+              client.server_capabilities.semanticTokensProvider = {
+                full = true,
+                legend = {
+                  tokenTypes = semantic.tokenTypes,
+                  tokenModifiers = semantic.tokenModifiers,
+                },
+                range = true,
+              }
+            end
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          settings = {
+            gopls = {
+              -- gofumpt = true,
+              semanticTokens = true,
+              completeUnimported = true,
+              usePlaceholders = true,
+              staticcheck = true,
+              analyses = {
+                fieldalignment = true,
+                nilness = true,
+                unusedparams = true,
+                unusedwrite = true,
+                useany = true,
+              },
+              codelenses = {
+                gc_details = false,
+                generate = true,
+                regenerate_cgo = true,
+                run_govulncheck = true,
+                test = true,
+                tidy = true,
+                upgrade_dependency = true,
+                vendor = true,
+              },
+              hints = {
+                assignVariableTypes = true,
+                compositeLiteralFields = true,
+                compositeLiteralTypes = true,
+                constantValues = true,
+                functionTypeParameters = true,
+                parameterNames = true,
+                rangeVariableTypes = true,
+              },
+            },
+          },
+        })
+        vim.lsp.config("jsonls", {
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          settings = {
+            json = {
+              schemas = require("schemastore").json.schemas(),
+              format = {
+                enable = true,
+              },
+              validate = { enable = true },
+            },
+          },
+        })
+        vim.lsp.config("lua_ls", {
+          on_attach = on_attach,
+          capabilities = capabilities,
+          settings = {
+            Lua = {
+              workspace = {
+                checkThirdParty = false,
+              },
+              codeLens = {
+                enable = true,
+              },
+              completion = {
+                callSnippet = "Replace",
+              },
+              doc = {
+                privateName = { "^_" },
+              },
+              hint = {
+                enable = true,
+                setType = false,
+                paramType = true,
+                paramName = "Disable",
+                semicolon = "Disable",
+                arrayIndex = "Disable",
+              },
+            },
+          },
+        })
+        vim.lsp.config("ruff", {
+          on_attach = function(client, bufnr)
+            -- Disable hover in favor of Pyright
+            client.server_capabilities.hoverProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+        })
+        -- 		before_init = function(_, config)
+        -- 			config.settings.python.analysis.stubPath = path.concat({
+        -- 				_G.get_runtime_dir(),
+        -- 				"lazy",
+        -- 				"python-type-stubs",
+        -- 			})
+        -- 		end,
+        capabilities.textDocument.colorProvider = { dynamicRegistration = false }
+        vim.lsp.config("tailwindcss", {
+          capabilities = capabilities,
+          on_attach = on_attach,
+          settings = {
+            tailwindCSS = {
+              emmetCompletions = true,
+              includeLanguages = {
+                elixir = "html-eex",
+                eelixir = "html-eex",
+                heex = "html-eex",
+              },
+              -- root_dir = function(fname)
+              --   local util = require "lspconfig.util"
+              --   return util.root_pattern("tailwind.config.js", "tailwind.config.cjs", "tailwind.js", "tailwind.cjs")(fname)
+              -- end,
+            },
+          },
+        })
+        capabilities.textDocument.colorProvider = { dynamicRegistration = true }
+        vim.lsp.config("vtsls", {
+          capabilities = capabilities,
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            lsp_utils.move_to_file_refactor(client, bufnr)
+            on_attach(client, bufnr)
+          end,
+          filetypes = {
+            "typescript",
+            "javascript",
+            "javascriptreact",
+            "typescriptreact",
+            "javascript.jsx",
+            "typescript.tsx",
+            "vue",
+          },
+          settings = {
+            complete_function_calls = true,
+            vtsls = {
+              tsserver = {
+                globalPlugins = {
+                  {
+                    name = "@vue/typescript-plugin",
+                    location = lsp_utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
+                    languages = { "vue" },
+                    configNamespace = "typescript",
+                    enableForWorkspaceTypeScriptVersions = true,
                   },
-                  range = true,
-                }
-              end
-              on_attach(client, bufnr)
-            end,
-            capabilities = capabilities,
-            settings = {
-              gopls = {
-                -- gofumpt = true,
-                semanticTokens = true,
-                completeUnimported = true,
-                usePlaceholders = true,
-                staticcheck = true,
-                analyses = {
-                  fieldalignment = true,
-                  nilness = true,
-                  unusedparams = true,
-                  unusedwrite = true,
-                  useany = true,
-                },
-                codelenses = {
-                  gc_details = false,
-                  generate = true,
-                  regenerate_cgo = true,
-                  run_govulncheck = true,
-                  test = true,
-                  tidy = true,
-                  upgrade_dependency = true,
-                  vendor = true,
-                },
-                hints = {
-                  assignVariableTypes = true,
-                  compositeLiteralFields = true,
-                  compositeLiteralTypes = true,
-                  constantValues = true,
-                  functionTypeParameters = true,
-                  parameterNames = true,
-                  rangeVariableTypes = true,
+                  {
+                    name = "typescript-svelte-plugin",
+                    location = lsp_utils.get_pkg_path(
+                      "svelte-language-server",
+                      "/node_modules/typescript-svelte-plugin"
+                    ),
+                    enableForWorkspaceTypeScriptVersions = true,
+                  },
                 },
               },
-            },
-          })
-        end,
-        ["jsonls"] = function()
-          lspconfig.jsonls.setup({
-            on_attach = function(client, bufnr)
-              client.server_capabilities.documentFormattingProvider = false
-              client.server_capabilities.documentRangeFormattingProvider = false
-              on_attach(client, bufnr)
-            end,
-            capabilities = capabilities,
-            settings = {
-              json = {
-                schemas = require("schemastore").json.schemas(),
-                format = {
-                  enable = true,
-                },
-                validate = { enable = true },
-              },
-            },
-          })
-        end,
-        ["lua_ls"] = function()
-          lspconfig.lua_ls.setup({
-            on_attach = on_attach,
-            capabilities = capabilities,
-            settings = {
-              Lua = {
-                workspace = {
-                  checkThirdParty = false,
-                },
-                codeLens = {
-                  enable = true,
-                },
+              enableMoveToFileCodeAction = true,
+              autoUseWorkspaceTsdk = true,
+              experimental = {
+                maxInlayHintLength = 30,
                 completion = {
-                  callSnippet = "Replace",
-                },
-                doc = {
-                  privateName = { "^_" },
-                },
-                hint = {
-                  enable = true,
-                  setType = false,
-                  paramType = true,
-                  paramName = "Disable",
-                  semicolon = "Disable",
-                  arrayIndex = "Disable",
+                  enableServerSideFuzzyMatch = true,
                 },
               },
             },
-          })
-        end,
-        ["ruff"] = function()
-          lspconfig.ruff.setup({
-            on_attach = function(client, bufnr)
-              -- Disable hover in favor of Pyright
-              client.server_capabilities.hoverProvider = false
-              on_attach(client, bufnr)
-            end,
-            capabilities = capabilities,
-          })
-          -- 		before_init = function(_, config)
-          -- 			config.settings.python.analysis.stubPath = path.concat({
-          -- 				_G.get_runtime_dir(),
-          -- 				"lazy",
-          -- 				"python-type-stubs",
-          -- 			})
-          -- 		end,
-        end,
-        ["tailwindcss"] = function()
-          capabilities.textDocument.colorProvider = { dynamicRegistration = false }
-          lspconfig.tailwindcss.setup({
-            capabilities = capabilities,
-            on_attach = on_attach,
-            settings = {
-              tailwindCSS = {
-                emmetCompletions = true,
-                includeLanguages = {
-                  elixir = "html-eex",
-                  eelixir = "html-eex",
-                  heex = "html-eex",
-                },
-                -- root_dir = function(fname)
-                --   local util = require "lspconfig.util"
-                --   return util.root_pattern("tailwind.config.js", "tailwind.config.cjs", "tailwind.js", "tailwind.cjs")(fname)
-                -- end,
+            javascript = {
+              updateImportsOnFileMove = { enabled = "always" },
+              suggest = {
+                completeFunctionCalls = true,
+              },
+              inlayHints = {
+                enumMemberValues = { enabled = true },
+                functionLikeReturnTypes = { enabled = true },
+                parameterNames = { enabled = "literals" },
+                parameterTypes = { enabled = true },
+                propertyDeclarationTypes = { enabled = true },
+                variableTypes = { enabled = false },
               },
             },
-          })
-        end,
-        ["vtsls"] = function()
-          lspconfig.vtsls.setup({
-            capabilities = capabilities,
-            on_attach = function(client, bufnr)
-              client.server_capabilities.documentFormattingProvider = false
-              client.server_capabilities.documentRangeFormattingProvider = false
-              lsp_utils.move_to_file_refactor(client, bufnr)
-              on_attach(client, bufnr)
-            end,
-            filetypes = {
-              "typescript",
-              "javascript",
-              "javascriptreact",
-              "typescriptreact",
-              "javascript.jsx",
-              "typescript.tsx",
-              "vue",
+            typescript = {
+              tsserver = {
+                pluginPaths = {
+                  -- "@vue/typescript-plugin",
+                  lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                  lsp_utils.get_pkg_path("svelte-language-server", "/node_modules/typescript-svelte-plugin"),
+                },
+              },
+              updateImportsOnFileMove = { enabled = "always" },
+              suggest = {
+                completeFunctionCalls = true,
+              },
+              inlayHints = {
+                parameterNames = { enabled = "literals" },
+                parameterTypes = { enabled = true },
+                variableTypes = { enabled = true },
+                propertyDeclarationTypes = { enabled = true },
+                functionLikeReturnTypes = { enabled = true },
+                enumMemberValues = { enabled = true },
+              },
+              format = {
+                indentSize = vim.o.shiftwidth,
+                convertTabsToSpaces = vim.o.expandtab,
+                tabSize = vim.o.tabstop,
+              },
             },
-            settings = {
-              complete_function_calls = true,
-              vtsls = {
-                tsserver = {
-                  globalPlugins = {
-                    {
-                      name = "@vue/typescript-plugin",
-                      location = lsp_utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
-                      languages = { "vue" },
-                      configNamespace = "typescript",
-                      enableForWorkspaceTypeScriptVersions = true,
-                    },
-                    {
-                      name = "typescript-svelte-plugin",
-                      location = lsp_utils.get_pkg_path(
-                        "svelte-language-server",
-                        "/node_modules/typescript-svelte-plugin"
-                      ),
-                      enableForWorkspaceTypeScriptVersions = true,
-                    },
+          },
+        })
+        -- vim.lsp.config("volar", {
+        vim.lsp.config("vue_ls", {
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          filetypes = { "vue" },
+          -- filetypes = has_vue and { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" } or { "vue" },
+          init_options = {
+            vue = {
+              hybridMode = true,
+            },
+            -- typescript = {
+            --   tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
+            -- },
+            documentFeatures = {
+              documentColor = true,
+            },
+            languageFeatures = {
+              semanticTokens = true,
+            },
+          },
+          settings = {
+            completeFunctionCalls = true,
+          },
+        })
+      else
+        lspconfig.basedpyright.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          settings = {
+            basedpyright = {
+              disableOrganizeImports = true,
+              typeCheckingMode = "standard",
+            },
+            pyright = {
+              -- Using Ruff's import organizer
+              disableOrganizeImports = true,
+              typeCheckingMode = "standard",
+            },
+            python = {
+              analysis = {
+                -- Ignore all files for analysis to exclusively use Ruff for linting
+                ignore = { "*" },
+              },
+            },
+          },
+        })
+        lspconfig.elixirls.setup({
+          cmd = { _G.get_runtime_dir() .. "/mason/packages/elixir-ls/language_server.sh" },
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = { "elixir", "eelixir", "heex", "surface", "exs" },
+        })
+        lspconfig.emmet_language_server.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+          -- **Note:** only the options listed in the table are supported.
+          init_options = {
+            --- @type string[]
+            showAbbreviationSuggestions = true,
+            --- @type "always" | "never" Defaults to `"always"`
+            showExpandedAbbreviation = "always",
+            --- @type boolean Defaults to `false`
+            showSuggestionsAsSnippets = true,
+          },
+          filetypes = {
+            "html",
+            "css",
+            "scss",
+            "htmldjango",
+            "sass",
+            "javascriptreact",
+            "typescriptreact",
+            "vue",
+            "svelte",
+            "astro",
+          },
+        })
+        -- eslint
+        lspconfig.eslint.setup({
+          settings = {
+            workingDirectories = { mode = "auto" },
+            -- packageManager = "yarn",
+            experimental = {
+              useFlatConfig = true,
+            },
+            useFlatConfig = true,
+          },
+          on_attach = on_attach,
+          capabilities = capabilities,
+        })
+        lspconfig.gopls.setup({
+          on_attach = function(client, bufnr)
+            if not client.server_capabilities.semanticTokensProvider then
+              local semantic = client.config.capabilities.textDocument.semanticTokens
+              client.server_capabilities.semanticTokensProvider = {
+                full = true,
+                legend = {
+                  tokenTypes = semantic.tokenTypes,
+                  tokenModifiers = semantic.tokenModifiers,
+                },
+                range = true,
+              }
+            end
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          settings = {
+            gopls = {
+              -- gofumpt = true,
+              semanticTokens = true,
+              completeUnimported = true,
+              usePlaceholders = true,
+              staticcheck = true,
+              analyses = {
+                fieldalignment = true,
+                nilness = true,
+                unusedparams = true,
+                unusedwrite = true,
+                useany = true,
+              },
+              codelenses = {
+                gc_details = false,
+                generate = true,
+                regenerate_cgo = true,
+                run_govulncheck = true,
+                test = true,
+                tidy = true,
+                upgrade_dependency = true,
+                vendor = true,
+              },
+              hints = {
+                assignVariableTypes = true,
+                compositeLiteralFields = true,
+                compositeLiteralTypes = true,
+                constantValues = true,
+                functionTypeParameters = true,
+                parameterNames = true,
+                rangeVariableTypes = true,
+              },
+            },
+          },
+        })
+        lspconfig.jsonls.setup({
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          settings = {
+            json = {
+              schemas = require("schemastore").json.schemas(),
+              format = {
+                enable = true,
+              },
+              validate = { enable = true },
+            },
+          },
+        })
+        lspconfig.lua_ls.setup({
+          on_attach = on_attach,
+          capabilities = capabilities,
+          settings = {
+            Lua = {
+              workspace = {
+                checkThirdParty = false,
+              },
+              codeLens = {
+                enable = true,
+              },
+              completion = {
+                callSnippet = "Replace",
+              },
+              doc = {
+                privateName = { "^_" },
+              },
+              hint = {
+                enable = true,
+                setType = false,
+                paramType = true,
+                paramName = "Disable",
+                semicolon = "Disable",
+                arrayIndex = "Disable",
+              },
+            },
+          },
+        })
+        lspconfig.ruff.setup({
+          on_attach = function(client, bufnr)
+            -- Disable hover in favor of Pyright
+            client.server_capabilities.hoverProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+        })
+        -- 		before_init = function(_, config)
+        -- 			config.settings.python.analysis.stubPath = path.concat({
+        -- 				_G.get_runtime_dir(),
+        -- 				"lazy",
+        -- 				"python-type-stubs",
+        -- 			})
+        -- 		end,
+        capabilities.textDocument.colorProvider = { dynamicRegistration = false }
+        lspconfig.tailwindcss.setup({
+          capabilities = capabilities,
+          on_attach = on_attach,
+          settings = {
+            tailwindCSS = {
+              emmetCompletions = true,
+              includeLanguages = {
+                elixir = "html-eex",
+                eelixir = "html-eex",
+                heex = "html-eex",
+              },
+              -- root_dir = function(fname)
+              --   local util = require "lspconfig.util"
+              --   return util.root_pattern("tailwind.config.js", "tailwind.config.cjs", "tailwind.js", "tailwind.cjs")(fname)
+              -- end,
+            },
+          },
+        })
+        capabilities.textDocument.colorProvider = { dynamicRegistration = true }
+        lspconfig.vtsls.setup({
+          capabilities = capabilities,
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            lsp_utils.move_to_file_refactor(client, bufnr)
+            on_attach(client, bufnr)
+          end,
+          filetypes = {
+            "typescript",
+            "javascript",
+            "javascriptreact",
+            "typescriptreact",
+            "javascript.jsx",
+            "typescript.tsx",
+            "vue",
+          },
+          settings = {
+            complete_function_calls = true,
+            vtsls = {
+              tsserver = {
+                globalPlugins = {
+                  {
+                    name = "@vue/typescript-plugin",
+                    location = lsp_utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
+                    languages = { "vue" },
+                    configNamespace = "typescript",
+                    enableForWorkspaceTypeScriptVersions = true,
+                  },
+                  {
+                    name = "typescript-svelte-plugin",
+                    location = lsp_utils.get_pkg_path(
+                      "svelte-language-server",
+                      "/node_modules/typescript-svelte-plugin"
+                    ),
+                    enableForWorkspaceTypeScriptVersions = true,
                   },
                 },
-                enableMoveToFileCodeAction = true,
-                autoUseWorkspaceTsdk = true,
-                experimental = {
-                  maxInlayHintLength = 30,
-                  completion = {
-                    enableServerSideFuzzyMatch = true,
-                  },
-                },
               },
-              javascript = {
-                updateImportsOnFileMove = { enabled = "always" },
-                suggest = {
-                  completeFunctionCalls = true,
-                },
-                inlayHints = {
-                  enumMemberValues = { enabled = true },
-                  functionLikeReturnTypes = { enabled = true },
-                  parameterNames = { enabled = "literals" },
-                  parameterTypes = { enabled = true },
-                  propertyDeclarationTypes = { enabled = true },
-                  variableTypes = { enabled = false },
-                },
-              },
-              typescript = {
-                tsserver = {
-                  pluginPaths = {
-                    -- "@vue/typescript-plugin",
-                    lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
-                    lsp_utils.get_pkg_path("svelte-language-server", "/node_modules/typescript-svelte-plugin"),
-                  },
-                },
-                updateImportsOnFileMove = { enabled = "always" },
-                suggest = {
-                  completeFunctionCalls = true,
-                },
-                inlayHints = {
-                  parameterNames = { enabled = "literals" },
-                  parameterTypes = { enabled = true },
-                  variableTypes = { enabled = true },
-                  propertyDeclarationTypes = { enabled = true },
-                  functionLikeReturnTypes = { enabled = true },
-                  enumMemberValues = { enabled = true },
-                },
-                format = {
-                  indentSize = vim.o.shiftwidth,
-                  convertTabsToSpaces = vim.o.expandtab,
-                  tabSize = vim.o.tabstop,
+              enableMoveToFileCodeAction = true,
+              autoUseWorkspaceTsdk = true,
+              experimental = {
+                maxInlayHintLength = 30,
+                completion = {
+                  enableServerSideFuzzyMatch = true,
                 },
               },
             },
-          })
-          -- end
-        end,
-        ["volar"] = function()
-          lspconfig.volar.setup({
-            on_attach = function(client, bufnr)
-              client.server_capabilities.documentFormattingProvider = false
-              client.server_capabilities.documentRangeFormattingProvider = false
-              on_attach(client, bufnr)
-            end,
-            capabilities = capabilities,
-            filetypes = { "vue" },
-            -- filetypes = has_vue and { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" } or { "vue" },
-            init_options = {
-              vue = {
-                hybridMode = true,
+            javascript = {
+              updateImportsOnFileMove = { enabled = "always" },
+              suggest = {
+                completeFunctionCalls = true,
               },
-              -- typescript = {
-              --   tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
-              -- },
-              documentFeatures = {
-                documentColor = true,
-              },
-              languageFeatures = {
-                semanticTokens = true,
+              inlayHints = {
+                enumMemberValues = { enabled = true },
+                functionLikeReturnTypes = { enabled = true },
+                parameterNames = { enabled = "literals" },
+                parameterTypes = { enabled = true },
+                propertyDeclarationTypes = { enabled = true },
+                variableTypes = { enabled = false },
               },
             },
-            settings = {
-              completeFunctionCalls = true,
+            typescript = {
+              tsserver = {
+                pluginPaths = {
+                  -- "@vue/typescript-plugin",
+                  lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
+                  lsp_utils.get_pkg_path("svelte-language-server", "/node_modules/typescript-svelte-plugin"),
+                },
+              },
+              updateImportsOnFileMove = { enabled = "always" },
+              suggest = {
+                completeFunctionCalls = true,
+              },
+              inlayHints = {
+                parameterNames = { enabled = "literals" },
+                parameterTypes = { enabled = true },
+                variableTypes = { enabled = true },
+                propertyDeclarationTypes = { enabled = true },
+                functionLikeReturnTypes = { enabled = true },
+                enumMemberValues = { enabled = true },
+              },
+              format = {
+                indentSize = vim.o.shiftwidth,
+                convertTabsToSpaces = vim.o.expandtab,
+                tabSize = vim.o.tabstop,
+              },
             },
-          })
-        end,
-      })
+          },
+        })
+        -- lspconfig.volar.setup({
+        lspconfig.vue_ls.setup({
+          on_attach = function(client, bufnr)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            on_attach(client, bufnr)
+          end,
+          capabilities = capabilities,
+          filetypes = { "vue" },
+          -- filetypes = has_vue and { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" } or { "vue" },
+          init_options = {
+            vue = {
+              hybridMode = true,
+            },
+            -- typescript = {
+            --   tsdk = vim.fn.getcwd() .. "/node_modules/typescript/lib",
+            -- },
+            documentFeatures = {
+              documentColor = true,
+            },
+            languageFeatures = {
+              semanticTokens = true,
+            },
+          },
+          settings = {
+            completeFunctionCalls = true,
+          },
+        })
+      end
+
+      mason_lsp.setup()
 
       local ftMap = {
         vim = "indent",

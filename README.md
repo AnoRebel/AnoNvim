@@ -12,29 +12,26 @@ designed for extensibility.
   - Fast startup with lazy loading
   - Efficient plugin management
   - Optimized file operations
-  - Smart caching system
 
 - 🎨 User Interface
 
   - Dynamic theme switching based on time
   - Beautiful and functional UI components
-  - Custom icons and visual elements
   - Random Alpha logos/banners
   - Winbar with context information
 
 - 📝 Development
 
   - Advanced LSP integration
-  - AI coding assistant
+  - AI coding assistant (CodeCompanion)
     - Codeium
-  - Powerful debugging support
   - Git integration with conflict resolution
   - Database integration with Dbee
 
 - 🔧 Tools & Utilities
 
-  - Fuzzy finding with Telescope
-  - File tree with NvimTree
+  - Fuzzy finding with Snacks
+  - File tree with NeoTree and Oil
   - Terminal integration
   - REST API client
   - Session management
@@ -43,13 +40,12 @@ designed for extensibility.
 - ⚙️ Configuration
   - Type checking and linting
   - Automatic package management
-  - Optional GUI support (Neovide/Neoray)
   - Extensive customization options
   - Well-documented codebase
 
 ## Requirements
 
-- Neovim >= 0.10.0
+- Neovim >= 0.11.0
 - Git >= 2.19.0
 - A [Nerd Font](https://www.nerdfonts.com/) (Optional but recommended)
 - For optional features:
@@ -57,7 +53,6 @@ designed for extensibility.
   - Python >= 3.7
   - Go >= 1.20
   - Rust ( >= latest stable)
-  - Luarocks
 
 ## Installation
 
@@ -100,6 +95,7 @@ After installation:
 │   ├── lazy.lua              # Plugin management
 │   ├── update.lua            # Update system
 │   ├── plugins               # Plugin configurations
+│   │   ├── ai.lua            # AI related configurations
 │   │   ├── bufferline.lua    # Bufferline(top bar) configurations
 │   │   ├── completions.lua   # Code completion configurations
 │   │   ├── database.lua      # Database configurations
@@ -114,9 +110,9 @@ After installation:
 │   │   ├── rest.lua          # Rest client configurations
 │   │   ├── search.lua        # Search and Replace configurations
 │   │   ├── snacks.lua        # Folke's Snacks configurations
-│   │   ├── telescope.lua     # Telescope configurations
 │   │   ├── themes.lua        # Themes configurations
 │   │   ├── treesitter.lua    # Treesitter configurations
+│   │   ├── ...               # Other plugin configurations
 │   │   └── ui.lua            # UI components and configurations
 │   └── utilities             # Utility functions
 ```
@@ -127,7 +123,7 @@ AnoNvim provides multiple ways to explore keybindings:
 
 1. **Keymaps Search**:
 
-   - `:Telescope keymaps` or `<leader>fk`
+   - `Snacks.picker.keymaps()` or `<leader>fk`
 
 2. **Which Key**:
    - Press `<leader>` to see available key bindings
@@ -139,14 +135,13 @@ Note: `<leader>` key is mapped to the `Space` key
 
 <details><summary>🧠 AI Assistance</summary>
 
-- [Codeium.nvim](https://github.com/Exafunction/codeium.nvim) - AI code completion
+- [windsurf.nvim](https://github.com/Exafunction/windsurf.nvim) - AI code completion
 
 </details>
 
 <details><summary>📝 Editor Enhancement</summary>
 
 - [Alpha](https://github.com/goolord/alpha-nvim) - Startup screen
-- [Better Escape](https://github.com/max397574/better-escape.nvim) - Better escape key handling
 - [Comment](https://github.com/numToStr/Comment.nvim) - Code commenting
 - [Surround](https://github.com/kylechui/nvim-surround) - Text surroundings
 - [Which Key](https://github.com/folke/which-key.nvim) - Key binding helper
@@ -155,12 +150,12 @@ Note: `<leader>` key is mapped to the `Space` key
 
 <details><summary>🎨 User Interface</summary>
 
-- [Barbecue](https://github.com/Beekaboo/dropbar.nvim) - VS Code-like winbar
+- [Dropbar](https://github.com/Beekaboo/dropbar.nvim) - VS Code-like winbar
 - [Bufferline](https://github.com/akinsho/bufferline.nvim) - Buffer line
 - [Lualine](https://github.com/nvim-lualine/lualine.nvim) - Status line
 - [NeoTree](https://github.com/nvim-neo-tree/neo-tree.nvim) - File explorer
 - [Oil](https://github.com/stevearc/oil.nvim) - Buffer-like File explorer
-- [Telescope](https://github.com/nvim-telescope/telescope.nvim) - Fuzzy finder
+- [Snacks](https://github.com/folke/snacks.nvim) - Fuzzy finder
 
 </details>
 
@@ -196,11 +191,12 @@ Note: `<leader>` key is mapped to the `Space` key
 
 ## Credits
 
-Built upon the great work of:
+Built upon the great works of:
 
 - [CosmicVim](https://github.com/CosmicNvim/CosmicNvim)
 - [LunarVim](https://github.com/LunarVim/LunarVim)
 - [NvChad](https://github.com/NvChad/NvChad)
+- [LazyVim](https://lazyvim.org)
 - [DomacsVim](https://github.com/DomacsVim/DomacsVim)
 - [b0o's config](https://github.com/b0o/nvim-conf)
 - [omega-nvim](https://github.com/max397574/omega-nvim)

@@ -1,23 +1,24 @@
 local utilities = require("avim.utilities")
 
-local function get_telescope_opts(state, path)
+local function get_picker_opts(state, path)
   return {
     cwd = path,
-    search_dirs = { path },
-    attach_mappings = function(prompt_bufnr, map)
-      local actions = require("telescope.actions")
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local action_state = require("telescope.actions.state")
-        local selection = action_state.get_selected_entry()
-        local filename = selection.filename
-        if filename == nil then
-          filename = selection[1]
-        end
-        -- any way to open the file without triggering auto-close event of neo-tree?
-        require("neo-tree.sources.filesystem").navigate(state, state.path, filename)
-      end)
-      return true
+    dirs = { path },
+    confirm = function(picker, item)
+      picker:close()
+      -- any way to open the file without triggering auto-close event of neo-tree?
+      if item then
+        vim.schedule(function()
+          require("neo-tree.sources.filesystem").navigate(state, state.path, item.file)
+          if item.pos then
+            vim.cmd(string.format("edit %s", item.file))
+            vim.api.nvim_win_set_cursor(0, item.pos) -- Column is 0-based in Lua
+          else
+            vim.cmd("e " .. item.file)
+          end
+        end)
+      end
+      -- vim.notify(vim.inspect(item))
     end,
   }
 end
@@ -57,25 +58,24 @@ end
 ---@field open_or_preview fun(state: any)
 ---@field parent_or_close fun(state: any)
 ---@field run_command fun(state: any)
----@field spectre_replace fun(state: any)
 ---@field system_open fun(state: any)
----@field telescope_find fun(state: any)
----@field telescope_grep fun(state: any)
+---@field picker_find fun(state: any)
+---@field picker_grep fun(state: any)
 ---@field trash fun(state: any)
 ---@field trash_visual fun(state: any)
 local global_commands = {
   system_open = function(state)
     utilities.system_open(state.tree:get_node():get_id())
   end,
-  telescope_find = function(state)
+  picker_find = function(state)
     local node = state.tree:get_node()
     local path = node:get_id()
-    require("telescope.builtin").find_files(get_telescope_opts(state, path))
+    Snacks.picker.files(get_picker_opts(state, path))
   end,
-  telescope_grep = function(state)
+  picker_grep = function(state)
     local node = state.tree:get_node()
     local path = node:get_id()
-    require("telescope.builtin").live_grep(get_telescope_opts(state, path))
+    Snacks.picker.grep(get_picker_opts(state, path))
   end,
   -- https://github.com/nvim-neo-tree/neo-tree.nvim/discussions/220
   go_first_sibling = function(state)

@@ -118,6 +118,10 @@ M.options = {
   readme = {
     root = utilities.join_paths(utilities.get_runtime_dir(), "lazy", "readme"),
   },
+  rocks = {
+    enabled = true,
+    hererocks = true,
+  },
   performance = {
     rtp = {
       reset = false,

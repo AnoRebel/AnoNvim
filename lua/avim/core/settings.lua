@@ -167,10 +167,29 @@ else
   -- when cursor reaches end/beginning of line
   set.whichwrap:append("<>[]hl")
 
+  local signs = { text = {}, linehl = {}, numhl = {} }
+
+  for type, icon in pairs({ Error = " ", Warn = " ", Hint = " ", Info = " " }) do
+    local hl = "DiagnosticSign" .. type
+
+    signs.text[vim.diagnostic.severity[string.upper(type)]] = icon
+    signs.linehl[vim.diagnostic.severity[string.upper(type)]] = hl
+    signs.numhl[vim.diagnostic.severity[string.upper(type)]] = hl
+  end
+
   vim.diagnostic.config({
     virtual_text = {
       --prefix = "",
       prefix = "●",
+      severity = {
+        max = vim.diagnostic.severity.WARN,
+      },
+    },
+    virtual_lines = {
+      severity = {
+        min = vim.diagnostic.severity.ERROR,
+      },
+      current_line = true,
     },
     float = {
       focusable = true,
@@ -191,7 +210,8 @@ else
       end,
     },
     severity_sort = true,
-    signs = true,
+    -- signs = true,
+    signs = signs,
     underline = true,
     update_in_insert = false,
   })
