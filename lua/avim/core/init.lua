@@ -54,7 +54,7 @@ function M:init(base_dir)
     elseif what == "cache" then
       return _G.get_cache_dir()
     elseif what == "log" then
-        return _G.get_log_dir()
+      return _G.get_log_dir()
     elseif what == "state" then
       return _G.get_state_dir()
     elseif what == "config" then
@@ -89,10 +89,6 @@ function M:init(base_dir)
 
   utilities.load_env()
 
-  ----------
-  ---------- Context Menu
-  ----------
-  require("avim.utilities.context_menu").setup_rclick_menu_autocommands()
   return self
 end
 

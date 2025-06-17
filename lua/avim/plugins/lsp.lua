@@ -385,7 +385,7 @@ return {
           utilities.map("n", "gk", "<cmd>lua vim.lsp.buf.signature_help()<CR>", { desc = "Signature Help" })
         end
         utilities.map("n", "<leader>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>", { desc = "Type Definitions" })
-        utilities.map("n", "<leader>ra", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "Rename" })
+        utilities.map("n", "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", { desc = "Rename" })
         if lsp_utils.has(bufnr, "codeAction") then
           utilities.map(
             { "n", "v" },
@@ -396,7 +396,7 @@ return {
           -- utilities.map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
         end
         utilities.map("n", "ge", "<cmd>lua vim.diagnostic.open_float()<CR>", { desc = "Floating Diagnostics" })
-        utilities.map("n", "gF", "<cmd>Snacks.picker.diagnostics()<CR>", { desc = "Snacks Diagnostics" })
+        utilities.map("n", "gF", "<cmd>lua Snacks.picker.diagnostics()<CR>", { desc = "Snacks Diagnostics" })
         utilities.map("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", { desc = "Previous Diagnostics" })
         utilities.map("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", { desc = "Next Diagnostics" })
         utilities.map(

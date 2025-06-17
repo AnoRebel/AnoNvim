@@ -42,7 +42,7 @@ return {
         gemini = function()
           return require("codecompanion.adapters").extend("gemini", {
             env = {
-              model = "gemini-2.0-flash",
+              -- model = "gemini-2.0-flash",
               api_key = vim.fn.readfile(_G.get_config_dir() .. "/google.key")[1],
             },
             schema = {

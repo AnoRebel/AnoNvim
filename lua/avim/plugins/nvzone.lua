@@ -1,5 +1,20 @@
 return {
   {
+    "nvzone/floaterm",
+    dependencies = "nvzone/volt",
+    opts = {
+      border = true,
+      size = { h = 80, w = 80 },
+      -- Default sets of terminals you'd like to open
+      terminals = {
+        { name = "Terminal" },
+        -- cmd can be function too
+        -- { name = "Process", cmd = "btop" },
+      },
+    },
+    cmd = "FloatermToggle",
+  },
+  {
     "nvzone/typr",
     dependencies = "nvzone/volt",
     opts = {},
@@ -15,9 +30,7 @@ return {
   },
   {
     "nvzone/menu",
-    enabled = false,
     dependencies = "nvzone/volt",
-    opts = {},
     keys = {
       {
         "<RightMouse>",
@@ -28,9 +41,10 @@ return {
 
           -- clicked buf
           local buf = vim.api.nvim_win_get_buf(vim.fn.getmousepos().winid)
-          local options = vim.bo[buf].ft == "NvimTree" and "nvimtree" or "default"
+          local menus = require("avim.utilities.menus")
+          local options = vim.bo[buf].ft == "neo-tree" and menus.neo_tree or menus.default
 
-          require("menu").open(options, { mouse = true })
+          require("menu").open(options, { mouse = true, border = true })
         end,
         desc = "Open Menu",
         mode = { "n", "v" },

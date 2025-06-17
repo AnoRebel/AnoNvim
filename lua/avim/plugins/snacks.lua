@@ -415,9 +415,7 @@ return {
       {
         mode = { "n", "v" },
         "<leader>tf",
-        function()
-          Snacks.terminal.toggle(nil, { win = { relative = "editor", position = "float" } })
-        end,
+        "<CMD>FloatermToggle<CR>",
         desc = "[Terminal] Toggle Floating",
       },
       {
