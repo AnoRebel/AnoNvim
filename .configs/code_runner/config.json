@@ -2,7 +2,7 @@
   "defaultRunner": "terminal",
   "runners": {
     "terminal": {
-      "command": "terminal",
+      "command": "",
       "position": "horizontal",
       "size": 15
     },

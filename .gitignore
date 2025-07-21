@@ -3,3 +3,5 @@ plugin
 ftplugin
 spell
 lazy-lock.json
+OpenCode.md
+.opencode/

@@ -6,11 +6,129 @@ vim.g.neo_tree_remove_legacy_commands = true
 
 return {
   {
+    'echasnovski/mini.files',
+    version = false,
+    init = function()
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "MiniFilesActionRename",
+        callback = function(event)
+          Snacks.rename.on_rename_file(event.data.from, event.data.to)
+        end,
+      })
+      ---------
+      -- Open path with system default handler (useful for non-text files)
+      local ui_open = function() vim.ui.open(MiniFiles.get_fs_entry().path) end
+
+      local show_dotfiles = true
+      local filter_show = function(fs_entry) return true end
+      local filter_hide = function(fs_entry)
+        return not vim.startswith(fs_entry.name, '.')
+      end
+      local toggle_dotfiles = function()
+        show_dotfiles = not show_dotfiles
+        local new_filter = show_dotfiles and filter_show or filter_hide
+        MiniFiles.refresh({ content = { filter = new_filter } })
+      end
+      local toggle_preview = function()
+        show_preview = not show_preview
+        MiniFiles.refresh({ windows = { preview = show_preview } })
+      end
+
+      local minifiles_toggle = function(...)
+        if not MiniFiles.close() then MiniFiles.open(...) end
+      end
+
+      -- Yank in register full path of entry under cursor
+      local yank_path = function()
+        local path = (MiniFiles.get_fs_entry() or {}).path
+        if path == nil then return vim.notify('Cursor is not on valid entry') end
+        vim.fn.setreg(vim.v.register, path)
+      end
+      -- Set focused directory as current working directory
+      local set_cwd = function()
+        local path = (MiniFiles.get_fs_entry() or {}).path
+        if path == nil then return vim.notify('Cursor is not on valid entry') end
+        vim.fn.chdir(vim.fs.dirname(path))
+      end
+      -- GrugFar search
+      local grug_search = function()
+        -- get the current directory
+        local prefills = { paths = (MiniFiles.get_fs_entry() or {}).path }
+
+        local grug_far = require("grug-far")
+        -- instance check
+        if not grug_far.has_instance("explorer") then
+          grug_far.open({
+            instanceName = "explorer",
+            prefills = prefills,
+            staticTitle = "Find and Replace from MiniFiles",
+          })
+        else
+          grug_far.open_instance("explorer")
+          -- updating the prefills without clearing the search and other fields
+          grug_far.update_instance_prefills("explorer", prefills, false)
+        end
+      end
+      ----------
+      local map_split = function(buf_id, lhs, direction)
+       local rhs = function()
+         -- Make new window and set it as target
+         local cur_target = MiniFiles.get_explorer_state().target_window
+         local new_target = vim.api.nvim_win_call(cur_target, function()
+           vim.cmd(direction .. ' split')
+           return vim.api.nvim_get_current_win()
+         end)
+
+         MiniFiles.set_target_window(new_target)
+
+         -- This intentionally doesn't act on file under cursor in favor of
+         -- explicit "go in" action (`l` / `L`). To immediately open file,
+         -- add appropriate `MiniFiles.go_in()` call instead of this comment.
+       end
+
+       -- Adding `desc` will result into `show_help` entries
+       local desc = 'Split ' .. direction
+       vim.keymap.set('n', lhs, rhs, { buffer = buf_id, desc = desc })
+     end
+
+     vim.api.nvim_create_autocmd('User', {
+       pattern = 'MiniFilesBufferCreate',
+       callback = function(args)
+         local buf_id = args.data.buf_id
+
+         vim.keymap.set('n', 'g.', toggle_dotfiles, { buffer = buf_id })
+
+         map_split(buf_id, '<C-h>', 'belowright horizontal')
+         map_split(buf_id, '<C-p>', 'belowright vertical')
+         map_split(buf_id, '<C-t>', 'tab')
+
+         vim.keymap.set('n', 'g~', set_cwd,   { buffer = b, desc = 'Set cwd' })
+         vim.keymap.set('n', '<C-o>', ui_open,   { buffer = b, desc = 'OS open' })
+         vim.keymap.set('n', '<C-k>', toggle_preview,   { buffer = b, desc = 'Toggle Preview' })
+         vim.keymap.set('n', 'gy', yank_path, { buffer = b, desc = 'Yank path' })
+         vim.keymap.set('n', 'gs', grug_search, { buffer = b, desc = 'GrugFar: Search in directory' })
+       end,
+     })
+    end,
+    opts = {
+      options = {
+        permanent_delete = false,
+      },
+      windows = {
+        -- Width of preview window
+        width_preview = 70,
+      },
+    },
+    keys = {
+      { "_", "<cmd>lua MiniFiles.open()<CR>", mode = { "n", "v" }, desc = "MiniFiles Explorer" },
+    },
+  },
+  {
     "stevearc/oil.nvim",
     cmd = { "Oil" },
     keys = {
-      { "-", "<cmd>Oil <CR>", mode = { "n", "v" }, desc = "[Oil] Open Folder" }, -- vim.cmd("vsplit | wincmd |")
-      { "_", "<cmd>Oil --float <CR>", mode = { "n", "v" }, desc = "[Oil] Open Floating" },
+      -- { "-", "<cmd>Oil <CR>", mode = { "n", "v" }, desc = "[Oil] Open Folder" }, -- vim.cmd("vsplit | wincmd |")
+      { "-", "<cmd>Oil --float <CR>", mode = { "n", "v" }, desc = "[Oil] Open Floating" },
     },
     init = function()
       vim.api.nvim_create_autocmd("User", {
@@ -27,6 +145,7 @@ return {
         signcolumn = "number",
       },
       columns = {
+        -- "icon",
         -- "permissions",
         -- "atime",
       },
@@ -40,6 +159,8 @@ return {
       },
       float = {
         border = "rounded",
+        max_width = 0.85,
+        max_height = 0.85,
       },
       preview = {
         border = "rounded",
@@ -64,6 +185,17 @@ return {
         ["<C-q>"] = "actions.close",
         ["<leader>q"] = "actions.close",
         ["H"] = "actions.toggle_hidden",
+        ["gd"] = {
+          desc = "Toggle file detail view",
+          callback = function()
+            detail = not detail
+            if detail then
+              require("oil").set_columns({ "icon", "permissions", "size", "mtime" })
+            else
+              require("oil").set_columns({})
+            end
+          end,
+        },
         ["gs"] = {
           callback = function()
             local oil = require("oil")
@@ -76,7 +208,7 @@ return {
               grug_far.open({
                 instanceName = "explorer",
                 prefills = prefills,
-                staticTitle = "Find and Replace from Explorer",
+                staticTitle = "Find and Replace from Oil.nvim",
               })
             else
               grug_far.open_instance("explorer")
@@ -84,48 +216,72 @@ return {
               grug_far.update_instance_prefills("explorer", prefills, false)
             end
           end,
-          desc = "oil: Search in directory",
+          desc = "Oil: Search in directory",
         },
       },
     },
     -- Optional dependencies
     dependencies = {
       "nvim-tree/nvim-web-devicons",
-      {
-        "SirZenith/oil-vcs-status",
-        config = function()
-          local status_const = require("oil-vcs-status.constant.status")
-          local StatusType = status_const.StatusType
-          require("oil-vcs-status").setup({
-            status_symbol = {
-              [StatusType.Added] = "",
-              [StatusType.Copied] = "󰆏",
-              [StatusType.Deleted] = "",
-              [StatusType.Ignored] = "",
-              [StatusType.Modified] = "",
-              [StatusType.Renamed] = "",
-              [StatusType.TypeChanged] = "󰉺",
-              [StatusType.Unmodified] = " ",
-              [StatusType.Unmerged] = "",
-              [StatusType.Untracked] = "",
-              [StatusType.External] = "",
-
-              [StatusType.UpstreamAdded] = "󰈞",
-              [StatusType.UpstreamCopied] = "󰈢",
-              [StatusType.UpstreamDeleted] = "",
-              [StatusType.UpstreamIgnored] = " ",
-              [StatusType.UpstreamModified] = "󰏫",
-              [StatusType.UpstreamRenamed] = "",
-              [StatusType.UpstreamTypeChanged] = "󱧶",
-              [StatusType.UpstreamUnmodified] = " ",
-              [StatusType.UpstreamUnmerged] = "",
-              [StatusType.UpstreamUntracked] = " ",
-              [StatusType.UpstreamExternal] = "",
-            },
-          })
-        end,
-      },
+      -- {
+      --   "SirZenith/oil-vcs-status",
+      --   config = function()
+      --     local status_const = require("oil-vcs-status.constant.status")
+      --     local StatusType = status_const.StatusType
+      --     require("oil-vcs-status").setup({
+      --       status_symbol = {
+      --         [StatusType.Added] = "",
+      --         [StatusType.Copied] = "󰆏",
+      --         [StatusType.Deleted] = "",
+      --         [StatusType.Ignored] = "",
+      --         [StatusType.Modified] = "",
+      --         [StatusType.Renamed] = "",
+      --         [StatusType.TypeChanged] = "󰉺",
+      --         [StatusType.Unmodified] = " ",
+      --         [StatusType.Unmerged] = "",
+      --         [StatusType.Untracked] = "",
+      --         [StatusType.External] = "",
+      --
+      --         [StatusType.UpstreamAdded] = "󰈞",
+      --         [StatusType.UpstreamCopied] = "󰈢",
+      --         [StatusType.UpstreamDeleted] = "",
+      --         [StatusType.UpstreamIgnored] = " ",
+      --         [StatusType.UpstreamModified] = "󰏫",
+      --         [StatusType.UpstreamRenamed] = "",
+      --         [StatusType.UpstreamTypeChanged] = "󱧶",
+      --         [StatusType.UpstreamUnmodified] = " ",
+      --         [StatusType.UpstreamUnmerged] = "",
+      --         [StatusType.UpstreamUntracked] = " ",
+      --         [StatusType.UpstreamExternal] = "",
+      --       },
+      --     })
+      --   end,
+      -- },
     },
+  },
+  {
+    "benomahony/oil-git.nvim",
+    init = function()
+      vim.cmd([[
+        highlight OilGitAdded guifg=#00ff00
+        highlight OilGitModified guifg=#ffff00  
+        highlight OilGitRenamed guifg=#ff00ff
+        highlight OilGitUntracked guifg=#00ffff
+        highlight OilGitIgnored guifg=#808080
+      ]])
+    end,
+    opts = {
+      highlights = {
+        OilGitAdded = { fg = "#a6e3a1" },     -- green
+        OilGitModified = { fg = "#f9e2af" },  -- yellow  
+        OilGitDeleted = { fg = "#f38ba8" },   -- red
+        OilGitRenamed = { fg = "#cba6f7" },   -- purple
+        OilGitUntracked = { fg = "#89b4fa" }, -- blue
+        OilGitIgnored = { fg = "#6c7086" },   -- gray
+      }
+    },
+    dependencies = { "stevearc/oil.nvim" },
+    -- No opts or config needed! Works automatically
   },
   {
     "nvim-neo-tree/neo-tree.nvim",

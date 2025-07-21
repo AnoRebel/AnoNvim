@@ -538,6 +538,118 @@ M.split = function(str, sep, opts)
   return rv
 end
 
+function M.ft_to_lang(ft)
+  local ts = vim.treesitter
+  local result = ts.language.get_lang(ft)
+  if result then
+    return result
+  else
+    ft = vim.split(ft, ".", { plain = true })[1]
+    return ts.language.get_lang(ft) or ft
+  end
+end
+
+-- Gets the language of a given buffer
+---@param bufnr number? or current buffer
+---@return string
+function M.get_buf_lang(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  return M.ft_to_lang(vim.api.nvim_buf_get_option(bufnr, "ft"))
+end
+
+function M.has_parser(lang)
+  lang = lang or M.get_buf_lang(vim.api.nvim_get_current_buf())
+
+  if not lang or #lang == 0 then
+    return false
+  end
+  -- HACK: nvim internal API
+  if vim._ts_has_language(lang) then
+    return true
+  end
+  return #require("avim.defaults").treesitter[lang] > 0
+end
+
+function M.get_parser(bufnr, lang)
+  local ts = vim.treesitter
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  lang = lang or M.get_buf_lang(bufnr)
+
+  if M.has_parser(lang) then
+    return ts.get_parser(bufnr, lang)
+  end
+end
+
+function M.get_node_at_cursor(winnr, ignore_injected_langs)
+  local ts = vim.treesitter
+  winnr = winnr or 0
+  local cursor = vim.api.nvim_win_get_cursor(winnr)
+  local cursor_range = { cursor[1] - 1, cursor[2] }
+
+  local buf = vim.api.nvim_win_get_buf(winnr)
+  local root_lang_tree = M.get_parser(buf)
+  if not root_lang_tree then
+    return
+  end
+
+  local root ---@type TSNode|nil
+  if ignore_injected_langs then
+    for _, tree in pairs(root_lang_tree:trees()) do
+      local tree_root = tree:root()
+      if tree_root and ts.is_in_node_range(tree_root, cursor_range[1], cursor_range[2]) then
+        root = tree_root
+        break
+      end
+    end
+  else
+    root = M.get_root_for_position(cursor_range[1], cursor_range[2], root_lang_tree)
+  end
+
+  if not root then
+    return
+  end
+
+  return root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
+end
+
+function M.get_root_for_position(line, col, root_lang_tree)
+  local ts = vim.treesitter
+  if not root_lang_tree then
+    if not M.has_parser() then
+      return
+    end
+
+    root_lang_tree = M.get_parser()
+  end
+
+  local lang_tree = root_lang_tree:language_for_range({ line, col, line, col })
+
+  while true do
+    for _, tree in pairs(lang_tree:trees()) do
+      local root = tree:root()
+
+      if root and ts.is_in_node_range(root, line, col) then
+        return root, tree, lang_tree
+      end
+    end
+
+    if lang_tree == root_lang_tree then
+      break
+    end
+
+    -- This case can happen when the cursor is at the start of a line that ends a injected region,
+    -- e.g., the first `]` in the following lua code:
+    -- ```
+    -- vim.cmd[[
+    -- ]]
+    -- ```
+    lang_tree = lang_tree:parent() -- NOTE: parent() method is private
+  end
+
+  -- This isn't a likely scenario, since the position must belong to a tree somewhere.
+  return nil, nil, lang_tree
+end
+
 --- Checks whether a given path exists and is a file.
 --@param path (string) path to check
 --@returns (bool)

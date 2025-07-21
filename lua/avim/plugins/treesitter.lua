@@ -1,21 +1,13 @@
 local defaults = require("avim.core.defaults")
 
--- Vim Matchup
-vim.g.matchup_matchparen_offscreen = { method = "popup" }
-vim.g.matchup_surround_enabled = 1
---disable specific module
--- vim.g.matchup_matchparen_enabled = 1
--- vim.g.matchup_motion_enabled = 1
--- vim.g.matchup_text_obj_enabled = 1
-
 return {
   "nvim-treesitter/nvim-treesitter",
-  version = false,
-  lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
-  event = { "VeryLazy" },
-  -- :TSUpdate[Sync] doesn't exist until plugin/nvim-treesitter is loaded (i.e. not after first install); call update() directly
+  lazy = false,
+  branch = "main",
+  -- lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
   -- build = ":TSUpdate",
   build = function()
+    require("nvim-treesitter").install(defaults.treesitter)
     require("nvim-treesitter.install").update({ with_sync = true })
   end,
   init = function(plugin)
@@ -24,16 +16,12 @@ return {
     -- no longer trigger the **nvim-treesitter** module to be loaded in time.
     -- Luckily, the only things that those plugins need are the custom queries, which we make available
     -- during startup.
-    require("lazy.core.loader").add_to_rtp(plugin)
-    require("nvim-treesitter.query_predicates")
+    -- require("lazy.core.loader").add_to_rtp(plugin)
+    -- require("nvim-treesitter.query_predicates")
   end,
   cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
-  keys = {
-    { "<c-space>", desc = "Increment Selection" },
-    { "<bs>", desc = "Decrement Selection", mode = "x" },
-  },
   dependencies = {
-    "nvim-treesitter/nvim-treesitter-textobjects",
+    -- "nvim-treesitter/nvim-treesitter-textobjects",
     { "mtdl9/vim-log-highlighting", ft = { "text", "log" } },
     {
       "nvim-treesitter/nvim-treesitter-context",
@@ -51,20 +39,41 @@ return {
           end,
         }):map("<leader>ut")
         return {
+          enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
           separator = "_",
           max_lines = 2, -- 0
+          line_numbers = true,
           multiline_threshold = 5, -- 20
+          multiwindow = true, -- Enable multiwindow support.
         }
       end,
     },
     { "JoosepAlviste/nvim-ts-context-commentstring" },
     { "windwp/nvim-ts-autotag", config = true },
-    { "andymass/vim-matchup", branch = "master" },
+    { "andymass/vim-matchup",
+      init = function()
+        vim.g.matchup_matchparen_offscreen = { method = "popup" }
+        vim.g.matchup_surround_enabled = 0
+        --   Do not use virtual text to highlight the virtual end of a block, for languages without explicit end markers (e.g., Python). >
+        vim.g.matchup_treesitter_disable_virtual_text = 0
+        -- vim.g.matchup_matchparen_enabled = 0
+        -- vim.g.matchup_motion_enabled = 0
+        -- vim.g.matchup_text_obj_enabled = 0
+      end,
+      opts = {
+        treesitter = {
+          stopline = 500,
+          -- Do not use virtual text to highlight the virtual end of a block, for languages without explicit end markers (e.g., Python). >
+          disable_virtual_text = false,
+        }
+      },
+    },
   },
   ---@type TSConfig
   ---@diagnostic disable-next-line: missing-fields
   opts = {
-    ensure_installed = defaults.treesitter,
+    install_dir = _G.get_runtime_dir() .. "/site",
+    -- ensure_installed = defaults.treesitter,
     sync_install = true,
     auto_install = true,
     indent = { enable = true },
@@ -89,7 +98,40 @@ return {
   },
   ---@param opts TSConfig
   config = function(_, opts)
-    vim.treesitter.language.register("markdown", "livebook")
-    require("nvim-treesitter.configs").setup(opts)
+    -- vim.treesitter.language.register("markdown", "livebook")
+    require("nvim-treesitter").setup(opts)
+    -- require("nvim-treesitter.configs").setup(opts)
+    local installed = vim.api.nvim_get_runtime_file("parser/*.so", true)
+
+    local missing = {}
+    for _, lang in ipairs(defaults.treesitter) do
+      local found = false
+
+      for _, file in ipairs(installed) do
+        if file:match(lang .. "%.so$") then
+          found = true
+          break
+        end
+      end
+
+      if not found then
+        table.insert(missing, lang)
+      end
+    end
+
+    if #missing > 0 then
+      print("Missing parsers: " .. table.concat(missing, ", "))
+      require("nvim-treesitter").install(missing)
+    end
+
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = defaults.treesitter,
+      callback = function()
+        vim.treesitter.start()
+        -- vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+        -- vim.opt.foldmethod = 'expr'
+        -- vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      end,
+    })
   end,
 }

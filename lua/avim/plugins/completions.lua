@@ -77,8 +77,8 @@ local deps = {
 }
 -- check if in start tag
 local function is_in_start_tag()
-  local ts_utils = require("nvim-treesitter.ts_utils")
-  local node = ts_utils.get_node_at_cursor()
+  -- local ts_utils = require("nvim-treesitter.ts_utils")
+  local node = utilities.get_node_at_cursor()
   if not node then
     return false
   end
