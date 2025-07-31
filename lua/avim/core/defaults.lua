@@ -11,7 +11,7 @@
 ---@field mappings table
 local M = {}
 
-M.version = "v3.7.0"
+M.version = "v4.0.0"
 
 ---- UI -----
 M.ui = {
@@ -22,17 +22,14 @@ M.ui = {
 }
 
 M.servers = {
-  -- "astro",
   "basedpyright",
   "bashls",
   "cssls",
-  -- "denols",
   "docker_compose_language_service",
   "dockerls",
   "dotls",
   "elixirls",
   "emmet_language_server",
-  -- "eslint",
   "gopls",
   "html",
   "intelephense",
@@ -46,7 +43,6 @@ M.servers = {
   "templ",
   -- "vectorcode_server",
   "vue_ls",
-  -- "volar",
   "vtsls",
   "yamlls",
 }
@@ -62,6 +58,8 @@ M.packages = {
   "selene",
   "prettierd",
   "revive",
+  "roslyn",
+  "rzls",
   "shellcheck",
   "shfmt",
   "stylua",

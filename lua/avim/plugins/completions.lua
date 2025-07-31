@@ -1,4 +1,3 @@
-local defaults = require("avim.core.defaults")
 local icons = require("avim.icons")
 local utilities = require("avim.utilities")
 
@@ -151,10 +150,14 @@ end
 
 return {
   {
+    enabled = false,
+    optional = true,
     -- "hrsh7th/nvim-cmp",
     "iguanacucumber/magazine.nvim",
     name = "nvim-cmp",
-    -- version = false,
+    -- 'saghen/blink.cmp',
+    -- use a release tag to download pre-built binaries
+    -- version = '1.*',
     event = "InsertEnter",
     dependencies = deps,
     opts = { auto_brackets = { "python" } },

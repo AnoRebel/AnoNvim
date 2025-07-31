@@ -140,7 +140,7 @@ end
 ---Get current installed version
 ---@return string version Current version
 function M.get_current_version()
-  local cmd = string.format("git -C %s rev-parse --short HEAD", utilities.get_avim_base_dir())
+  local cmd = string.format("git -C %s rev-parse --short HEAD", _G.get_avim_base_dir())
   local handle = io.popen(cmd)
   if not handle then
     return "unknown"

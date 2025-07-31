@@ -1,7 +1,7 @@
 ---@class avim.utilities.snippet
----@field add_missing_snippet_docs fun(window: any)
----@field auto_brackets fun(entry: any): nil
----@field confirm fun(opts?: {select: boolean, behavior: any})
+---@field add_missing_snippet_docs fun(window: cmp.CustomEntriesView|cmp.NativeEntriesView)
+---@field auto_brackets fun(entry: cmp.Entry): nil
+---@field confirm fun(opts?: {select: boolean, behavior: cmp.ConfirmBehavior})
 ---@field expand fun(snippet: any)
 ---@field snippet_preview fun(snippet: string): string
 local M = {}
@@ -40,13 +40,12 @@ local function snippet_fix(snippet)
   end)
 end
 
----@param entry any blink.cmp entry
+---@param entry cmp.Entry
 function M.auto_brackets(entry)
-  local item = entry.completion_item or entry
-  local kind = item.kind
-
-  -- Check if it's a function or method (LSP CompletionItemKind values)
-  if kind == 3 or kind == 2 then -- Function or Method
+  local cmp = require("cmp")
+  local Kind = cmp.lsp.CompletionItemKind
+  local item = entry:get_completion_item()
+  if vim.tbl_contains({ Kind.Function, Kind.Method }, item.kind) then
     local cursor = vim.api.nvim_win_get_cursor(0)
     local prev_char = vim.api.nvim_buf_get_text(0, cursor[1] - 1, cursor[2], cursor[1] - 1, cursor[2] + 1, {})[1]
     if prev_char ~= "(" and prev_char ~= ")" then
@@ -56,69 +55,72 @@ function M.auto_brackets(entry)
   end
 end
 
--- Enhanced for blink.cmp - adds documentation to snippet items
----@param items table list of completion items
-function M.add_missing_snippet_docs(items)
-  for _, item in ipairs(items or {}) do
-    if item.kind == 15 then -- Snippet kind
+-- This function adds missing documentation to snippets.
+-- The documentation is a preview of the snippet.
+---@param window cmp.CustomEntriesView|cmp.NativeEntriesView
+function M.add_missing_snippet_docs(window)
+  local cmp = require("cmp")
+  local Kind = cmp.lsp.CompletionItemKind
+  local entries = window:get_entries()
+  for _, entry in ipairs(entries) do
+    if entry:get_kind() == Kind.Snippet then
+      local item = entry:get_completion_item()
       if not item.documentation and item.insertText then
         item.documentation = {
-          kind = "markdown",
+          kind = cmp.lsp.MarkupKind.Markdown,
           value = string.format("```%s\n%s\n```", vim.bo.filetype, M.snippet_preview(item.insertText)),
-        }
-      elseif not item.documentation and item.textEdit and item.textEdit.newText then
-        item.documentation = {
-          kind = "markdown",
-          value = string.format("```%s\n%s\n```", vim.bo.filetype, M.snippet_preview(item.textEdit.newText)),
         }
       end
     end
   end
-  return items
 end
 
--- Enhanced confirm function for blink.cmp
----@param opts? {select: boolean, behavior: any}
+-- This is a better implementation of `cmp.confirm`:
+--  * check if the completion menu is visible without waiting for running sources
+--  * create an undo point before confirming
+-- This function is both faster and more reliable.
+---@param opts? {select: boolean, behavior: cmp.ConfirmBehavior}
 function M.confirm(opts)
+  local cmp = require("cmp")
   opts = vim.tbl_extend("force", {
     select = true,
+    behavior = cmp.ConfirmBehavior.Insert,
   }, opts or {})
-
   return function(fallback)
-    local blink = require("blink.cmp")
-    if blink.is_visible() then
-      blink.accept(opts)
-    else
-      fallback()
+    if cmp.core.view:visible() or vim.fn.pumvisible() == 1 then
+      -- M.create_undo()
+      if cmp.confirm(opts) then
+        return
+      end
     end
+    return fallback()
   end
 end
 
--- Enhanced expand function with better error handling and session management
 function M.expand(snippet)
   -- Native sessions don't support nested snippet sessions.
   -- Always use the top-level session.
   -- Otherwise, when on the first placeholder and selecting a new completion,
   -- the nested session will be used instead of the top-level session.
+  -- See: https://github.com/LazyVim/LazyVim/issues/3199
   local session = vim.snippet.active() and vim.snippet._session or nil
 
   local snip_ok, luasnip = pcall(require, "luasnip")
   local snip = snip_ok and luasnip.lsp_expand or vim.snippet.expand
-
   local ok, err = pcall(snip, snippet)
   if not ok then
     local fixed = snippet_fix(snippet)
     ok = pcall(snip, fixed)
 
     local msg = ok and "Failed to parse snippet,\nbut was able to fix it automatically."
-      or ("Failed to parse snippet.\n" .. tostring(err))
+      or ("Failed to parse snippet.\n" .. err)
 
     vim.notify(
       ([[%s
         ```%s
         %s
         ```]]):format(msg, vim.bo.filetype, snippet),
-      ok and vim.log.levels.WARN or vim.log.levels.ERROR,
+      ok and "warn" or "error",
       { title = "vim.snippet" }
     )
   end
@@ -127,52 +129,6 @@ function M.expand(snippet)
   if session then
     vim.snippet._session = session
   end
-end
-
--- New function to enhance completion items with better formatting
----@param items table
----@param context table
----@return table
-function M.enhance_completion_items(items, context)
-  if not items then
-    return {}
-  end
-
-  -- Add snippet documentation
-  items = M.add_missing_snippet_docs(items)
-
-  -- Additional enhancements can be added here
-  return items
-end
-
--- Function to check if we should show ghost text
----@return boolean
-function M.should_show_ghost_text()
-  -- Don't show ghost text in certain contexts
-  local mode = vim.api.nvim_get_mode().mode
-  if mode ~= "i" then
-    return false
-  end
-
-  -- Don't show in command line
-  if vim.fn.pumvisible() == 1 then
-    return false  
-  end
-
-  -- Check if we're in a comment or string (optional)
-  local ok, utilities = pcall(require, "avim.utilities")
-  if ok then
-    local node = utilities.get_node_at_cursor()
-    if node then
-      local node_type = node:type()
-      -- Don't show ghost text in comments or strings
-      if vim.tbl_contains({ "comment", "string", "string_literal" }, node_type) then
-        return false
-      end
-    end
-  end
-
-  return true
 end
 
 return M

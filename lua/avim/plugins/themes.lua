@@ -56,6 +56,7 @@ return {
                             alt_background = false,
                         },
                         beacon = true,
+                        blink_cmp = true,
                         cmp = true,
                         dap = true,
                         dap_ui = true,

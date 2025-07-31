@@ -123,6 +123,19 @@ function M.on_dynamic_capability(fn, opts)
   })
 end
 
+-- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
+---@param client vim.lsp.Client
+---@param method vim.lsp.protocol.Method
+---@param bufnr? integer some lsp support methods only in specific files
+---@return boolean
+local function client_supports_method(client, method, bufnr)
+  if vim.fn.has("nvim-0.11") == 1 then
+    return client:supports_method(method, bufnr)
+  else
+    return client.supports_method(method, { bufnr = bufnr })
+  end
+end
+
 ---@param method string
 ---@param fn fun(client:vim.lsp.Client, buffer)
 function M.on_supports_method(method, fn)
@@ -132,6 +145,7 @@ function M.on_supports_method(method, fn)
     callback = function(args)
       local client = lsp.get_client_by_id(args.data.client_id)
       local buffer = args.data.buffer ---@type number
+      -- if client and client_supports_method(client, method, buffer) then
       if client and method == args.data.method then
         return fn(client, buffer)
       end
@@ -174,7 +188,7 @@ function M.on_rename(from, to, rename)
     files = { {
       oldUri = vim.uri_from_fname(from),
       newUri = vim.uri_from_fname(to),
-    } }
+    } },
   }
 
   local clients = M.get_clients()
@@ -192,6 +206,7 @@ function M.on_rename(from, to, rename)
   end
 
   for _, client in ipairs(clients) do
+    -- if client_supports_method(client, "workspace/didRenameFiles") then
     if client.supports_method("workspace/didRenameFiles") then
       client.notify("workspace/didRenameFiles", changes)
     end
@@ -275,18 +290,20 @@ end
 
 ---@param opts? lsp.Client.filter
 M.get_clients = function(opts)
-  local ret = {} ---@type vim.lsp.Client[]
+  ---@type vim.lsp.Client[]
+  local ret = {}
   if lsp.get_clients then
     ret = lsp.get_clients(opts)
   else
     ---@diagnostic disable-next-line: deprecated
     ret = lsp.get_active_clients(opts)
-    if opts and opts.method then
-      ---@param client vim.lsp.Client
-      ret = vim.tbl_filter(function(client)
-        return client.supports_method(opts.method, { bufnr = opts.bufnr })
-      end, ret)
-    end
+  end
+  if opts and opts.method then
+    ---@param client vim.lsp.Client
+    ret = vim.tbl_filter(function(client)
+      -- return client_supports_method(client, opts.method, opts.bufnr)
+      return client.supports_method(opts.method, { bufnr = opts.bufnr })
+    end, ret)
   end
   return opts and opts.filter and vim.tbl_filter(opts.filter, ret) or ret
 end
@@ -345,6 +362,7 @@ function M._check_methods(client, buffer)
   for method, clients in pairs(M._supports_method) do
     clients[client] = clients[client] or {}
     if not clients[client][buffer] then
+      -- if client_supports_method(client, method, buffer) then
       if client.supports_method and client.supports_method(method, { bufnr = buffer }) then
         clients[client][buffer] = true
         api.nvim_exec_autocmds("User", {
@@ -369,6 +387,7 @@ M.has = function(buffer, method)
   method = method:find("/") and method or "textDocument/" .. method
   local clients = M.get_clients({ bufnr = buffer })
   for _, client in ipairs(clients) do
+    -- if client_supports_method(client, method, buffer) then
     if client.supports_method(method) then
       return true
     end

@@ -11,5 +11,8 @@ return {
       filetypes = { "md", "rmd", "quarto", "markdown", "codecompanion" },
       ignore_buftypes = {},
     },
+    experimental = {
+      check_rtp_message = false,
+    },
   },
 }

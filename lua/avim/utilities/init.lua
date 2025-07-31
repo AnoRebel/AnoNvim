@@ -4,6 +4,7 @@
 ---@field dbee avim.utilities.dbee
 ---@field peek avim.utilities.peek
 ---@field snippet avim.utilities.snippet
+---@field tailwind avim.utilities.tailwind
 local M = {}
 
 local fn = vim.fn
@@ -210,6 +211,51 @@ M.map = function(mode, keymap, command, opts)
     -- Pass opts directly to vim.keymap.set
     vim.keymap.set(mode, final_keymap, command, opts)
   end
+end
+
+M.unmap = function(mode, lhs, opts)
+  vim.keymap.del(mode, lhs, opts)
+end
+
+M.run_expr = function(expr)
+  api.nvim_feedkeys(api.nvim_replace_termcodes(expr, true, false, true), "n", true)
+end
+
+M.print_syntax_info = function()
+  local line = fn.line "."
+  local col = fn.col "."
+
+  -- Get the syntax ID of the character under the cursor
+  local syn_id_start = fn.synID(line, col, 1)
+  local syn_id_end = fn.synID(line, col, 0)
+
+  -- Get the syntax names for the IDs
+  local syn_name_start = fn.synIDattr(syn_id_start, "name")
+  local syn_name_end = fn.synIDattr(syn_id_end, "name")
+
+  -- Get the syntax name after translation
+  local syn_trans_id = fn.synIDtrans(syn_id_start)
+  local syn_trans_name = fn.synIDattr(syn_trans_id, "name")
+
+  vim.notify("hi<" .. syn_name_start .. ">")
+  vim.notify("trans<" .. syn_name_end .. ">")
+  vim.notify("lo<" .. syn_trans_name .. ">")
+end
+
+M.print_buf_info = function()
+  local winid = api.nvim_get_current_win()
+  local bufid = api.nvim_win_get_buf(winid)
+  local buftype = api.nvim_get_option_value("buftype", { buf = bufid })
+  local bufname = api.nvim_buf_get_name(bufid)
+  local filetype = api.nvim_get_option_value("filetype", { buf = bufid })
+  local floating = api.nvim_win_get_config(winid).relative ~= ""
+
+  vim.notify("winid " .. winid)
+  vim.notify("bufid " .. bufid)
+  vim.notify("buftype " .. buftype)
+  vim.notify("bufname " .. bufname)
+  vim.notify("filetype " .. filetype)
+  vim.notify("floating " .. (floating and "yes" or "no"))
 end
 
 M.fold_handler = function(virtText, lnum, endLnum, width, truncate)

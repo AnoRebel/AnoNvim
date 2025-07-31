@@ -105,8 +105,8 @@ utilities.map("v", ">", ">gv", { desc = "Indent Forward" })
 utilities.map("v", "p", "p<cmd>let @+=@0<CR>", { desc = "Paste" })
 -- utilities.map("v", "<Tab>", ">gv", { desc = "Tab Forward" })
 -- utilities.map("v", "<S-Tab>", "<gv", { desc = "Tab Backwards" })
-utilities.map({ "i", "n", "x", "s" }, "<C-s>", "<CMD>w<CR><esc>", { desc = "Save File" })
-utilities.map({ "i", "n", "x", "v" }, "<C-S-w>", "<cmd>wa<CR><esc>", { desc = "Save All" })
+utilities.map({ "i", "n", "x", "s" }, "<C-s>", "<CMD>w<CR><esc>", { nowait = false, silent = false, desc = "Save File" })
+utilities.map({ "i", "n", "x", "v" }, "<C-S-w>", "<cmd>wa<CR><esc>", { nowait = false, silent = false, desc = "Save All" })
 utilities.map({ "i", "n", "s" }, "<esc>", function()
   vim.cmd.nohlsearch() -- clear highlights
   --vim.cmd.echo()       -- clear short-message
@@ -259,7 +259,8 @@ return {
     },
   },
   {
-    "philosofonusus/ecolog.nvim",
+    "ssstba/ecolog.nvim",
+    branch = "beta",
     keys = {
       { "<leader>ge", "<cmd>EcologGoto<cr>", desc = "Go to env file" },
       { "<leader>gpe", "<cmd>EcologPeek<cr>", desc = "Ecolog peek variable" },
@@ -272,7 +273,15 @@ return {
     lazy = false,
     opts = {
       integrations = {
+        -- WARNING: for both cmp integrations see readme section below
         nvim_cmp = true, -- If you dont plan to use nvim_cmp set to false, enabled by default
+        -- If you are planning to use blink cmp uncomment this line
+        blink_cmp = true,
+        -- omnifunc = false,  -- Enable omnifunc integration with automatic setup (default)
+        -- Or with configuration options:
+        -- omnifunc = {
+        -- auto_setup = false,  -- Disable automatic setup, allowing manual configuration
+        -- },
         lsp = false,
         statusline = {
           hidden_mode = true,
@@ -444,7 +453,7 @@ return {
       end,
     },
     keys = {
-      { "<A-s>", "<cmd>SessionSelect<cr>", mode = { "n", "v" }, desc = "List Session" },
+      { "<A-h>", "<cmd>SessionSelect<cr>", mode = { "n", "v" }, desc = "List Session" },
     },
   },
   {
@@ -553,12 +562,16 @@ return {
         vim.opt.cursorline = false
         vim.cmd("NoMatchParen")
         require("cmp").setup({ enabled = false })
+        vim.b.completion = false
+        -- require("blink.cmp").setup({ completion = { menu = { enabled = false } } })
         require("nvim-autopairs").disable()
       end,
       post_hook = function()
         vim.opt.cursorline = true
         vim.cmd("DoMatchParen")
         require("cmp").setup({ enabled = true })
+        vim.b.completion = true
+        -- require("blink.cmp").setup({ completion = { menu = { enabled = true } } })
         require("nvim-autopairs").enable()
       end,
       custom_key_maps = {
@@ -668,6 +681,13 @@ return {
             position = "right",
             size = 0.3,
           },
+        },
+        diagnostics = {
+          filter = function(items)
+            return vim.tbl_filter(function(item)
+              return not string.match(item.basename, [[%__virtual.cs$]])
+            end, items)
+          end,
         },
         -- preview_float = {
         --   mode = "diagnostics",

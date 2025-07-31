@@ -72,7 +72,12 @@ return {
         "mason-org/mason.nvim",
         cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
         build = ":MasonUpdate", -- :MasonUpdate updates registry contents
-        config = true,
+        opts = {
+          registries = {
+            "github:mason-org/mason-registry",
+            "github:Crashdummyy/mason-registry",
+          },
+        },
         keys = {
           { "<leader>pm", "<cmd>Mason<CR>", mode = { "n", "v" }, desc = "Mason" },
         },
@@ -110,6 +115,7 @@ return {
           })
         end,
       },
+      { "Issafalcon/lsp-overloads.nvim" },
       {
         "dmmulroy/ts-error-translator.nvim",
         opts = {
@@ -157,18 +163,15 @@ return {
       {
         "folke/lazydev.nvim",
         ft = "lua",
-        cmd = "LazyDev",
-        dependencies = { "Bilal2453/luvit-meta", lazy = true },
+        -- dependencies = { "Bilal2453/luvit-meta", lazy = true },
         opts = {
           library = {
-            -- { path = "luvit-meta/library", words = { "vim%.uv" } },
             { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-            { path = "avim", words = { "avim" } },
-            { path = "lazy.nvim", words = { "avim" } },
-            { path = "snacks.nvim", words = { "Snacks" } },
-            -- You can also add plugins you always want to have loaded.
+            vim.env.VIMRUNTIME,
+            -- unpack(vim.api.nvim_get_runtime_file("", true)),
+            -- If lua_ls is really slow, try this:
+            -- library = { vim.env.VIMRUNTIME },
             -- Useful if the plugin has globals or types you want to use
-            -- vim.env.LAZY .. "/LazyVim", -- see below
           },
         },
       },
@@ -187,7 +190,10 @@ return {
       },
       {
         "rmagatti/goto-preview",
-        event = "LspAttach",
+        -- "dnlhc/glance.nvim",
+        -- cmd = "Glance",
+        dependencies = { "rmagatti/logger.nvim" },
+        event = "BufEnter",
         opts = {
           width = 120, -- Width of the floating window
           height = 15, -- Height of the floating window
@@ -196,6 +202,9 @@ return {
           resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
           dismiss_on_move = true, -- Dismiss the floating window when moving the cursor.
           preview_window_title = { enable = true, position = "left" }, -- Whether to set the preview window title as the filename
+          references = { -- Configure the telescope UI for slowing the references cycling window.
+            provider = "snacks", -- telescope|fzf_lua|snacks|mini_pick|default
+          },
         },
         keys = {
           {
@@ -352,6 +361,31 @@ return {
             -- group = "lsp_document_highlight",
             desc = "Clear All the References",
           })
+        end
+        --- Guard against servers without the signatureHelper capability
+        if client.server_capabilities.signatureHelpProvider then
+          require("lsp-overloads").setup(client, {
+            ui = { border = "rounded" },
+            keymaps = {
+              next_signature = "<C-j>",
+              previous_signature = "<C-k>",
+              next_parameter = "<C-l>",
+              previous_parameter = "<C-h>",
+              close_signature = "<C-e>",
+            },
+          })
+          vim.api.nvim_buf_set_keymap(bufnr,
+            "i",
+            "<A-s>",
+            ":LspOverloadsSignature<CR>",
+            { noremap = true, silent = true }
+          )
+          vim.api.nvim_buf_set_keymap(bufnr,
+            "n",
+            "<A-s>",
+            ":LspOverloadsSignature<CR>",
+            { noremap = true, silent = true }
+          )
         end
         -- Fix startup error by modifying/disabling semantic tokens for omnisharp
         --[[ if require("lspconfig").util.root_pattern("deno.json", "deno.jsonc")(vim.fn.getcwd()) then
@@ -537,6 +571,7 @@ return {
       if status_ok then
         capabilities = vim.tbl_deep_extend("force", {}, capabilities, cmp_nvim_lsp.default_capabilities())
       end
+      capabilities = require("blink.cmp").get_lsp_capabilities(capabilities)
       capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
       capabilities.workspace.didChangeWorkspaceFolders = {
         dynamicRegistration = true,
@@ -770,6 +805,13 @@ return {
             Lua = {
               workspace = {
                 checkThirdParty = false,
+                library = {
+                  "${3rd}/luv/library",
+                  vim.env.VIMRUNTIME,
+                  -- unpack(vim.api.nvim_get_runtime_file("", true)),
+                  -- If lua_ls is really slow, try this:
+                  -- library = { vim.env.VIMRUNTIME },
+                },
               },
               codeLens = {
                 enable = true,
@@ -788,6 +830,75 @@ return {
                 semicolon = "Disable",
                 arrayIndex = "Disable",
               },
+            },
+          },
+        })
+        vim.lsp.config("roslyn", {
+          cmd = {
+            "roslyn",
+            "--stdio",
+            "--logLevel=Information",
+            "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+            "--razorSourceGenerator=" .. vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "Microsoft.CodeAnalysis.Razor.Compiler.dll"
+            ),
+            "--razorDesignTimePath=" .. vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "Targets",
+              "Microsoft.NET.Sdk.Razor.DesignTime.targets"
+            ),
+            "--extension",
+            vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "RazorExtension",
+              "Microsoft.VisualStudioCode.RazorExtension.dll"
+            ),
+          },
+          handlers = require("rzls.roslyn_handlers"),
+          on_attach = on_attach,
+          capabilities = capabilities,
+          filetypes = { "cs", "razor" },
+          root_markers = { ".sln", ".csproj", ".fsproj" },
+          settings = {
+            ["csharp|background_analysis"] = {
+              dotnet_analyzer_diagnostics_scope = "fullSolution", -- "openFiles"
+              dotnet_compiler_diagnostics_scope = "fullSolution", -- "openFiles"
+            },
+            ["csharp|completion"] = {
+              dotnet_provide_regex_completions = false,
+              dotnet_show_completion_items_from_unimported_namespaces = true,
+              dotnet_show_name_completion_suggestions = false,
+            },
+            ["csharp|inlay_hints"] = {
+              --[[ csharp_enable_inlay_hints_for_implicit_object_creation = true,
+          csharp_enable_inlay_hints_for_implicit_variable_types = true,
+          csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+          csharp_enable_inlay_hints_for_types = true,
+          dotnet_enable_inlay_hints_for_indexer_parameters = true,
+          dotnet_enable_inlay_hints_for_literal_parameters = true,
+          dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+          dotnet_enable_inlay_hints_for_other_parameters = true,
+          dotnet_enable_inlay_hints_for_parameters = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true, ]]
+              ------
+              csharp_enable_inlay_hints_for_implicit_object_creation = false,
+              csharp_enable_inlay_hints_for_implicit_variable_types = true,
+              csharp_enable_inlay_hints_for_lambda_parameter_types = false,
+              csharp_enable_inlay_hints_for_types = false,
+              dotnet_enable_inlay_hints_for_indexer_parameters = false,
+              dotnet_enable_inlay_hints_for_literal_parameters = true,
+              dotnet_enable_inlay_hints_for_object_creation_parameters = false,
+              dotnet_enable_inlay_hints_for_other_parameters = false,
+              dotnet_enable_inlay_hints_for_parameters = false,
+              dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = false,
+              dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = false,
+              dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = false,
+            },
+            ["csharp|code_lens"] = {
+              dotnet_enable_references_code_lens = true,
             },
           },
         })
@@ -1087,6 +1198,13 @@ return {
             Lua = {
               workspace = {
                 checkThirdParty = false,
+                library = {
+                  "${3rd}/luv/library",
+                  vim.env.VIMRUNTIME,
+                  -- unpack(vim.api.nvim_get_runtime_file("", true)),
+                  -- If lua_ls is really slow, try this:
+                  -- library = { vim.env.VIMRUNTIME },
+                },
               },
               codeLens = {
                 enable = true,
@@ -1104,6 +1222,75 @@ return {
                 paramName = "Disable",
                 semicolon = "Disable",
                 arrayIndex = "Disable",
+              },
+            },
+          },
+        })
+        require("roslyn").setup({
+          cmd = {
+            "roslyn",
+            "--stdio",
+            "--logLevel=Information",
+            "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+            "--razorSourceGenerator=" .. vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "Microsoft.CodeAnalysis.Razor.Compiler.dll"
+            ),
+            "--razorDesignTimePath=" .. vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "Targets",
+              "Microsoft.NET.Sdk.Razor.DesignTime.targets"
+            ),
+            "--extension",
+            vim.fs.joinpath(
+              utilities.lsp.get_pkg_path("rzls", "libexec"),
+              "RazorExtension",
+              "Microsoft.VisualStudioCode.RazorExtension.dll"
+            ),
+          },
+          config = {
+            handlers = require("rzls.roslyn_handlers"),
+            filetypes = { "cs", "razor" },
+            root_markers = { ".sln", ".csproj", ".fsproj" },
+            settings = {
+              ["csharp|background_analysis"] = {
+                dotnet_analyzer_diagnostics_scope = "fullSolution", -- "openFiles"
+                dotnet_compiler_diagnostics_scope = "fullSolution", -- "openFiles"
+              },
+              ["csharp|completion"] = {
+                dotnet_provide_regex_completions = false,
+                dotnet_show_completion_items_from_unimported_namespaces = true,
+                dotnet_show_name_completion_suggestions = false,
+              },
+              ["csharp|inlay_hints"] = {
+                --[[ csharp_enable_inlay_hints_for_implicit_object_creation = true,
+          csharp_enable_inlay_hints_for_implicit_variable_types = true,
+          csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+          csharp_enable_inlay_hints_for_types = true,
+          dotnet_enable_inlay_hints_for_indexer_parameters = true,
+          dotnet_enable_inlay_hints_for_literal_parameters = true,
+          dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+          dotnet_enable_inlay_hints_for_other_parameters = true,
+          dotnet_enable_inlay_hints_for_parameters = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+          dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true, ]]
+                ------
+                csharp_enable_inlay_hints_for_implicit_object_creation = false,
+                csharp_enable_inlay_hints_for_implicit_variable_types = true,
+                csharp_enable_inlay_hints_for_lambda_parameter_types = false,
+                csharp_enable_inlay_hints_for_types = false,
+                dotnet_enable_inlay_hints_for_indexer_parameters = false,
+                dotnet_enable_inlay_hints_for_literal_parameters = true,
+                dotnet_enable_inlay_hints_for_object_creation_parameters = false,
+                dotnet_enable_inlay_hints_for_other_parameters = false,
+                dotnet_enable_inlay_hints_for_parameters = false,
+                dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = false,
+                dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = false,
+                dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = false,
+              },
+              ["csharp|code_lens"] = {
+                dotnet_enable_references_code_lens = true,
               },
             },
           },
