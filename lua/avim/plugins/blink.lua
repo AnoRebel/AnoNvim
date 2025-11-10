@@ -200,7 +200,6 @@ local function handle_auto_brackets(ctx)
     vim.api.nvim_feedkeys(keys, "i", true)
   end
 end
-end
 
 return {
   -- add blink.compat
