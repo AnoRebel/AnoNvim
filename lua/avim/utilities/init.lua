@@ -40,9 +40,10 @@ setmetatable(M, {
   end,
 })
 
---- Clears old and loads new paths if run under ANONVIM_XXX_DIR environment variable(s).
-M.load_env = function()
-  ---@meta overridden to use ANONVIM_XXX_DIR instead, since a lot of plugins call this function interally
+--- Override vim.fn.stdpath to use ANONVIM_XXX_DIR environment variables
+---@return nil
+function M.override_stdpath()
+  ---@diagnostic disable-next-line: duplicate-set-field
   vim.fn.stdpath = function(what)
     if what == "data" then
       return M.get_runtime_dir()
@@ -57,6 +58,13 @@ M.load_env = function()
     end
     return vim.call("stdpath", what)
   end
+end
+
+--- Clears old and loads new paths if run under ANONVIM_XXX_DIR environment variable(s).
+M.load_env = function()
+  -- Override stdpath to use ANONVIM directories
+  M.override_stdpath()
+
   if os.getenv("ANONVIM_RUNTIME_DIR") then
     -- vim.opt.rtp:append(os.getenv "ANONVIM_RUNTIME_DIR" .. path_sep .. "avim")
     -- Data
@@ -88,10 +96,10 @@ M.load_env = function()
     vim.opt.rtp:remove(vim.call("stdpath", "config"))
     vim.opt.rtp:prepend(M.get_config_dir())
     vim.opt.rtp:append(M.join_paths(M.get_config_dir(), "after"))
-    -- TODO: we need something like this: vim.opt.packpath = vim.opt.rtp
 
-    vim.cmd([[let &packpath = &runtimepath]]) -- Remove this line
-    -- vim.opt.packpath = vim.opt.runtimepath -- Use Lua equivalent
+    -- Sync packpath with runtimepath
+    vim.opt.packpath = vim.opt.runtimepath:get()
+
     -- add mason binaries to path
     vim.env.PATH = vim.env.PATH .. (is_windows and ";" or ":") .. M.get_runtime_dir() .. "/mason/bin"
     vim.env.MYVIMRC = _G.get_avim_base_dir() .. "/init.lua"
@@ -710,6 +718,25 @@ end
 M.is_directory = function(path)
   local stat = uv.fs_stat(path)
   return stat and stat.type == "directory" or false
+end
+
+--- Ensures a directory exists, creating it if necessary
+---@param path string The directory path to ensure exists
+---@param name string Optional name for error messages
+---@return boolean success Whether the directory exists or was created successfully
+function M.ensure_directory(path, name)
+  if not M.is_directory(path) then
+    local ok, err = pcall(vim.fn.mkdir, path, "p")
+    if not ok then
+      vim.notify(
+        string.format("Failed to create %s directory at %s: %s", name or "required", path, tostring(err)),
+        vim.log.levels.ERROR,
+        { title = "AnoNvim" }
+      )
+      return false
+    end
+  end
+  return true
 end
 
 -- Determine if there is enough space in the window to display components

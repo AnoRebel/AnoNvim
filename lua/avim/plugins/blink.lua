@@ -300,8 +300,8 @@ return {
           },
           cmdline = {
             module = "blink.cmp.sources.cmdline",
-            score_offset = 100,
-            max_items = 10, -- Increased from 3 for better command suggestions
+            score_offset = 200, -- Increased priority for commands over other sources
+            max_items = 15, -- Increased from 10 for even better command suggestions
             fallbacks = { "buffer" }, -- Fallback to buffer completions if no cmdline matches
           },
           cmdline_history_cmd = {
@@ -384,9 +384,10 @@ return {
           if type == "/" or type == "?" then
             return { "buffer", "cmdline_history_search" }
           end
-          -- Commands - enhanced ordering for better suggestions
+          -- Commands - prioritize built-in commands over everything else
           if type == ":" or type == "@" then
-            return { "cmdline", "lazydev", "path", "cmdline_history_cmd", "buffer" }
+            -- cmdline FIRST for commands, then path, then history/buffer as fallbacks
+            return { "cmdline", "path", "cmdline_history_cmd", "lazydev", "buffer" }
           end
           return { "cmdline", "buffer" }
         end,

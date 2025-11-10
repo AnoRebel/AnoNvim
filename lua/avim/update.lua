@@ -93,20 +93,27 @@ end
 ---@param latest string Latest version
 ---@return table<string> changes List of changes
 local function get_changes(current, latest)
-  local cmd =
-    string.format("git -C %s log --pretty=format:'%%h %%s' %s..%s", utilities.get_avim_base_dir(), current, latest)
+  local base_dir = _G.get_avim_base_dir and _G.get_avim_base_dir() or utilities.get_runtime_dir()
+  local cmd = string.format("git -C %s log --pretty=format:'%%h %%s' %s..%s", base_dir, current, latest)
 
   local handle = io.popen(cmd)
   if not handle then
+    Log:warn("Failed to get changes")
     return {}
   end
 
   local output = handle:read("*a")
   handle:close()
 
+  if vim.trim(output) == "" then
+    return {}
+  end
+
   local changes = {}
   for line in output:gmatch("[^\r\n]+") do
-    table.insert(changes, line)
+    if line ~= "" then
+      table.insert(changes, line)
+    end
   end
 
   return changes
@@ -116,40 +123,54 @@ end
 ---@param info UpdateInfo Update information
 ---@return boolean proceed Whether to proceed with update
 local function show_dialog(info)
+  local changes_text = vim.tbl_isempty(info.changes) and "  No detailed changes available"
+    or table.concat(info.changes, "\n  ")
+
   local dialog = string.format(
     [[
-  AnoNvim Update Available
-  -----------------------
-  Current version: %s
-  Latest version:  %s
-  
-  Changes:
-  %s
-  
-  Do you want to update? (y/n): ]],
+AnoNvim Update Available
+------------------------
+Current version: %s
+Latest version:  %s
+
+Changes:
+%s
+
+Do you want to update?]],
     info.current_version,
     info.latest_version,
-    table.concat(info.changes, "\n  ")
+    changes_text
   )
 
-  vim.ui.input({ prompt = dialog }, function(input)
-    return input and input:lower() == "y"
+  -- Show in a more user-friendly way
+  local proceed = false
+  vim.ui.select({ "Yes", "No" }, {
+    prompt = dialog,
+    format_item = function(item)
+      return item
+    end,
+  }, function(choice)
+    proceed = choice == "Yes"
   end)
+
+  return proceed
 end
 
 ---Get current installed version
 ---@return string version Current version
 function M.get_current_version()
-  local cmd = string.format("git -C %s rev-parse --short HEAD", _G.get_avim_base_dir())
+  local base_dir = _G.get_avim_base_dir and _G.get_avim_base_dir() or utilities.get_runtime_dir()
+  local cmd = string.format("git -C %s rev-parse --short HEAD", base_dir)
   local handle = io.popen(cmd)
   if not handle then
+    Log:warn("Failed to get current version")
     return "unknown"
   end
 
   local output = handle:read("*a")
   handle:close()
 
-  return output:gsub("%s+", "")
+  return vim.trim(output)
 end
 
 ---Get latest version from remote
@@ -161,13 +182,20 @@ function M.get_latest_version(branch)
 
   local handle = io.popen(cmd)
   if not handle then
+    Log:warn("Failed to get latest version from remote")
     return "unknown"
   end
 
   local output = handle:read("*a")
   handle:close()
 
-  return output:match("(%w+)"):sub(1, 7)
+  local hash = output:match("(%w+)")
+  if not hash then
+    Log:warn("Failed to parse remote version")
+    return "unknown"
+  end
+
+  return hash:sub(1, 7)
 end
 
 ---Check for updates
@@ -236,20 +264,34 @@ function M.execute(opts)
 
   -- Perform update
   Log:info("Updating AnoNvim")
-  local cmd = string.format("git -C %s pull origin %s", utilities.get_avim_base_dir(), opts.branch)
+  utilities.notify("Updating AnoNvim...", vim.log.levels.INFO)
+
+  local base_dir = _G.get_avim_base_dir and _G.get_avim_base_dir() or utilities.get_runtime_dir()
+  local cmd = string.format("git -C %s pull origin %s", base_dir, opts.branch)
 
   local output = vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
     Log:error("Update failed: " .. output)
+    utilities.notify("Update failed! Check :AvimLog for details.", vim.log.levels.ERROR)
     return false
   end
 
   -- Update lazy.nvim and plugins
-  require("lazy").sync()
+  utilities.notify("Syncing plugins...", vim.log.levels.INFO)
+  local lazy_ok, lazy = pcall(require, "lazy")
+  if lazy_ok then
+    lazy.sync()
+  else
+    Log:warn("Lazy.nvim not available, skipping plugin sync")
+  end
 
   -- Show completion message
-  local msg = string.format("AnoNvim updated successfully!\nFrom %s to %s", info.current_version, info.latest_version)
-  utilities.notify(msg, "info")
+  local msg = string.format(
+    "✓ AnoNvim updated successfully!\n  From: %s\n  To:   %s",
+    info.current_version,
+    info.latest_version
+  )
+  utilities.notify(msg, vim.log.levels.INFO)
 
   -- Show changes if requested
   if opts.show_changes and not vim.tbl_isempty(info.changes) then

@@ -125,6 +125,17 @@ M.options = {
   performance = {
     rtp = {
       reset = false,
+      disabled_plugins = {
+        "gzip",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+        "netrw",
+        "netrwPlugin",
+        "netrwSettings",
+        "netrwFileHandlers",
+      },
     },
     paths = get_runtime_paths(),
   },
@@ -143,7 +154,7 @@ function M:init()
 
   -- Clone lazy.nvim
   Log:debug("Cloning lazy.nvim")
-  local ok, output = pcall(fn.system, {
+  local ok, result = pcall(fn.system, {
     "git",
     "clone",
     "--filter=blob:none",
@@ -151,8 +162,16 @@ function M:init()
     lazypath,
   })
 
-  if not ok or fn.empty(output) ~= 1 then
-    Log:error("Failed to clone lazy.nvim: " .. (output or ""))
+  if not ok then
+    Log:error("Failed to clone lazy.nvim: " .. tostring(result))
+    vim.notify("Failed to clone lazy.nvim. Check :AvimLog for details.", vim.log.levels.ERROR)
+    return false
+  end
+
+  -- Check git exit code
+  if vim.v.shell_error ~= 0 then
+    Log:error("Git clone failed with exit code " .. vim.v.shell_error .. ": " .. tostring(result))
+    vim.notify("Git clone failed. Check :AvimLog for details.", vim.log.levels.ERROR)
     return false
   end
 
@@ -204,15 +223,22 @@ function M.load()
   M.options = vim.tbl_deep_extend("force", M.options, platform_settings)
 
   -- Setup plugins
-  local success = xpcall(function()
+  local success, err = xpcall(function()
     lazy.setup("avim.plugins", M.options)
-  end, function(err)
-    Log:error("Failed to setup plugins: " .. debug.traceback(err))
+    return true
+  end, function(error_msg)
+    local trace = debug.traceback(error_msg, 2)
+    Log:error("Failed to setup plugins:\n" .. trace)
     return false
   end)
 
   if not success then
     Log:warn("Problems detected while loading plugins")
+    vim.notify(
+      "Plugin loading encountered errors. Check :AvimLog for details.",
+      vim.log.levels.WARN,
+      { title = "Lazy.nvim" }
+    )
     return false
   end
 

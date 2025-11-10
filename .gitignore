@@ -5,3 +5,6 @@ spell
 lazy-lock.json
 OpenCode.md
 .opencode/
+.serena/
+.claude/
+OPTIMIZATION_SUMMARY.md

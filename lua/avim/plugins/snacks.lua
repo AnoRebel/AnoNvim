@@ -1,3 +1,20 @@
+-- Helper function to parse line number from query
+local function parse_line_number(query)
+  if not query then
+    return nil
+  end
+  local line_num = query:match(":(%d+)$")
+  return line_num and tonumber(line_num) or nil
+end
+
+-- Helper function to strip line number from query for filtering
+local function strip_line_number(query)
+  if not query then
+    return query
+  end
+  return query:gsub(":(%d+)$", "")
+end
+
 return {
   {
     "folke/snacks.nvim",
@@ -15,6 +32,111 @@ return {
             Snacks.debug.backtrace()
           end
           vim.print = _G.dd -- Override print to use snacks for `:=` command
+
+          -- Setup autocmd to handle preview window line highlighting
+          local preview_augroup = vim.api.nvim_create_augroup("SnacksPickerPreview", { clear = true })
+          vim.api.nvim_create_autocmd("FileType", {
+            group = preview_augroup,
+            pattern = "*",
+            callback = function(args)
+              -- Check if we're in a Snacks picker context
+              if vim.g._snacks_picker_line_query then
+                local line_num = parse_line_number(vim.g._snacks_picker_line_query)
+                if line_num then
+                  vim.schedule(function()
+                    local buf = args.buf
+                    if not vim.api.nvim_buf_is_valid(buf) then return end
+
+                    local line_count = vim.api.nvim_buf_line_count(buf)
+                    if line_num > 0 and line_num <= line_count then
+                      -- Find the window showing this buffer
+                      for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == buf then
+                          -- Jump to line and center
+                          pcall(vim.api.nvim_win_set_cursor, win, { line_num, 0 })
+                          vim.api.nvim_win_call(win, function()
+                            vim.cmd("normal! zz")
+                          end)
+
+                          -- Highlight the line
+                          local ns_id = vim.api.nvim_create_namespace("snacks_picker_highlight")
+                          pcall(vim.api.nvim_buf_clear_namespace, buf, ns_id, 0, -1)
+                          pcall(vim.api.nvim_buf_add_highlight, buf, ns_id, "CursorLine", line_num - 1, 0, -1)
+                          break
+                        end
+                      end
+                    end
+                  end)
+                end
+              end
+            end
+          })
+
+          -- Create wrapper for file picker with line number support
+          local original_files = Snacks.picker.files
+          Snacks.picker.files = function(opts)
+            opts = opts or {}
+
+            -- Set global to nil when picker starts
+            vim.g._snacks_picker_line_query = nil
+
+            -- Hook into input changes to track query for preview highlighting
+            if not opts.win then opts.win = {} end
+            if not opts.win.input then opts.win.input = {} end
+            if not opts.win.input.keys then opts.win.input.keys = {} end
+
+            -- Add a key handler that updates on every input change
+            local original_on_change = opts.win.input.keys["<any>"]
+            opts.win.input.keys["<any>"] = function(picker)
+              -- Update global query state for preview highlighting
+              if picker.input then
+                vim.g._snacks_picker_line_query = picker.input:get() or ""
+              end
+
+              -- Call original handler if exists
+              if original_on_change then
+                return original_on_change(picker)
+              end
+            end
+
+            -- Save original on_choice callback if it exists
+            local original_on_choice = opts.on_choice
+
+            -- Override on_choice to handle line jumping after file is opened
+            opts.on_choice = function(item, ctx)
+              -- Clear global query state
+              vim.g._snacks_picker_line_query = nil
+
+              if item and item.file then
+                -- Parse line number from the input query
+                local query = ctx and ctx.query or ""
+                local line_num = parse_line_number(query)
+
+                -- Call original on_choice if it exists
+                if original_on_choice then
+                  original_on_choice(item, ctx)
+                end
+
+                -- Schedule line jump after file opens
+                if line_num then
+                  vim.schedule(function()
+                    local line_count = vim.api.nvim_buf_line_count(0)
+
+                    -- Silently validate line number is within bounds
+                    if line_num > 0 and line_num <= line_count then
+                      pcall(function()
+                        vim.api.nvim_win_set_cursor(0, { line_num, 0 })
+                        vim.cmd("normal! zz")
+                      end)
+                    end
+                  end)
+                end
+              end
+            end
+
+            return original_files(opts)
+          end
+
           -- Create some toggle mappings
           Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>us")
           Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>uw")
@@ -55,7 +177,6 @@ return {
       rename = { enabled = true },
       toggle = { enabled = true },
       picker = {
-        actions = require("trouble.sources.snacks").actions,
         win = {
           input = {
             keys = {
@@ -68,6 +189,11 @@ return {
                 mode = { "i" },
               },
             },
+          },
+        },
+        formatters = {
+          file = {
+            filename_first = true,
           },
         },
       },
@@ -141,7 +267,7 @@ return {
           Snacks.picker.files()
         end,
         mode = { "n", "v" },
-        desc = "Find Files",
+        desc = "Find Files (type :123 to jump to line)",
       },
       {
         "<leader>fa",

@@ -11,7 +11,7 @@
 ---@field mappings table
 local M = {}
 
-M.version = "v4.0.0"
+M.version = "v4.1.0"
 
 ---- UI -----
 M.ui = {

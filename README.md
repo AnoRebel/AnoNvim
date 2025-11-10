@@ -9,39 +9,45 @@ designed for extensibility.
 
 - 🚀 Performance
 
-  - Fast startup with lazy loading
-  - Efficient plugin management
-  - Optimized file operations
+  - Fast startup with lazy loading and optimized initialization
+  - Efficient plugin management with Lazy.nvim
+  - Startup profiling support (AVIM_PROFILE env var)
+  - Optimized file operations with better error handling
 
 - 🎨 User Interface
 
   - Dynamic theme switching based on time
-  - Beautiful and functional UI components
+  - Beautiful and functional UI components with Snacks.nvim
   - Random Alpha logos/banners
-  - Winbar with context information
+  - Winbar with context information (Dropbar)
+  - Advanced file picker with line number jump support (:123 syntax)
 
 - 📝 Development
 
-  - Advanced LSP integration
+  - Advanced LSP integration with buffer-local keymaps
+  - Modern completion engine with Blink.cmp
   - AI coding assistant (CodeCompanion)
-    - Codeium
+    - Codeium integration
   - Git integration with conflict resolution
   - Database integration with Dbee
+  - Unified logging system (all logs go to avim.log)
 
 - 🔧 Tools & Utilities
 
-  - Fuzzy finding with Snacks
+  - Fuzzy finding with Snacks picker (with preview highlighting)
   - File tree with NeoTree and Oil
-  - Terminal integration
+  - Terminal integration with floating and split options
   - REST API client
-  - Session management
-  - Advanced search and replace
+  - Session management with Persisted
+  - Advanced search and replace with GrugFar
+  - Multiple cursors support
 
 - ⚙️ Configuration
   - Type checking and linting
-  - Automatic package management
+  - Automatic package management with Mason
   - Extensive customization options
-  - Well-documented codebase
+  - Well-documented codebase with type annotations
+  - Custom update system (:AnoUpdate, :AnoCheckUpdate, :AnoVersion)
 
 ## Requirements
 
@@ -142,9 +148,11 @@ Note: `<leader>` key is mapped to the `Space` key
 <details><summary>📝 Editor Enhancement</summary>
 
 - [Alpha](https://github.com/goolord/alpha-nvim) - Startup screen
+- [Blink.cmp](https://github.com/Saghen/blink.cmp) - Modern completion engine
 - [Comment](https://github.com/numToStr/Comment.nvim) - Code commenting
 - [Surround](https://github.com/kylechui/nvim-surround) - Text surroundings
 - [Which Key](https://github.com/folke/which-key.nvim) - Key binding helper
+- [Multiple Cursors](https://github.com/brenton-leighton/multiple-cursors.nvim) - Multiple cursors
 
 </details>
 

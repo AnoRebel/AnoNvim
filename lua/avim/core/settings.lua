@@ -282,9 +282,12 @@ else
   }
   ----------------------------------------------------------------
 
+  -- Set shada configuration immediately to ensure early operations are persisted
+  set.shada = "!,'100,<30,:50,@50,/50,s10,h"
+  set.shadafile = require("avim.utilities").join_paths(_G.avim.SHADADIR, "avim.shada")
+
+  -- Only schedule the restore operation
   vim.schedule(function()
-    set.shada = "!,'100,<30,:50,@50,/50,s10,h"
-    set.shadafile = require("avim.utilities").join_paths(_G.avim.SHADADIR, "avim.shada")
     vim.cmd([[ silent! rsh ]])
   end)
 end

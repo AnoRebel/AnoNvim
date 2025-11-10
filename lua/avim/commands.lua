@@ -73,17 +73,29 @@ function M.setup()
   -- Check for updates command
   usercmd("AnoCheckUpdate", function()
     local update = require("avim.update")
+
+    utilities.notify("Checking for updates...", vim.log.levels.INFO)
     local info = update.check()
 
-    if info.has_update then
-      local msg = string.format(
-        "Update available!\nCurrent: %s\nLatest: %s\n\nRun :AnoUpdate to update",
-        info.current_version,
-        info.latest_version
+    if info.current_version == "unknown" or info.latest_version == "unknown" then
+      utilities.notify(
+        "Unable to check for updates. Ensure you have git installed and are in a git repository.",
+        vim.log.levels.WARN
       )
-      utilities.notify(msg, "info")
+      return
+    end
+
+    if info.has_update then
+      local changes_count = #info.changes
+      local msg = string.format(
+        "✨ Update available!\n  Current: %s\n  Latest:  %s\n  Changes: %d commits\n\n💡 Run :AnoUpdate to update",
+        info.current_version,
+        info.latest_version,
+        changes_count
+      )
+      utilities.notify(msg, vim.log.levels.INFO)
     else
-      utilities.notify("AnoNvim is up to date!", "info")
+      utilities.notify("✓ AnoNvim is up to date! (" .. info.current_version .. ")", vim.log.levels.INFO)
     end
   end, {
     desc = "Check for AnoNvim updates",
@@ -92,22 +104,63 @@ function M.setup()
   -- Show update history command
   usercmd("AnoUpdateHistory", function()
     local update = require("avim.update")
+
+    utilities.notify("Fetching update history...", vim.log.levels.INFO)
     local info = update.check()
 
-    if vim.tbl_isempty(info.changes) then
-      utilities.notify("No changes found", "warn")
+    if info.current_version == "unknown" or info.latest_version == "unknown" then
+      utilities.notify("Unable to fetch update history. Not a git repository?", vim.log.levels.WARN)
       return
     end
 
+    if vim.tbl_isempty(info.changes) then
+      utilities.notify("No changes between current and latest version", vim.log.levels.INFO)
+      return
+    end
+
+    -- Show changes in a nicer format
     vim.ui.select(info.changes, {
-      prompt = "Recent changes:",
+      prompt = string.format(
+        "📜 Changes from %s to %s (%d commits):",
+        info.current_version,
+        info.latest_version,
+        #info.changes
+      ),
       format_item = function(item)
-        return "  " .. item
+        return "  • " .. item
       end,
     }, function() end)
   end, {
     desc = "Show AnoNvim update history",
   })
+
+  -- Show version info command
+  usercmd("AnoVersion", function()
+    local update = require("avim.update")
+    local defaults = require("avim.core.defaults")
+    local current = update.get_current_version()
+
+    local version_info = string.format(
+      [[
+AnoNvim Version Information
+===========================
+  Version:     %s
+  Git Commit:  %s
+  Neovim:      %s
+  Base Dir:    %s
+
+Use :AnoCheckUpdate to check for updates]],
+      defaults.version or "unknown",
+      current,
+      vim.version().major .. "." .. vim.version().minor .. "." .. vim.version().patch,
+      _G.get_avim_base_dir and _G.get_avim_base_dir() or "unknown"
+    )
+
+    print(version_info)
+  end, {
+    desc = "Show AnoNvim version information",
+  })
+
   autocmd("User", {
     pattern = "GitConflictDetected",
     callback = function()

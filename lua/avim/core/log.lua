@@ -47,6 +47,13 @@ function Log:set_level(level)
 end
 
 function Log:init()
+  -- Override vim.lsp.get_log_path() to use our custom log file
+  -- This ensures LSP logs go to avim.log instead of lsp.log
+  local original_get_log_path = vim.lsp.get_log_path
+  vim.lsp.get_log_path = function()
+    return self:get_path()
+  end
+
   local status_ok, structlog = pcall(require, "structlog")
   if not status_ok then
     return nil
@@ -210,10 +217,18 @@ function Log:error(msg, event)
   self:add_entry(self.levels.ERROR, msg, event)
 end
 
--- Log command
-vim.api.nvim_create_user_command("AvimLog", function()
-  vim.fn.execute("edit " .. Log:get_path())
-end, { force = true })
+---Setup the AvimLog command
+---Should be called after Log:init()
+function Log:setup_commands()
+  -- Create the AvimLog command with correct log path
+  vim.api.nvim_create_user_command("AvimLog", function()
+    local log_path = self:get_path()
+    vim.cmd("edit " .. vim.fn.fnameescape(log_path))
+  end, {
+    desc = "Open AnoNvim log file",
+    force = true
+  })
+end
 
 setmetatable({}, Log)
 
