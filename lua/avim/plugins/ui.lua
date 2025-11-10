@@ -29,25 +29,24 @@ autocmd({ "VimEnter", "VimResume" }, {
   pattern = "*",
   callback = function()
     local _time = os.date("*t")
-    if (_time.hour >= 21 and _time.hour < 24) or (_time.hour >= 0 and _time.hour < 1) then
-      vim.cmd([[colorscheme catppuccin]])
-      _G.avim.theme = vim.g.colors_name
-    elseif (_time.hour >= 16 and _time.hour < 21) or (_time.hour >= 0 and _time.hour < 1) then
-      vim.cmd([[colorscheme rose-pine]])
-      _G.avim.theme = vim.g.colors_name
-    elseif _time.hour >= 1 and _time.hour < 5 then
-      vim.cmd([[colorscheme kanagawa]])
-      _G.avim.theme = vim.g.colors_name
-    elseif _time.hour >= 5 and _time.hour < 11 then
-      vim.cmd([[colorscheme tokyodark]])
-      _G.avim.theme = vim.g.colors_name
-    elseif _time.hour >= 11 and _time.hour < 16 then
-      vim.cmd([[colorscheme oxocarbon]])
-      _G.avim.theme = vim.g.colors_name
-    else
-      vim.cmd([[colorscheme tokyodark]])
-      _G.avim.theme = vim.g.colors_name
+    local hour = _time.hour
+    
+    -- Simplified time-based theme selection
+    local theme
+    if hour >= 21 or hour < 1 then
+      theme = "catppuccin"
+    elseif hour >= 16 then
+      theme = "rose-pine"
+    elseif hour >= 11 then
+      theme = "oxocarbon"
+    elseif hour >= 5 then
+      theme = "tokyodark"
+    else -- 1-5 AM
+      theme = "kanagawa"
     end
+    
+    vim.cmd("colorscheme " .. theme)
+    _G.avim.theme = vim.g.colors_name
   end,
 })
 

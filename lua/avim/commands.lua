@@ -178,11 +178,6 @@ function M.setup()
     group = augroup("auto_create_dir"),
     desc = "Create missing parent directories on write",
     callback = function(args)
-      -- if args.match:match("^%w%w+:[\\/][\\/]") then
-      --   return
-      -- end
-      -- local file = vim.uv.fs_realpath(args.match) or args.match
-      -- vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
       local status, result = pcall(function()
         -- this is a remote url
         if args.file:find("://") then
@@ -218,7 +213,6 @@ function M.setup()
       "man",
       "floaterm",
       "startuptime",
-      "tsplayground",
       "lspinfo",
       "gitsigns-blame",
       "grug-far",
@@ -300,7 +294,6 @@ function M.setup()
         vim.b.buftype == "messages"
         or vim.tbl_contains(fts, buf_filetype)
         or vim.tbl_contains(fts, buf_type)
-        or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(bufnr, "buftype"))
       then
         return
       end
@@ -313,7 +306,7 @@ function M.setup()
   })
   autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, {
     pattern = "*",
-    group = augroup("_number_toggle"),
+    group = augroup("number_toggle"),
     callback = function()
       local bufnr = api.nvim_get_current_buf()
       local buf_type = vim.bo[bufnr].buftype
@@ -323,7 +316,6 @@ function M.setup()
         vim.b.buftype == "messages"
         or vim.tbl_contains(fts, buf_filetype)
         or vim.tbl_contains(fts, buf_type)
-        or vim.tbl_contains(fts, vim.api.nvim_buf_get_option(0, "buftype"))
       then
         return
       end

@@ -62,13 +62,8 @@ local vue_lsp_filter = function(ctx, items)
     return items
   end
 
-  local bufnr = vim.api.nvim_get_current_buf()
-  local cached_is_in_start_tag = vim.b[bufnr]._vue_ts_cached_is_in_start_tag
-  if cached_is_in_start_tag == nil then
-    vim.b[bufnr]._vue_ts_cached_is_in_start_tag = is_in_start_tag()
-  end
-
-  if vim.b[bufnr]._vue_ts_cached_is_in_start_tag == false then
+  -- Check if we're in a start tag (caching removed for simplicity)
+  if not is_in_start_tag() then
     return items
   end
 
@@ -79,12 +74,8 @@ local vue_lsp_filter = function(ctx, items)
     col = c[2] + 1,
     line = c[1] - 1,
   }
+  -- Get cursor position and text before cursor
   local cursor_before_line = string.sub(cursor_line, 1, cursor.col - 1)
-
-  local line = vim.api.nvim_get_current_line()
-  local col = vim.api.nvim_win_get_cursor(0)[2]
-  local _cursor_before_line = line:sub(1, col)
-  cursor_before_line = cursor_before_line or _cursor_before_line
 
   local filtered_items = {}
 
@@ -180,7 +171,8 @@ local function format_item(ctx)
   }
 end
 
--- Auto-brackets function for blink.cmp
+-- Auto-brackets function for blink.cmp (with safety checks)
+---@param ctx table
 local function handle_auto_brackets(ctx)
   local item = ctx.item
   if not item then
@@ -190,15 +182,24 @@ local function handle_auto_brackets(ctx)
   local completion_item = item.completion_item or item
   local kind = completion_item.kind
 
-  -- Check if it's a function or method
-  if kind == 3 or kind == 2 then -- Function or Method
+  -- Check if it's a function or method (2 = Method, 3 = Function)
+  if kind == 3 or kind == 2 then
     local cursor = vim.api.nvim_win_get_cursor(0)
-    local prev_char = vim.api.nvim_buf_get_text(0, cursor[1] - 1, cursor[2], cursor[1] - 1, cursor[2] + 1, {})[1]
-    if prev_char ~= "(" and prev_char ~= ")" then
-      local keys = vim.api.nvim_replace_termcodes("()<left>", false, false, true)
-      vim.api.nvim_feedkeys(keys, "i", true)
+    local line = vim.api.nvim_get_current_line()
+    
+    -- Safety check: ensure we're not at the end of line or next char is not already a bracket
+    if cursor[2] < #line then
+      local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+      if next_char == "(" or next_char == ")" then
+        return
+      end
     end
+    
+    -- Insert brackets
+    local keys = vim.api.nvim_replace_termcodes("()<left>", false, false, true)
+    vim.api.nvim_feedkeys(keys, "i", true)
   end
+end
 end
 
 return {
@@ -300,15 +301,9 @@ return {
           },
           cmdline = {
             module = "blink.cmp.sources.cmdline",
-            -- min_keyword_length = function(ctx)
-            --   -- when typing a command, only show when the keyword is 3 characters or longer
-            --   if ctx.mode == "cmdline" and string.find(ctx.line, " ") == nil then
-            --     return 3
-            --   end
-            --   return 0
-            -- end,
             score_offset = 100,
-            max_items = 3,
+            max_items = 10, -- Increased from 3 for better command suggestions
+            fallbacks = { "buffer" }, -- Fallback to buffer completions if no cmdline matches
           },
           cmdline_history_cmd = {
             name = "cmdline_history",
@@ -390,11 +385,11 @@ return {
           if type == "/" or type == "?" then
             return { "buffer", "cmdline_history_search" }
           end
-          -- Commands
+          -- Commands - enhanced ordering for better suggestions
           if type == ":" or type == "@" then
-            return { "lazydev", "cmdline", "buffer", "cmdline_history_cmd" }
+            return { "cmdline", "lazydev", "path", "cmdline_history_cmd", "buffer" }
           end
-          return { "buffer", "cmdline" }
+          return { "cmdline", "buffer" }
         end,
         keymap = {
           preset = "cmdline",
@@ -788,13 +783,7 @@ return {
         end,
       })
 
-      -- Clear Vue cache when leaving insert mode
-      autocmd("InsertLeave", {
-        callback = function()
-          local bufnr = vim.api.nvim_get_current_buf()
-          vim.b[bufnr]._vue_ts_cached_is_in_start_tag = nil
-        end,
-      })
+
 
       -- Enhanced auto-brackets with nvim-autopairs integration
       autocmd("User", {
