@@ -272,8 +272,7 @@ M.diff = {
 -- return os.getenv("VIRTUAL_ENV") ~= nil or vim.bo.filetype == "python"
 M.venv = {
   { name = "Select Venv", cmd = "VenvSelect" },
-  { name = "Show Current Venv", cmd = "VenvSelectCurrent" },
-  { name = "Set Previous Venv", cmd = "VenvSelectCached" },
+  { name = "Set Cached Venv", cmd = "VenvSelectCached" },
 }
 
 M.default = {

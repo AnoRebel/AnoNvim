@@ -415,7 +415,7 @@ return {
     -- },
   },
   {
-    "echasnovski/mini.animate",
+    "nvim-mini/mini.animate",
     event = "VeryLazy",
     cond = vim.g.neovide == nil,
     opts = function(_, opts)

@@ -6,7 +6,7 @@ vim.g.neo_tree_remove_legacy_commands = true
 
 return {
   {
-    "echasnovski/mini.files",
+    "nvim-mini/mini.files",
     version = false,
     init = function()
       vim.api.nvim_create_autocmd("User", {

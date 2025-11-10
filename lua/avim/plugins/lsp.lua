@@ -178,10 +178,13 @@ return {
       { "microsoft/python-type-stubs" },
       {
         "linux-cultist/venv-selector.nvim",
-        branch = "regexp",
-        cmd = { "VenvSelect", "VenvSelectCached", "VenvSelectCurrent" },
+        ft = "python",
+        cmd = { "VenvSelect", "VenvSelectCached" },
         opts = {
-          auto_refresh = true,
+          options = {
+            notify_user_on_venv_activation = true,
+            picker = "snacks",
+          },
         },
       },
       {
@@ -230,15 +233,17 @@ return {
       {
         "lewis6991/hover.nvim",
         config = function()
-          require("hover").setup({
-            init = function()
-              -- Require providers
-              require("hover.providers.lsp")
-              require("hover.providers.diagnostic")
-              require("hover.providers.fold_preview")
-              require("hover.providers.man")
-              require("hover.providers.dictionary")
-            end,
+          require("hover").config({
+            --- List of modules names to load as providers.
+            --- @type (string|Hover.Config.Provider)[]
+            providers = {
+              "hover.providers.lsp",
+              "hover.providers.diagnostic",
+              "hover.providers.fold_preview",
+              "hover.providers.man",
+              "hover.providers.dictionary",
+              -- "hover.providers.highlight",
+            },
             preview_opts = {
               border = "rounded",
             },
@@ -247,14 +252,14 @@ return {
             preview_window = true,
             title = true,
             mouse_providers = {
-              "LSP",
+              "hover.providers.lsp",
             },
             mouse_delay = 1000,
           })
         end,
         keys = {
           { "K", "<cmd>lua require('hover').hover()<CR>", desc = "Peek or Hover", remap = true },
-          { "gK", "<cmd>lua require('hover').hover_select()<cr>", desc = "[hover.nvim] Select" },
+          { "gK", "<cmd>lua require('hover').enter()<cr>", desc = "[hover.nvim] Enter" },
           -- { "K", lsp_utils.peek_or_hover,  desc = "Peek or Hover", remap = true },
           --     utilities.map("n", "gK", require("hover").hover_select, { desc = "[hover.nvim] Select" })
           --     { "<Up>", function()
@@ -374,13 +379,15 @@ return {
               close_signature = "<C-e>",
             },
           })
-          vim.api.nvim_buf_set_keymap(bufnr,
+          vim.api.nvim_buf_set_keymap(
+            bufnr,
             "i",
             "<A-s>",
             ":LspOverloadsSignature<CR>",
             { noremap = true, silent = true }
           )
-          vim.api.nvim_buf_set_keymap(bufnr,
+          vim.api.nvim_buf_set_keymap(
+            bufnr,
             "n",
             "<A-s>",
             ":LspOverloadsSignature<CR>",

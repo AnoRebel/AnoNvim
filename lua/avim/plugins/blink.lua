@@ -22,7 +22,7 @@ local deps = {
           enabled = true,
           map_keys = true,
           key_bindings = {
-            accept = "<C-y>",
+            accept = "<M-.>",
             clear = "<C-e>",
           },
         },
@@ -240,11 +240,13 @@ return {
             module = "lazydev.integrations.blink",
             -- make lazydev completions top priority (see `:h blink.cmp`)
             score_offset = 100,
+            max_items = 5,
           },
           lsp = {
             name = "LSP",
             module = "blink.cmp.sources.lsp",
-            score_offset = 100,
+            score_offset = 10,
+            max_items = 5,
             transform_items = vue_lsp_filter,
             opts = {
               tailwind_color_icon = "󱓻",
@@ -253,7 +255,8 @@ return {
           path = {
             name = "Path",
             module = "blink.cmp.sources.path",
-            score_offset = 20,
+            score_offset = 3,
+            max_items = 3,
             opts = {
               show_hidden_files_by_default = true,
             },
@@ -261,7 +264,8 @@ return {
           snippets = {
             name = "Snippets",
             module = "blink.cmp.sources.snippets",
-            score_offset = 0,
+            score_offset = 5,
+            max_items = 3,
             opts = {
               -- Whether to use show_condition for filtering snippets
               use_show_condition = true,
@@ -273,7 +277,7 @@ return {
             name = "Buffer",
             module = "blink.cmp.sources.buffer",
             score_offset = -5,
-            max_items = 7,
+            max_items = 3,
             min_keyword_length = 3,
             opts = {
               -- default to all visible buffers
@@ -296,19 +300,21 @@ return {
           },
           cmdline = {
             module = "blink.cmp.sources.cmdline",
-            min_keyword_length = function(ctx)
-              -- when typing a command, only show when the keyword is 3 characters or longer
-              if ctx.mode == "cmdline" and string.find(ctx.line, " ") == nil then
-                return 3
-              end
-              return 0
-            end,
+            -- min_keyword_length = function(ctx)
+            --   -- when typing a command, only show when the keyword is 3 characters or longer
+            --   if ctx.mode == "cmdline" and string.find(ctx.line, " ") == nil then
+            --     return 3
+            --   end
+            --   return 0
+            -- end,
+            score_offset = 100,
+            max_items = 3,
           },
           cmdline_history_cmd = {
             name = "cmdline_history",
             module = "blink.compat.source",
-            max_items = 5,
-            score_offset = -20,
+            max_items = 1,
+            score_offset = 10,
             opts = {
               history_type = "cmd",
             },
@@ -317,14 +323,14 @@ return {
           cmdline_history_search = {
             name = "cmdline_history",
             module = "blink.compat.source",
-            max_items = 5,
-            score_offset = -20,
+            max_items = 1,
+            score_offset = 10,
             opts = {
               history_type = "search",
             },
             -- kind = "History",
           },
-          codeium = { name = "Codeium", module = "codeium.blink", async = true },
+          codeium = { name = "Codeium", module = "codeium.blink", async = true, max_items = 3 },
           ecolog = { name = "ecolog", module = "ecolog.integrations.cmp.blink_cmp" },
           npm = {
             name = "npm",
@@ -386,9 +392,9 @@ return {
           end
           -- Commands
           if type == ":" or type == "@" then
-            return { "cmdline", "lazydev", "buffer", "cmdline_history_cmd" }
+            return { "lazydev", "cmdline", "buffer", "cmdline_history_cmd" }
           end
-          return {}
+          return { "buffer", "cmdline" }
         end,
         keymap = {
           preset = "cmdline",
@@ -409,7 +415,8 @@ return {
           -- Default is false for cmdline, true for cmdwin (command-line window)
           menu = {
             auto_show = function(ctx, _)
-              return ctx.mode == "cmdwin"
+              return vim.fn.getcmdtype() == ":"
+              -- return ctx.mode == "cmdwin"
             end,
           },
           -- Displays a preview of the selected item on the current line
@@ -744,7 +751,7 @@ return {
       },
 
       fuzzy = {
-        use_frecency = true,
+        frecency = { enabled  = true, },
         use_proximity = true,
         sorts = { "label", "kind", "score" },
         prebuilt_binaries = {

@@ -80,7 +80,7 @@ end
 return {
   {
     "seblyng/roslyn.nvim",
-    ft = { "cs", "razor" },
+    ft = { "cs", "razor", "cshtml" },
     init = function()
       -- We add the Razor file types before the plugin loads.
       vim.filetype.add({

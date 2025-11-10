@@ -287,11 +287,6 @@ function M.setup()
     "prompt",
     "Prompt",
     "popup",
-    "avcheatsheet",
-    "code-action-menu-menu",
-    "code-action-menu-diff",
-    "code-action-menu-details",
-    "code-action-menu-warning",
   }
   autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
     pattern = "*",

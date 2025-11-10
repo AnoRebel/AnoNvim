@@ -10,7 +10,7 @@ return {
       "ravitemer/mcphub.nvim",
       "ravitemer/codecompanion-history.nvim",
       {
-        "echasnovski/mini.diff",
+        "nvim-mini/mini.diff",
         config = function()
           local diff = require("mini.diff")
           diff.setup({
@@ -39,6 +39,18 @@ return {
           show_defaults = false,
           show_model_choices = true,
         },
+        anthropic = function()
+          return require("codecompanion.adapters").extend("anthropic", {
+            env = {
+              api_key = vim.fn.readfile(_G.get_config_dir() .. "/anthropic.key")[1],
+            },
+            schema = {
+              model = {
+                default = "claude-4-sonnet",
+              },
+            },
+          })
+        end,
         gemini = function()
           return require("codecompanion.adapters").extend("gemini", {
             env = {
@@ -72,13 +84,28 @@ return {
             name = "openrouter",
             formatted_name = "OpenRouter",
             env = {
-              url = "https://openrouter.ai/api",
+              url = "https://openrouter.ai/api/v1",
               api_key = vim.fn.readfile(_G.get_config_dir() .. "/openrouter.key")[1],
             },
             schema = {
               model = {
-                default = "deepseek-r1-distill-llama-70b",
+                default = "moonshotai/kimi-k2-instruct",
               },
+            },
+          })
+        end,
+        ollama = function()
+          return require("codecompanion.adapters").extend("ollama", {
+            env = {
+              url = "http://82.208.23.25:11434",
+              -- api_key = "OLLAMA_API_KEY",
+            },
+            --[[ headers = {
+          ["Content-Type"] = "application/json",
+          ["Authorization"] = "Bearer ${api_key}",
+        }, ]]
+            parameters = {
+              sync = true,
             },
           })
         end,
@@ -90,7 +117,7 @@ return {
             },
             schema = {
               model = {
-                default = "claude-3.5-sonnet", -- "DeepSeek-R1",
+                default = "DeepSeek-R1",
               },
             },
           })
@@ -102,7 +129,8 @@ return {
             },
             schema = {
               model = {
-                default = "Qwen/Qwen2.5-72B-Instruct",
+                default = "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+                -- default = "moonshotai/Kimi-K2-Instruct",
               },
             },
           })

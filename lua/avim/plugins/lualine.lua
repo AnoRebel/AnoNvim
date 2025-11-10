@@ -114,14 +114,16 @@ local function sessions()
 end
 
 local function venv()
-  local _venv = require("venv-selector").get_active_venv()
-  if _venv then
-    local venv_parts = vim.fn.split(_venv, "/")
-    local venv_name = venv_parts[#venv_parts]
-    return " " .. venv_name
-  else
-    return " Select Venv"
+  local venv_path = require("venv-selector").venv()
+  if not venv_path or venv_path == "" then
+      return " Select Venv"
   end
+
+  local venv_name = vim.fn.fnamemodify(venv_path, ":t")
+  if not venv_name then
+      return " Select Venv"
+  end
+  return " " .. venv_name
 end
 
 -- Clock
