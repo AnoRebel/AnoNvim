@@ -7,17 +7,12 @@ vim.g.maximizer_set_default_mapping = 1
 vim.g.maximizer_set_mapping_with_bang = 1
 -- vim.g.maximizer_default_mapping_key = "<F3>"
 
--- Illuminate
--- vim.g.Illuminate_delay = 0
--- vim.g.Illuminate_highlightUnderCursor = 0
-vim.g.Illuminate_ftblacklist = { "alpha", "NvimTree", "neo-tree" }
--- vim.g.Illuminate_highlightUnderCursor = 0
-
--- Fix Highlight group instead of underline, highlight
-vim.api.nvim_set_hl(0, "IlluminatedWordText", { link = "Visual" }) -- underline = false
-vim.api.nvim_set_hl(0, "IlluminatedWordRead", { link = "Visual" })
-vim.api.nvim_set_hl(0, "IlluminatedWordWrite", { link = "Visual" })
-vim.api.nvim_set_hl(0, "IlluminatedCurWord", { italic = true })
+-- LSP document_highlight is used instead of vim-illuminate for word highlighting
+-- See lsp.lua CursorHold autocmd for configuration
+-- Set highlight groups for LSP document_highlight (similar to vim-illuminate)
+vim.api.nvim_set_hl(0, "LspReferenceText", { link = "Visual" })
+vim.api.nvim_set_hl(0, "LspReferenceRead", { link = "Visual" })
+vim.api.nvim_set_hl(0, "LspReferenceWrite", { link = "Visual" })
 
 local d_theme, _ = pcall(vim.api.nvim_get_autocmds, { group = "_dynamic_theme" })
 if not d_theme then
@@ -70,32 +65,7 @@ return {
     event = "VeryLazy",
     dependencies = {
       "MunifTanjim/nui.nvim",
-      {
-        "rcarriga/nvim-notify",
-        opts = {
-          -- active = false,
-          ---@usage Animation style one of { "fade", "slide", "fade_in_slide_out", "static" }
-          stages = "slide",
-
-          ---@usage timeout for notifications in ms, default 5000
-          timeout = 5000,
-
-          -- Render function for notifications. See notify-render()
-          render = "default",
-
-          ---@usage minimum width for notification windows
-          minimum_width = 50,
-
-          ---@usage Icons for the different levels
-          icons = {
-            ERROR = "",
-            WARN = "",
-            INFO = "",
-            DEBUG = "",
-            TRACE = "✎",
-          },
-        },
-      },
+      -- nvim-notify removed - using snacks.notifier as primary notification system
     },
     opts = {
       cmdline = {
@@ -410,22 +380,9 @@ return {
       { "<leader>h", "<cmd>Alpha<CR>", mode = { "n", "v" }, desc = " Dashboard" },
     },
   },
-  { "DanilaMihailov/beacon.nvim" }, -- cmd = { "Beacon", "BeaconToggle", "BeaconOn", "BeaconOff" } },
-  {
-    "RRethy/vim-illuminate",
-    -- keys = {
-    --     {
-    --         "<A-n>",
-    --         '<cmd>lua require"illuminate".next_reference{wrap=true}<cr>',
-    --         desc = "Next Illuminated Reference"
-    --     },
-    --     {
-    --         "<A-p>",
-    --         '<cmd>lua require"illuminate".next_reference{reverse=true,wrap=true}<cr>',
-    --         desc = "Previous Illuminated Reference"
-    --     },
-    -- },
-  },
+  -- beacon.nvim removed - purely cosmetic cursor animation, saves RAM
+  -- vim-illuminate removed - LSP document_highlight provides same functionality
+  -- (configured in lsp.lua CursorHold autocmd)
   {
     "nvim-mini/mini.animate",
     event = "VeryLazy",

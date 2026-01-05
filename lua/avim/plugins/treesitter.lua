@@ -2,9 +2,10 @@ local defaults = require("avim.core.defaults")
 
 return {
   "nvim-treesitter/nvim-treesitter",
-  lazy = false,
+  -- Defer loading - only eager load when opening a file from cmdline
+  lazy = vim.fn.argc(-1) == 0,
+  event = { "BufReadPost", "BufNewFile" },
   branch = "main",
-  -- lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
   -- build = ":TSUpdate",
   build = function()
     require("nvim-treesitter").install(defaults.treesitter)

@@ -122,7 +122,7 @@ function M.setup(client, bufnr)
     utilities.map("n", "<leader>cr", lsp.buf.rename, { desc = "Rename", buffer = bufnr })
   end
 
-  -- Peek keymaps (buffer-local)
+  -- Peek keymaps using built-in utilities (buffer-local)
   utilities.map("n", "gp", nil, { name = "󰍉 Peek", buffer = bufnr })
   utilities.map(
     "n",
@@ -142,6 +142,36 @@ function M.setup(client, bufnr)
     "<cmd>lua require('avim.utilities.peek').Peek('implementation')<CR>",
     { desc = "[Peek] Implementation(s)", buffer = bufnr }
   )
+
+  -- Preview keymaps using Snacks picker (replacements for goto-preview)
+  utilities.map("n", "gpi", function()
+    Snacks.picker.lsp_implementations({ jump = { reuse_win = false } })
+  end, { desc = "[Preview] Implementations", buffer = bufnr })
+  utilities.map("n", "gpr", function()
+    Snacks.picker.lsp_references({ jump = { reuse_win = false } })
+  end, { desc = "[Preview] References", buffer = bufnr })
+
+  -- Reference count on demand (replacement for lsp-lens) - only for non-TS filetypes
+  -- TypeScript uses gR for findAllFileReferences above
+  if not vim.tbl_contains(ts_fts, vim.bo[bufnr].filetype) then
+    utilities.map("n", "gR", function()
+      require("trouble").toggle({ mode = "lsp_references" })
+    end, { desc = "References (Trouble)", buffer = bufnr })
+  end
+
+  -- Word highlight navigation (replacement for vim-illuminate <A-n>/<A-p>)
+  -- Uses LSP document_highlight to jump between references
+  utilities.map({ "n", "x" }, "<A-n>", function()
+    -- Try to move to next reference highlight
+    vim.cmd("normal! *N")
+    vim.cmd("lua require('hlslens').start()")
+  end, { desc = "Next Reference", buffer = bufnr })
+
+  utilities.map({ "n", "x" }, "<A-p>", function()
+    -- Try to move to previous reference highlight
+    vim.cmd("normal! #N")
+    vim.cmd("lua require('hlslens').start()")
+  end, { desc = "Previous Reference", buffer = bufnr })
 end
 
 return M

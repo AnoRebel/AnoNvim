@@ -4,7 +4,15 @@ local get_icon = require("avim.icons")
 
 vim.g.neo_tree_remove_legacy_commands = true
 
+-- Explorer Keybind Summary:
+-- <C-n>     : Toggle Neo-tree (tree view)
+-- <leader>e : Toggle Neo-tree (tree view)
+-- -         : Open mini.files at current file (vim-style navigation)
+-- _         : Open mini.files at cwd
+
 return {
+  -- mini.files: Vim-style file navigation (like oil but lighter)
+  -- Keybinds: - (current file), _ (cwd)
   {
     "nvim-mini/mini.files",
     version = false,
@@ -15,36 +23,37 @@ return {
           Snacks.rename.on_rename_file(event.data.from, event.data.to)
         end,
       })
-      ---------
-      -- Open path with system default handler (useful for non-text files)
-      local ui_open = function()
-        vim.ui.open(MiniFiles.get_fs_entry().path)
-      end
 
       local show_dotfiles = true
-      local filter_show = function(fs_entry)
+      local show_preview = false
+
+      local filter_show = function(_)
         return true
       end
       local filter_hide = function(fs_entry)
         return not vim.startswith(fs_entry.name, ".")
       end
+
       local toggle_dotfiles = function()
         show_dotfiles = not show_dotfiles
         local new_filter = show_dotfiles and filter_show or filter_hide
         MiniFiles.refresh({ content = { filter = new_filter } })
       end
+
       local toggle_preview = function()
         show_preview = not show_preview
         MiniFiles.refresh({ windows = { preview = show_preview } })
       end
 
-      local minifiles_toggle = function(...)
-        if not MiniFiles.close() then
-          MiniFiles.open(...)
+      -- Open path with system default handler
+      local ui_open = function()
+        local entry = MiniFiles.get_fs_entry()
+        if entry then
+          vim.ui.open(entry.path)
         end
       end
 
-      -- Yank in register full path of entry under cursor
+      -- Yank full path of entry under cursor
       local yank_path = function()
         local path = (MiniFiles.get_fs_entry() or {}).path
         if path == nil then
@@ -52,6 +61,7 @@ return {
         end
         vim.fn.setreg(vim.v.register, path)
       end
+
       -- Set focused directory as current working directory
       local set_cwd = function()
         local path = (MiniFiles.get_fs_entry() or {}).path
@@ -60,13 +70,11 @@ return {
         end
         vim.fn.chdir(vim.fs.dirname(path))
       end
-      -- GrugFar search
-      local grug_search = function()
-        -- get the current directory
-        local prefills = { paths = (MiniFiles.get_fs_entry() or {}).path }
 
+      -- GrugFar search in directory
+      local grug_search = function()
+        local prefills = { paths = (MiniFiles.get_fs_entry() or {}).path }
         local grug_far = require("grug-far")
-        -- instance check
         if not grug_far.has_instance("explorer") then
           grug_far.open({
             instanceName = "explorer",
@@ -75,28 +83,20 @@ return {
           })
         else
           grug_far.open_instance("explorer")
-          -- updating the prefills without clearing the search and other fields
           grug_far.update_instance_prefills("explorer", prefills, false)
         end
       end
-      ----------
+
+      -- Split mappings
       local map_split = function(buf_id, lhs, direction)
         local rhs = function()
-          -- Make new window and set it as target
           local cur_target = MiniFiles.get_explorer_state().target_window
           local new_target = vim.api.nvim_win_call(cur_target, function()
             vim.cmd(direction .. " split")
             return vim.api.nvim_get_current_win()
           end)
-
           MiniFiles.set_target_window(new_target)
-
-          -- This intentionally doesn't act on file under cursor in favor of
-          -- explicit "go in" action (`l` / `L`). To immediately open file,
-          -- add appropriate `MiniFiles.go_in()` call instead of this comment.
         end
-
-        -- Adding `desc` will result into `show_help` entries
         local desc = "Split " .. direction
         vim.keymap.set("n", lhs, rhs, { buffer = buf_id, desc = desc })
       end
@@ -106,22 +106,27 @@ return {
         callback = function(args)
           local buf_id = args.data.buf_id
 
-          vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = buf_id })
+          -- Toggle hidden files
+          vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = buf_id, desc = "Toggle hidden files" })
+          vim.keymap.set("n", "H", toggle_dotfiles, { buffer = buf_id, desc = "Toggle hidden files" })
 
-          map_split(buf_id, "<C-h>", "belowright horizontal")
-          map_split(buf_id, "<C-p>", "belowright vertical")
+          -- Splits
+          map_split(buf_id, "<C-x>", "belowright horizontal")
+          map_split(buf_id, "<C-v>", "belowright vertical")
           map_split(buf_id, "<C-t>", "tab")
 
+          -- Actions
           vim.keymap.set("n", "g~", set_cwd, { buffer = buf_id, desc = "Set cwd" })
           vim.keymap.set("n", "<C-o>", ui_open, { buffer = buf_id, desc = "OS open" })
-          vim.keymap.set("n", "<C-k>", toggle_preview, { buffer = buf_id, desc = "Toggle Preview" })
+          vim.keymap.set("n", "P", toggle_preview, { buffer = buf_id, desc = "Toggle Preview" })
           vim.keymap.set("n", "gy", yank_path, { buffer = buf_id, desc = "Yank path" })
-          vim.keymap.set("n", "gs", grug_search, { buffer = buf_id, desc = "GrugFar: Search in directory" })
+          vim.keymap.set("n", "gs", grug_search, { buffer = buf_id, desc = "Search in directory" })
 
+          -- .NET support
           vim.keymap.set("n", "E", function()
             local entry = require("mini.files").get_fs_entry()
             if entry == nil then
-              vim.notify("No fd entry in mini files", vim.log.levels.WARN)
+              vim.notify("No entry in mini files", vim.log.levels.WARN)
               return
             end
             local target_dir = entry.path
@@ -129,7 +134,7 @@ return {
               target_dir = vim.fn.fnamemodify(entry.path, ":h")
             end
             require("easy-dotnet").create_new_item(target_dir)
-          end, { buffer = buf_id, desc = "Create file from dotnet template" })
+          end, { buffer = buf_id, desc = "Create from dotnet template" })
         end,
       })
     end,
@@ -138,197 +143,45 @@ return {
         permanent_delete = false,
       },
       windows = {
-        -- Width of preview window
         width_preview = 70,
       },
     },
     keys = {
-      { "_", "<cmd>lua MiniFiles.open()<CR>", mode = { "n", "v" }, desc = "MiniFiles Explorer" },
-    },
-  },
-  {
-    "stevearc/oil.nvim",
-    cmd = { "Oil" },
-    keys = {
-      -- { "-", "<cmd>Oil <CR>", mode = { "n", "v" }, desc = "[Oil] Open Folder" }, -- vim.cmd("vsplit | wincmd |")
-      { "-", "<cmd>Oil --float <CR>", mode = { "n", "v" }, desc = "[Oil] Open Floating" },
-    },
-    init = function()
-      vim.api.nvim_create_autocmd("User", {
-        pattern = "OilActionsPost",
-        callback = function(event)
-          if event.data.actions.type == "move" then
-            Snacks.rename.on_rename_file(event.data.actions.src_url, event.data.actions.dest_url)
-          end
+      -- - opens at current file location (like oil)
+      {
+        "-",
+        function()
+          local buf_name = vim.api.nvim_buf_get_name(0)
+          local path = vim.fn.filereadable(buf_name) == 1 and buf_name or vim.fn.getcwd()
+          MiniFiles.open(path)
+          MiniFiles.reveal_cwd()
         end,
-      })
-    end,
-    opts = {
-      win_options = {
-        signcolumn = "number",
+        mode = { "n", "v" },
+        desc = "MiniFiles (current file)",
       },
-      columns = {
-        -- "icon",
-        -- "permissions",
-        -- "atime",
-      },
-      -- Deleted files will be removed with the trash_command (below).
-      delete_to_trash = true,
-      -- Skip the confirmation popup for simple operations (:help oil.skip_confirm_for_simple_edits)
-      skip_confirm_for_simple_edits = false,
-      view_options = {
-        -- Show files and directories that start with "."
-        show_hidden = false,
-      },
-      float = {
-        border = "rounded",
-        max_width = 0.85,
-        max_height = 0.85,
-      },
-      preview = {
-        border = "rounded",
-      },
-      progress = {
-        border = "rounded",
-      },
-      ssh = {
-        border = "rounded",
-      },
-      keymaps_help = {
-        border = "rounded",
-      },
-      keymaps = {
-        ["-"] = false,
-        ["g."] = false,
-        ["<C-l>"] = "actions.change_sort",
-        ["<C-p>"] = { "actions.select", opts = { vertical = true }, desc = "Open the entry in a vertical split" },
-        ["C"] = "actions.parent",
-        ["K"] = "actions.preview",
-        ["R"] = "actions.refresh",
-        ["<C-q>"] = "actions.close",
-        ["<leader>q"] = "actions.close",
-        ["H"] = "actions.toggle_hidden",
-        ["gd"] = {
-          desc = "Toggle file detail view",
-          callback = function()
-            detail = not detail
-            if detail then
-              require("oil").set_columns({ "icon", "permissions", "size", "mtime" })
-            else
-              require("oil").set_columns({})
-            end
-          end,
-        },
-        ["gs"] = {
-          callback = function()
-            local oil = require("oil")
-            -- get the current directory
-            local prefills = { paths = oil.get_current_dir() }
+      -- _ opens at cwd
+      { "_", "<cmd>lua MiniFiles.open()<CR>", mode = { "n", "v" }, desc = "MiniFiles (cwd)" },
+    },
+  },
 
-            local grug_far = require("grug-far")
-            -- instance check
-            if not grug_far.has_instance("explorer") then
-              grug_far.open({
-                instanceName = "explorer",
-                prefills = prefills,
-                staticTitle = "Find and Replace from Oil.nvim",
-              })
-            else
-              grug_far.open_instance("explorer")
-              -- updating the prefills without clearing the search and other fields
-              grug_far.update_instance_prefills("explorer", prefills, false)
-            end
-          end,
-          desc = "Oil: Search in directory",
-        },
-      },
-    },
-    -- Optional dependencies
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-      -- {
-      --   "SirZenith/oil-vcs-status",
-      --   config = function()
-      --     local status_const = require("oil-vcs-status.constant.status")
-      --     local StatusType = status_const.StatusType
-      --     require("oil-vcs-status").setup({
-      --       status_symbol = {
-      --         [StatusType.Added] = "",
-      --         [StatusType.Copied] = "󰆏",
-      --         [StatusType.Deleted] = "",
-      --         [StatusType.Ignored] = "",
-      --         [StatusType.Modified] = "",
-      --         [StatusType.Renamed] = "",
-      --         [StatusType.TypeChanged] = "󰉺",
-      --         [StatusType.Unmodified] = " ",
-      --         [StatusType.Unmerged] = "",
-      --         [StatusType.Untracked] = "",
-      --         [StatusType.External] = "",
-      --
-      --         [StatusType.UpstreamAdded] = "󰈞",
-      --         [StatusType.UpstreamCopied] = "󰈢",
-      --         [StatusType.UpstreamDeleted] = "",
-      --         [StatusType.UpstreamIgnored] = " ",
-      --         [StatusType.UpstreamModified] = "󰏫",
-      --         [StatusType.UpstreamRenamed] = "",
-      --         [StatusType.UpstreamTypeChanged] = "󱧶",
-      --         [StatusType.UpstreamUnmodified] = " ",
-      --         [StatusType.UpstreamUnmerged] = "",
-      --         [StatusType.UpstreamUntracked] = " ",
-      --         [StatusType.UpstreamExternal] = "",
-      --       },
-      --     })
-      --   end,
-      -- },
-    },
-  },
-  {
-    "benomahony/oil-git.nvim",
-    init = function()
-      vim.cmd([[
-        highlight OilGitAdded guifg=#00ff00
-        highlight OilGitModified guifg=#ffff00  
-        highlight OilGitRenamed guifg=#ff00ff
-        highlight OilGitUntracked guifg=#00ffff
-        highlight OilGitIgnored guifg=#808080
-      ]])
-    end,
-    opts = {
-      highlights = {
-        OilGitAdded = { fg = "#a6e3a1" }, -- green
-        OilGitModified = { fg = "#f9e2af" }, -- yellow
-        OilGitDeleted = { fg = "#f38ba8" }, -- red
-        OilGitRenamed = { fg = "#cba6f7" }, -- purple
-        OilGitUntracked = { fg = "#89b4fa" }, -- blue
-        OilGitIgnored = { fg = "#6c7086" }, -- gray
-      },
-    },
-    dependencies = { "stevearc/oil.nvim" },
-    -- No opts or config needed! Works automatically
-  },
+  -- Neo-tree: Tree-style file explorer
+  -- Keybinds: <C-n>, <leader>e
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+      "nvim-tree/nvim-web-devicons",
       "MunifTanjim/nui.nvim",
-      "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
       "antosha417/nvim-lsp-file-operations",
     },
     cmd = { "Neotree" },
     keys = {
-      { "<leader>e", "<cmd>Neotree toggle=true<CR>", mode = { "n", "v" }, desc = "[Neotree] File Manager Toggle" },
-      {
-        "<C-n>",
-        "<cmd>Neotree filesystem left reveal toggle<CR>",
-        mode = { "n", "v" },
-        desc = "[Neotree] File Manager Toggle",
-      },
+      { "<leader>e", "<cmd>Neotree toggle=true<CR>", mode = { "n", "v" }, desc = "Neo-tree Toggle" },
+      { "<C-n>", "<cmd>Neotree filesystem left reveal toggle<CR>", mode = { "n", "v" }, desc = "Neo-tree Toggle" },
     },
     init = function()
-      -- FIX: use `autocmd` for lazy-loading neo-tree instead of directly requiring it,
-      -- because `cwd` is not set up properly.
+      -- Lazy-load neo-tree when opening a directory
       autocmd("BufEnter", {
         desc = "Open Neo-Tree on startup with directory",
         group = augroup("neotree_start", { clear = true }),
@@ -370,16 +223,6 @@ return {
       })
     end,
     opts = function()
-      -- TODO move after neo-tree improves (https://github.com/nvim-neo-tree/neo-tree.nvim/issues/707)
-      -- local function on_move(data)
-      --     Snacks.rename.on_rename_file(data.source, data.destination)
-      -- end
-      -- local events = require("neo-tree.events")
-      -- opts.event_handlers = opts.event_handlers or {}
-      -- vim.list_extend(opts.event_handlers, {
-      --     { event = events.FILE_MOVED,   handler = on_move },
-      --     { event = events.FILE_RENAMED, handler = on_move },
-      -- })
       return {
         auto_clean_after_session_restore = true,
         popup_border_style = "rounded",
@@ -389,8 +232,8 @@ return {
           "git_status",
           "document_symbols",
         },
-        sort_case_insensitive = false, -- used when sorting files and directories in the tree
-        open_files_do_not_replace_types = { "terminal", "trouble", "qf", "NvimTree", "oil" }, -- when opening files, do not use windows containing these filetypes or buftypes
+        sort_case_insensitive = false,
+        open_files_do_not_replace_types = { "terminal", "trouble", "qf" },
         source_selector = {
           winbar = true,
           statusline = false,
@@ -405,7 +248,7 @@ return {
         },
         default_component_configs = {
           indent = {
-            with_expanders = true, -- if nil and file nesting is enabled, will enable expanders
+            with_expanders = true,
           },
           icon = {
             folder_closed = get_icon["folderM"],
@@ -438,28 +281,21 @@ return {
         },
         window = {
           width = 35,
-          position = "left", -- "float" | "left" | "top/bottom" | "current"
+          position = "left",
           auto_expand_width = true,
           mappings = {
-            ["<space>"] = false, -- disable space until we figure out which-key disabling
+            ["<space>"] = false,
             ["<"] = "prev_source",
             [">"] = "next_source",
-            ["o"] = {
-              "toggle_node",
-              nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
-            },
+            ["o"] = { "toggle_node", nowait = false },
             ["<A-r>"] = "run_command",
-            ["<C-h>"] = "open_split",
+            ["<C-x>"] = "open_split",
             ["<C-v>"] = "open_vsplit",
-            K = "show_file_details",
-            C = "parent_or_close",
-            -- ["S"] = "split_with_window_picker",
-            -- ["s"] = "vsplit_with_window_picker",
+            ["K"] = "show_file_details",
+            ["C"] = "parent_or_close",
             ["<C-t>"] = "open_tabnew",
-            -- ["<cr>"] = "open_drop",
-            -- ["t"] = "open_tab_drop",
-            ["<Tab>"] = { "open_or_preview", config = { use_float = true, use_image_nvim = true } },
-            ["<S-Tab>"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
+            ["<Tab>"] = { "open_or_preview", config = { use_float = true } },
+            ["<S-Tab>"] = { "toggle_preview", config = { use_float = true } },
             ["P"] = "focus_preview",
             ["R"] = "refresh",
             ["<C-o>"] = "system_open",
@@ -484,24 +320,19 @@ return {
             arrow_index = function(config, node, _)
               local arrow_filenames = vim.g.arrow_filenames
               local filepath = node:get_id()
-              -- local filename = node.name
               if arrow_filenames ~= nil then
-                for index, arrowname in ipairs(arrow_filenames) do
+                for _, arrowname in ipairs(arrow_filenames) do
                   if arrowname == filepath then
                     return {
-                      text = " 󱍻 ", -- string.format("%d ", index), -- <-- Add your favorite harpoon like arrow here
+                      text = " 󱍻 ",
                       highlight = config.highlight or "NeoTreeDirectoryIcon",
                     }
                   else
-                    return {
-                      text = "  ",
-                    }
+                    return { text = "  " }
                   end
                 end
               else
-                return {
-                  text = "  ",
-                }
+                return { text = "  " }
               end
             end,
           },
@@ -528,39 +359,24 @@ return {
               ["E"] = "easy",
               ["<CR>"] = "open_drop",
               ["<C-r>"] = "grug_far_replace",
-              -- h = "parent_or_close",
-              -- l = "child_or_open",
-              H = "toggle_hidden",
-              F = "clear_filter",
-              s = "fuzzy_sorter", -- fuzzy sorting using the fzy algorithm
-              Y = "copy_selector",
-              ["-"] = "go_parent_sibling",
-              a = {
-                "add",
-                config = {
-                  show_path = "relative", -- "none"
-                },
-              },
-              ["A"] = {
-                "add_directory", -- also accepts the optional config.show_path option like "add". this also supports BASH style brace expansion.
-                config = {
-                  show_path = "relative", -- "none"
-                },
-              },
-              d = false,
+              ["H"] = "toggle_hidden",
+              ["F"] = "clear_filter",
+              ["s"] = "fuzzy_sorter",
+              ["Y"] = "copy_selector",
+              ["gy"] = "copy_selector",
+              ["a"] = { "add", config = { show_path = "relative" } },
+              ["A"] = { "add_directory", config = { show_path = "relative" } },
+              ["d"] = false,
               ["dd"] = "trash",
               ["dv"] = "trash_visual",
               ["dD"] = "delete",
-              D = "diff_files",
+              ["D"] = "diff_files",
               -- Navigation with HJKL
-              -- https://github.com/nvim-neo-tree/neo-tree.nvim/wiki/Tips#navigation-with-hjkl
-              h = "close_node_or_go_parent",
-              l = "open_node_or_go_child",
-              -- h = "prev_sibling",
-              -- l = "next_sibling",
-              k = "go_first_sibling",
-              j = "go_last_sibling",
-              S = "fuzzy_finder",
+              ["h"] = "close_node_or_go_parent",
+              ["l"] = "open_node_or_go_child",
+              ["k"] = "go_first_sibling",
+              ["j"] = "go_last_sibling",
+              ["S"] = "fuzzy_finder",
               ["<C-s>"] = { "show_help", nowait = false, config = { title = "Order by", prefix_key = "<C-s>" } },
               ["<C-s>c"] = { "order_by_created", nowait = false },
               ["<C-s>d"] = { "order_by_diagnostics", nowait = false },
@@ -569,6 +385,7 @@ return {
               ["<C-s>n"] = { "order_by_name", nowait = false },
               ["<C-s>s"] = { "order_by_size", nowait = false },
               ["<C-s>t"] = { "order_by_type", nowait = false },
+              -- Disable default o-prefixed mappings
               ["oc"] = "noop",
               ["od"] = "noop",
               ["og"] = "noop",
@@ -585,15 +402,8 @@ return {
               {
                 "container",
                 content = {
-                  {
-                    "name",
-                    zindex = 10,
-                  },
-                  {
-                    "symlink_target",
-                    zindex = 10,
-                    highlight = "NeoTreeSymbolicLinkTarget",
-                  },
+                  { "name", zindex = 10 },
+                  { "symlink_target", zindex = 10, highlight = "NeoTreeSymbolicLinkTarget" },
                   { "clipboard", zindex = 10 },
                   { "bufnr", zindex = 10 },
                   { "modified", zindex = 20, align = "right" },
@@ -605,16 +415,15 @@ return {
                   { "created", zindex = 10, align = "right" },
                 },
               },
-              { "arrow_index" }, --> This is what actually adds the component in where you want it
+              { "arrow_index" },
             },
           },
         },
         buffers = {
-          terminals_first = false, -- when true, terminals will be listed before file buffers
+          terminals_first = false,
           window = {
             position = "right",
             mappings = {
-              -- ["dd"] = "buffer_delete",
               ["<C-s>"] = { "show_help", nowait = false, config = { title = "Order by", prefix_key = "<C-s>" } },
               ["<C-s>c"] = { "order_by_created", nowait = false },
               ["<C-s>d"] = { "order_by_diagnostics", nowait = false },

@@ -170,43 +170,8 @@ return {
         "b0o/schemastore.nvim",
         version = false,
       },
-      {
-        "rmagatti/goto-preview",
-        dependencies = { "rmagatti/logger.nvim" },
-        event = "BufEnter",
-        opts = {
-          width = 120,
-          height = 15,
-          border = "rounded",
-          opacity = nil,
-          resizing_mappings = false,
-          dismiss_on_move = true,
-          preview_window_title = { enable = true, position = "left" },
-          references = {
-            provider = "snacks",
-          },
-        },
-        keys = {
-          {
-            "gpd",
-            "<cmd>lua require('goto-preview').goto_preview_definition()<CR>",
-            desc = "Preview Definition(s)",
-            noremap = true,
-          },
-          {
-            "gpi",
-            "<cmd>lua require('goto-preview').goto_preview_implementation()<CR>",
-            desc = "Preview Implementation(s)",
-            noremap = true,
-          },
-          {
-            "gpr",
-            "<cmd>lua require('goto-preview').goto_preview_references()<CR>",
-            desc = "Preview Reference(s)",
-            noremap = true,
-          },
-        },
-      },
+      -- goto-preview removed - use Snacks picker with preview or Trouble instead
+      -- gpd/gpi/gpr keybinds now available for other uses
       {
         "lewis6991/hover.nvim",
         config = function()
@@ -234,36 +199,8 @@ return {
           { "gK", "<cmd>lua require('hover').enter()<cr>", desc = "[hover.nvim] Enter" },
         },
       },
-      {
-        "VidocqH/lsp-lens.nvim",
-        event = "BufReadPost",
-        config = function()
-          local SymbolKind = vim.lsp.protocol.SymbolKind
-          require("lsp-lens").setup({
-            enable = true,
-            include_declaration = true,
-            sections = {
-              definition = function(count)
-                return "D: " .. count
-              end,
-              references = function(count)
-                return "R: " .. count
-              end,
-              implements = function(count)
-                return "I: " .. count
-              end,
-              git_authors = false,
-            },
-            target_symbol_kinds = {
-              SymbolKind.Function,
-              SymbolKind.Method,
-              SymbolKind.Interface,
-              SymbolKind.Class,
-              SymbolKind.Struct,
-            },
-          })
-        end,
-      },
+      -- lsp-lens removed - constant LSP requests are expensive
+      -- Use :Trouble lsp_references or gR for reference counts on demand
     },
     config = function()
       local api = vim.api

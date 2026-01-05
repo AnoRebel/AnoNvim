@@ -161,19 +161,23 @@ return {
       })
     end,
     opts = {
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      -- refer to the configuration section below
-      animate = { enabled = true },
+      -- Performance: disable snacks.animate (using mini.animate instead)
+      animate = { enabled = false },
       bigfile = { enabled = true },
       bufdelete = { enabled = true },
       dim = { enabled = true },
       git = { enabled = true },
-      image = { enabled = true },
+      -- image.nvim is used separately, disable snacks image
+      image = { enabled = false },
       indent = { enabled = false },
       input = { enabled = true },
       lazygit = { enabled = true },
-      notifier = { enabled = true, timeout = 3500 },
+      -- Use snacks.notifier as primary notification system
+      notifier = {
+        enabled = true,
+        timeout = 3500,
+        style = "compact",
+      },
       rename = { enabled = true },
       toggle = { enabled = true },
       picker = {
