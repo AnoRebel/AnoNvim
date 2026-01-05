@@ -188,6 +188,19 @@ return {
           },
           view = "mini",
         },
+        -- Filter out LSP progress errors from servers with invalid tokens
+        {
+          filter = {
+            event = "lsp",
+            kind = "progress",
+            cond = function(message)
+              local client = vim.lsp.get_client_by_id(message.opts.progress and message.opts.progress.client_id)
+              -- Skip progress messages from Roslyn and other problematic servers
+              return client and (client.name == "roslyn" or client.name == "omnisharp")
+            end,
+          },
+          opts = { skip = true },
+        },
       },
     },
   },
