@@ -402,17 +402,33 @@ return {
       {
         "<leader>q",
         function()
+          -- Disable satellite temporarily to prevent E565 errors during buffer delete
+          pcall(function()
+            require("satellite.view").disable()
+          end)
           Snacks.bufdelete()
+          vim.defer_fn(function()
+            pcall(function()
+              require("satellite.view").enable()
+            end)
+          end, 100)
         end,
-        desc = " Close Buffer",
+        desc = "Close Buffer",
       },
-      -- { "<leader>Q", function() Snacks.bufdelete.other() end, desc = " Close All Except Buffer" },
       {
         "<leader>Q",
         function()
+          pcall(function()
+            require("satellite.view").disable()
+          end)
           Snacks.bufdelete.all()
+          vim.defer_fn(function()
+            pcall(function()
+              require("satellite.view").enable()
+            end)
+          end, 100)
         end,
-        desc = " Close All",
+        desc = "Close All Buffers",
       },
       {
         "<leader>nf",

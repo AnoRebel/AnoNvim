@@ -497,8 +497,36 @@ return {
     "lewis6991/satellite.nvim",
     event = "BufReadPost",
     opts = {
-      excluded_filetypes = { "neo-tree" },
+      excluded_filetypes = { "neo-tree", "alpha", "dashboard", "oil", "trouble", "Outline" },
+      -- Handlers configuration to avoid conflicts during buffer operations
+      handlers = {
+        gitsigns = {
+          enable = true,
+        },
+      },
     },
+    config = function(_, opts)
+      require("satellite").setup(opts)
+      -- Disable satellite temporarily during buffer delete to prevent E565 errors
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "BDeletePre",
+        callback = function()
+          pcall(function()
+            require("satellite.view").disable()
+          end)
+        end,
+      })
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "BDeletePost",
+        callback = function()
+          vim.defer_fn(function()
+            pcall(function()
+              require("satellite.view").enable()
+            end)
+          end, 100)
+        end,
+      })
+    end,
   },
   {
     "hedyhli/outline.nvim",
