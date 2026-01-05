@@ -106,7 +106,9 @@ return {
       {
         "dmmulroy/ts-error-translator.nvim",
         opts = {
-          auto_override_publish_diagnostics = true,
+          -- auto_override_publish_diagnostics is deprecated, use auto_attach
+          auto_attach = true,
+          servers = { "vtsls", "ts_ls", "tsserver", "volar", "vue_ls", "svelte", "astro", "deno" },
         },
       },
       {

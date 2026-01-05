@@ -21,21 +21,10 @@ function M.setup()
     border = "rounded",
   })
 
-  -- Diagnostics handler with TypeScript error translation
+  -- Diagnostics handler with filtering for noisy servers
+  -- Note: ts-error-translator now uses auto_attach for translation (configured in lsp.lua)
   lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
-    local ts_lsp = { "deno", "vtsls", "volar", "vue_ls", "svelte", "astro" }
-    local clients = lsp.get_clients({ id = ctx.client_id })
-
-    if #clients > 0 and vim.tbl_contains(ts_lsp, clients[1].name) then
-      -- Filter to only show errors for TypeScript servers to reduce noise
-      local filtered_result = {
-        diagnostics = vim.tbl_filter(function(d)
-          return d.severity == 1
-        end, result.diagnostics),
-      }
-      require("ts-error-translator").translate_diagnostics(err, filtered_result, ctx, config)
-    end
-
+    -- Just use the default handler - ts-error-translator handles translation via auto_attach
     vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
   end
 end
