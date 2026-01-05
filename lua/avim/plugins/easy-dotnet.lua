@@ -104,17 +104,14 @@ return {
         end,
       })
     end,
-    dependencies = {
-      {
-        -- By loading as a dependencies, we ensure that we are available to set
-        -- the handlers for Roslyn.
-        "tris203/rzls.nvim",
-        config = true,
-      },
-    },
+    -- rzls.nvim is deprecated - Razor/CSHTML support is now built into roslyn.nvim
+    -- via cohosting. See: https://github.com/tris203/rzls.nvim
     ---@module 'roslyn.config'
     ---@type RoslynNvimConfig
-    opts = {},
+    opts = {
+      -- Enable Razor/CSHTML cohosting (replacement for rzls.nvim)
+      filewatching = true,
+    },
   },
   {
     "GustavEikaas/easy-dotnet.nvim",

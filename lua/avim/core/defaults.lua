@@ -59,7 +59,7 @@ M.packages = {
   "prettierd",
   "revive",
   "roslyn",
-  "rzls",
+  -- "rzls", -- Deprecated: Razor support now in roslyn.nvim via cohosting
   "shellcheck",
   "shfmt",
   "stylua",

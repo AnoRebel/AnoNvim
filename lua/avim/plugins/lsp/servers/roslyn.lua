@@ -2,8 +2,6 @@
 ---@field setup fun(opts: table): table
 local M = {}
 
-local utilities = require("avim.utilities")
-
 ---Get Roslyn server configuration
 ---@param opts table
 ---@return table
@@ -11,32 +9,19 @@ function M.setup(opts)
   local on_attach = opts.on_attach
   local capabilities = opts.capabilities
 
+  -- rzls.nvim is deprecated - Razor/CSHTML support is now built into roslyn.nvim
+  -- via cohosting. The roslyn.nvim plugin handles all configuration automatically.
+  -- See: https://github.com/tris203/rzls.nvim
   return {
     cmd = {
       "roslyn",
       "--stdio",
       "--logLevel=Information",
       "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
-      "--razorSourceGenerator=" .. vim.fs.joinpath(
-        utilities.lsp.get_pkg_path("rzls", "libexec"),
-        "Microsoft.CodeAnalysis.Razor.Compiler.dll"
-      ),
-      "--razorDesignTimePath=" .. vim.fs.joinpath(
-        utilities.lsp.get_pkg_path("rzls", "libexec"),
-        "Targets",
-        "Microsoft.NET.Sdk.Razor.DesignTime.targets"
-      ),
-      "--extension",
-      vim.fs.joinpath(
-        utilities.lsp.get_pkg_path("rzls", "libexec"),
-        "RazorExtension",
-        "Microsoft.VisualStudioCode.RazorExtension.dll"
-      ),
     },
-    handlers = require("rzls.roslyn_handlers"),
     on_attach = on_attach,
     capabilities = capabilities,
-    filetypes = { "cs", "razor" },
+    filetypes = { "cs", "razor", "cshtml" },
     root_markers = { ".sln", ".csproj", ".fsproj" },
     settings = {
       -- Memory optimized settings
