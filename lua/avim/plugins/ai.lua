@@ -34,111 +34,88 @@ return {
     },
     cmd = { "CodeCompanion", "CodeCompanionCmd", "CodeCompanionChat", "CodeCompanionActions" },
     opts = {
+      -- ACP Adapters (Agent Client Protocol) for coding agents
       adapters = {
-        opts = {
-          show_defaults = false,
-          show_model_choices = true,
+        acp = {
+          opts = {
+            show_presets = false,
+          },
+          -- Claude Code - via OAuth or API key
+          claude_code = function()
+            return require("codecompanion.adapters").extend("claude_code", {
+              env = {
+                -- Uses CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY from environment
+                CLAUDE_CODE_OAUTH_TOKEN = "cmd:cat " .. _G.get_config_dir() .. "/claude.key",
+                -- ANTHROPIC_API_KEY = "cmd:cat " .. _G.get_config_dir() .. "/anthropic.key",
+              },
+            })
+          end,
+          -- Gemini CLI - via OAuth or API key
+          gemini_cli = function()
+            return require("codecompanion.adapters").extend("gemini_cli", {
+              defaults = {
+                auth_method = "gemini-api-key", -- or "oauth-personal", "vertex-ai"
+              },
+              env = {
+                GEMINI_API_KEY = "cmd:cat " .. _G.get_config_dir() .. "/google.key",
+              },
+            })
+          end,
+          -- Codex (OpenAI) - via API key or ChatGPT auth
+          codex = function()
+            return require("codecompanion.adapters").extend("codex", {
+              defaults = {
+                auth_method = "chatgpt", -- or "codex-api-key", "openai-api-key"
+              },
+              env = {
+                OPENAI_API_KEY = "cmd:cat " .. _G.get_config_dir() .. "/openai.key",
+              },
+            })
+          end,
+          -- OpenCode - configure default model in ~/.config/opencode/config.json
+          opencode = function()
+            return require("codecompanion.adapters").extend("opencode", {})
+          end,
         },
-        anthropic = function()
-          return require("codecompanion.adapters").extend("anthropic", {
-            env = {
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/anthropic.key")[1],
-            },
-            schema = {
-              model = {
-                default = "claude-4-sonnet",
+        -- HTTP Adapters for traditional API access
+        http = {
+          opts = {
+            show_presets = false,
+          },
+          gemini = function()
+            return require("codecompanion.adapters").extend("gemini", {
+              env = {
+                api_key = "cmd:cat " .. _G.get_config_dir() .. "/google.key",
               },
-            },
-          })
-        end,
-        gemini = function()
-          return require("codecompanion.adapters").extend("gemini", {
-            env = {
-              -- model = "gemini-2.0-flash",
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/google.key")[1],
-            },
-            schema = {
-              model = {
-                default = "gemini-2.5-pro-exp-03-25",
+              schema = {
+                model = {
+                  default = "gemini-3-pro-preview",
+                },
               },
-            },
-          })
-        end,
-        groq = function()
-          return require("codecompanion.adapters").extend("openai_compatible", {
-            name = "groq",
-            formatted_name = "Groq",
-            env = {
-              url = "https://api.groq.com/openai", -- "/v1"
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/groq.key")[1],
-            },
-            schema = {
-              model = {
-                default = "deepseek-r1-distill-llama-70b",
+            })
+          end,
+          ollama = function()
+            return require("codecompanion.adapters").extend("ollama", {
+              env = {
+                url = "https://ollama.anorebel.net",
+                -- url = "http://82.208.23.25:11434",
+                -- api_key = "OLLAMA_API_KEY",
               },
-            },
-          })
-        end,
-        openrouter = function()
-          return require("codecompanion.adapters").extend("openai_compatible", {
-            name = "openrouter",
-            formatted_name = "OpenRouter",
-            env = {
-              url = "https://openrouter.ai/api/v1",
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/openrouter.key")[1],
-            },
-            schema = {
-              model = {
-                default = "moonshotai/kimi-k2-instruct",
-              },
-            },
-          })
-        end,
-        ollama = function()
-          return require("codecompanion.adapters").extend("ollama", {
-            env = {
-              url = "http://82.208.23.25:11434",
-              -- api_key = "OLLAMA_API_KEY",
-            },
-            --[[ headers = {
+              --[[ headers = {
           ["Content-Type"] = "application/json",
           ["Authorization"] = "Bearer ${api_key}",
         }, ]]
-            parameters = {
-              sync = true,
-            },
-          })
-        end,
-        githubmodels = function()
-          return require("codecompanion.adapters").extend("githubmodels", {
-            formatted_name = "Github Models",
-            env = {
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/github.key")[1],
-            },
-            schema = {
-              model = {
-                default = "DeepSeek-R1",
+              parameters = {
+                sync = true,
               },
-            },
-          })
-        end,
-        huggingface = function()
-          return require("codecompanion.adapters").extend("huggingface", {
-            env = {
-              api_key = vim.fn.readfile(_G.get_config_dir() .. "/huggingface.key")[1],
-            },
-            schema = {
-              model = {
-                default = "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-                -- default = "moonshotai/Kimi-K2-Instruct",
-              },
-            },
-          })
-        end,
+            })
+          end,
+        },
       },
-      strategies = {
+      -- Interactions (formerly "strategies" in v17)
+      interactions = {
         chat = {
-          adapter = "gemini",
+          adapter = "claude_code",
           roles = {
             ---@type string|fun(adapter: CodeCompanion.Adapter): string
             llm = function(adapter)
@@ -146,13 +123,14 @@ return {
             end,
             user = "AnoNvim",
           },
+          opts = {
+            -- System prompt for chat interactions
+            system_prompt = [[You are a highly skilled AI programming assistant integrated into AnoNvim.
+You help write, review, and debug code with precision and clarity.
+When providing code, be concise and explain your reasoning.
+Follow best practices and the user's coding style when apparent.]],
+          },
           slash_commands = {
-            --[[ codebase = {
-              description = "run VectorCode to retrieve the project context.",
-              callback = function()
-                return require("vectorcode.integrations").codecompanion.chat.make_slash_command()
-              end,
-            }, ]]
             ["git_files"] = {
               description = "List git files",
               ---@param chat CodeCompanion.Chat
@@ -173,36 +151,84 @@ return {
           },
         },
         inline = {
-          adapter = "githubmodels",
+          adapter = "claude_code",
         },
-        agent = { adapter = "groq" },
+        cmd = {
+          adapter = "opencode",
+        },
       },
+      -- Rules for persistent context (replaces workspaces)
+      rules = {
+        default = {
+          description = "Common rule files for all projects",
+          files = {
+            ".clinerules",
+            ".cursorrules",
+            ".goosehints",
+            ".rules",
+            "CLAUDE.md",
+            "CLAUDE.local.md",
+            "~/.claude/CLAUDE.md",
+          },
+          is_preset = true,
+        },
+        opts = {
+          chat = {
+            enabled = true,
+            autoload = "default",
+          },
+        },
+      },
+      -- Display settings
       display = {
         diff = {
           provider = "mini_diff",
         },
+        action_palette = {
+          opts = {
+            show_preset_actions = true,
+          },
+        },
+        chat = {
+          floating_window = {
+            border = "rounded",
+          },
+        },
       },
+      -- Prompt Library - load from markdown files for clarity
+      prompt_library = {
+        -- Show preset prompts in action palette
+        show_preset_prompts = true,
+        -- Load custom prompts from markdown files
+        markdown = {
+          dirs = {
+            -- AnoNvim prompts directory
+            vim.fn.stdpath("config") .. "/prompts",
+            -- Project-local prompts
+            vim.fn.getcwd() .. "/.prompts",
+          },
+        },
+      },
+      -- Tools configuration (for HTTP adapters only - ACP adapters have their own)
+      tools = {
+        opts = {
+          require_approval_before = true,
+          require_confirmation_after = false,
+        },
+      },
+      -- Extensions
       extensions = {
         history = {
           enabled = true,
           opts = {
-            -- Keymap to open history from chat buffer (default: gh)
             keymap = "gh",
-            -- Automatically generate titles for new chats
             auto_generate_title = true,
-            ---On exiting and entering neovim, loads the last chat on opening chat
             continue_last_chat = false,
-            ---When chat is cleared with `gx` delete the chat from history
             delete_on_clearing_chat = false,
-            -- Picker interface ("telescope" or "snacks" or "default")
             picker = "snacks",
-            ---Enable detailed logging for history extension
             enable_logging = false,
-            ---Directory path to save the chats
             dir_to_save = _G.get_runtime_dir() .. "/codecompanion-history",
-            -- Save all chats by default
             auto_save = true,
-            -- Keymap to save the current chat manually
             save_chat_keymap = "sc",
           },
         },
@@ -222,12 +248,31 @@ return {
       },
     },
     keys = {
-      { "<leader>ai", "<cmd>CodeCompanion<CR>", mode = { "n", "v" }, desc = " CodeCompanion" },
-      { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = " CodeCompanion Chat" },
-      { "<leader>af", "<cmd>CodeCompanionActions<CR>", mode = { "n", "v" }, desc = " CodeCompanion Actions" },
-      { "<leader>ad", "<cmd>CodeCompanionCmd<CR>", mode = { "n", "v" }, desc = " CodeCompanion Command" },
-      { "<leader>ah", "<cmd>CodeCompanionHistory<CR>", mode = { "n", "v" }, desc = " CodeCompanion History" },
-      { "<leader>ae", "<cmd>MCPHub<CR>", mode = { "n", "v" }, desc = " MCP Hub" },
+      { "<leader>ai", "<cmd>CodeCompanion<CR>", mode = { "n", "v" }, desc = " CodeCompanion" },
+      { "<leader>ac", "<cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = " CodeCompanion Chat" },
+      { "<leader>af", "<cmd>CodeCompanionActions<CR>", mode = { "n", "v" }, desc = " CodeCompanion Actions" },
+      { "<leader>ad", "<cmd>CodeCompanionCmd<CR>", mode = { "n", "v" }, desc = " CodeCompanion Command" },
+      { "<leader>ah", "<cmd>CodeCompanionHistory<CR>", mode = { "n", "v" }, desc = " CodeCompanion History" },
+      { "<leader>ae", "<cmd>MCPHub<CR>", mode = { "n", "v" }, desc = " MCP Hub" },
+      -- Quick adapter switching
+      { "<leader>aa", "<cmd>CodeCompanionChat adapter=anthropic<CR>", mode = { "n", "v" }, desc = " Chat (Anthropic)" },
+      { "<leader>ag", "<cmd>CodeCompanionChat adapter=gemini<CR>", mode = { "n", "v" }, desc = " Chat (Gemini)" },
+      { "<leader>ao", "<cmd>CodeCompanionChat adapter=ollama<CR>", mode = { "n", "v" }, desc = " Chat (Ollama)" },
+      -- ACP agents
+      {
+        "<leader>aA",
+        "<cmd>CodeCompanionChat adapter=claude_code<CR>",
+        mode = { "n", "v" },
+        desc = " Chat (Claude Code)",
+      },
+      {
+        "<leader>aG",
+        "<cmd>CodeCompanionChat adapter=gemini_cli<CR>",
+        mode = { "n", "v" },
+        desc = " Chat (Gemini CLI)",
+      },
+      { "<leader>aX", "<cmd>CodeCompanionChat adapter=codex<CR>", mode = { "n", "v" }, desc = " Chat (Codex)" },
+      { "<leader>aO", "<cmd>CodeCompanionChat adapter=opencode<CR>", mode = { "n", "v" }, desc = " Chat (OpenCode)" },
     },
   },
   {
@@ -238,17 +283,14 @@ return {
     "ravitemer/mcphub.nvim",
     cmd = { "MCPHub" },
     dependencies = {
-      "nvim-lua/plenary.nvim", -- Required for Job and HTTP requests
+      "nvim-lua/plenary.nvim",
     },
-    build = "npm install -g mcp-hub@latest", -- Installs required mcp-hub npm module
+    build = "npm install -g mcp-hub@latest",
     config = function()
       require("mcphub").setup({
-        -- Required options
         config = _G.get_config_dir() .. "/mcpservers.json",
-        auto_toggle_mcp_servers = true, -- Let LLMs start and stop MCP servers automatically
-
-        -- Optional options
-        shutdown_delay = 0, -- Wait 0ms before shutting down server after last client exits
+        auto_toggle_mcp_servers = true,
+        shutdown_delay = 0,
         log = {
           level = vim.log.levels.WARN,
           to_file = true,
@@ -264,7 +306,7 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     build = "pipx upgrade vectorcode",
     opts = {
-      n_query = 1, -- 3,
+      n_query = 1,
       async_opts = {
         notify = true,
       },
