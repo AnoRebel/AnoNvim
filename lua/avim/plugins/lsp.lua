@@ -145,6 +145,14 @@ return {
       {
         "kevinhwang91/nvim-ufo",
         dependencies = { "kevinhwang91/promise-async" },
+        event = "BufReadPost",
+        init = function()
+          -- Set fold options before ufo loads to prevent race conditions
+          vim.o.foldcolumn = "1"
+          vim.o.foldlevel = 99
+          vim.o.foldlevelstart = 99
+          vim.o.foldenable = true
+        end,
       },
       {
         "folke/lazydev.nvim",
@@ -475,24 +483,41 @@ return {
           json = { "array" },
           c = { "comment", "region" },
         },
+        preview = {
+          win_config = {
+            border = "rounded",
+            winhighlight = "Normal:Normal",
+            winblend = 0,
+          },
+        },
+        enable_get_fold_virt_text = true,
         provider_selector = function(bufnr, filetype, buftype)
+          -- Return empty string for special buffers to disable folding
+          if buftype ~= "" or filetype == "" then
+            return ""
+          end
           return ftMap[filetype] or { "lsp", "indent" }
         end,
         fold_virt_text_handler = require("avim.utilities").fold_handler,
       })
 
-      -- Prevent UFO from closing all folds on buffer enter
-      vim.api.nvim_create_autocmd("BufReadPost", {
+      -- Prevent UFO errors and preserve folds on buffer enter
+      vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("ufo_preserve_folds", { clear = true }),
         callback = function(event)
-          -- Set fold level to a high value to keep folds open by default
-          vim.schedule(function()
-            if vim.bo[event.buf].filetype ~= "" and vim.bo[event.buf].buftype == "" then
-              pcall(function()
-                require("ufo").openAllFolds()
-              end)
+          -- Skip special buffers
+          if vim.bo[event.buf].buftype ~= "" then
+            return
+          end
+          -- Delay fold operations to ensure buffer is fully loaded
+          vim.defer_fn(function()
+            if not vim.api.nvim_buf_is_valid(event.buf) then
+              return
             end
-          end)
+            pcall(function()
+              require("ufo").openAllFolds()
+            end)
+          end, 100)
         end,
       })
 
