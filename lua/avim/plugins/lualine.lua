@@ -408,13 +408,13 @@ return {
           on_click = function(clicks, button, modifiers)
             if "l" == button then
               if vim.g.persisting then
-                vim.cmd("SessionLoad")
+                vim.cmd("Persisted load")
               else
-                vim.cmd("SessionSelect")
+                vim.cmd("Persisted select")
               end
             end
             if "r" == button then
-              vim.cmd("SessionSelect")
+              vim.cmd("Persisted select")
             end
           end,
         },

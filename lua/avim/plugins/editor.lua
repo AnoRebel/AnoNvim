@@ -453,7 +453,7 @@ return {
       end,
     },
     keys = {
-      { "<A-h>", "<cmd>SessionSelect<cr>", mode = { "n", "v" }, desc = "List Session" },
+      { "<A-h>", "<cmd>Persisted select<cr>", mode = { "n", "v" }, desc = "List Session" },
     },
   },
   {
