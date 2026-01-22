@@ -259,69 +259,84 @@ return {
     },
   },
   {
-    "ssstba/ecolog.nvim",
+    "ph1losof/ecolog.nvim",
     branch = "beta",
+    lazy = false,
+    -- config = function()
+    --   require("ecolog").setup()
+    -- end,
+    dependencies = { "ph1losof/shelter.nvim" },
+    init = function()
+      local ecolog = require("ecolog")
+      local shelter = require("shelter")
+
+      -- Mask values in variable list and pickers
+      ecolog.hooks().register("on_variables_list", function(vars)
+        for _, var in ipairs(vars) do
+          var.value = shelter.mask(var.value)
+        end
+        return vars
+      end, { priority = 200 })
+
+      -- Mask values in hover
+      ecolog.hooks().register("on_variable_hover", function(var)
+        var.value = shelter.mask(var.value)
+        return var
+      end, { priority = 200 })
+
+      -- Unmask values on peek/copy
+      ecolog.hooks().register("on_variable_peek", function(var)
+        var.value = shelter.reveal(var.value)
+        return var
+      end, { priority = 200 })
+
+      -- Transform picker entries
+      ecolog.hooks().register("on_picker_entry", function(entry)
+        entry.display_value = shelter.mask(entry.value)
+        return entry
+      end, { priority = 200 })
+    end,
     keys = {
-      { "<leader>ge", "<cmd>EcologGoto<cr>", desc = "Go to env file" },
-      { "<leader>gpe", "<cmd>EcologPeek<cr>", desc = "Ecolog peek variable" },
-      { "<leader>gps", "<cmd>EcologSelect<cr>", desc = "Switch env file" },
-      { "<leader>gpc", "<cmd>EcologCopy<cr>", desc = "Copy var to clipboard" },
-      { "<leader>gpl", "<cmd>EcologShelterLinePeek<cr>", desc = "Ecolog Line Peek" },
-      { "<leader>gpo", "<cmd>EcologShelterToggle<cr>", desc = "Ecolog Toggle" },
+      { "<leader>cel", "<cmd>Ecolog list<cr>", desc = "Open variable picker" },
+      -- { "<leader>cee", "<cmd>Ecolog files select<cr>", desc = "Open file picker to select active env file(s)" },
+      { "<leader>cey", "<cmd>Ecolog copy value<cr>", desc = "Copy variable value at cursor" },
+      { "<leader>cef", "<cmd>Ecolog files<cr>", desc = "Toggle File source" },
+      { "<leader>ces", "<cmd>Ecolog shell<cr>", desc = "Toggle Shell source" },
+      { "<leader>cei", "<cmd>Ecolog interpolation<cr>", desc = "Toggle interpolation" },
+      { "<leader>ceo", "<cmd>Ecolog remote<cr>", desc = "Toggle Remote source" },
+      { "<leader>cer", "<cmd>Ecolog refresh<cr>", desc = "Restart LSP and reload env files" },
     },
     -- Lazy loading is done internally
     lazy = false,
     opts = {
-      integrations = {
-        -- WARNING: for both cmp integrations see readme section below
-        nvim_cmp = true, -- If you dont plan to use nvim_cmp set to false, enabled by default
-        -- If you are planning to use blink cmp uncomment this line
-        blink_cmp = true,
-        -- omnifunc = false,  -- Enable omnifunc integration with automatic setup (default)
-        -- Or with configuration options:
-        -- omnifunc = {
-        -- auto_setup = false,  -- Disable automatic setup, allowing manual configuration
-        -- },
-        lsp = false,
-        statusline = {
-          hidden_mode = true,
-        },
-        snacks = true,
+      statusline = {
+        -- Hide statusline when no env file is active
+        hidden_mode = false,
       },
-      -- Enables shelter mode for sensitive values
-      shelter = {
-        configuration = {
-          -- Partial mode configuration:
-          -- false: completely mask values (default)
-          -- true: use default partial masking settings
-          -- table: customize partial masking
-          -- partial_mode = false,
-          -- or with custom settings:
-          partial_mode = {
-            show_start = 3, -- Show first 3 characters
-            show_end = 3, -- Show last 3 characters
-            min_mask = 3, -- Minimum masked characters
-          },
-          mask_char = "*", -- Character used for masking
+    },
+  },
+  {
+    "ph1losof/shelter.nvim",
+    lazy = false,
+    -- build = ":ShelterBuild",
+    -- config = function()
+    --   require("shelter").setup({})
+    -- end,
+    keys = {
+      { "<leader>csf", "<cmd>:Shelter toggle files<CR>", desc = "Toggle file masking on/off" },
+      { "<leader>csp", "<cmd>:Shelter peek<CR>", desc = "Reveal current line temporarily" },
+      { "<leader>csi", "<cmd>:Shelter info<CR>", desc = "Show status and modes" },
+    },
+    opts = {
+      default_mode = "partial",
+      -- Module toggles
+      modules = {
+        files = {
+          shelter_on_leave = true,
+          -- disable_cmp = true,
         },
-        modules = {
-          cmp = true, -- Mask values in completion
-          peek = false, -- Mask values in peek view
-          files = true,
-          telescope = true, -- Mask values in telescope integration
-          telescope_previewer = false, -- Mask values in telescope preview buffers
-          fzf = false, -- Mask values in fzf picker
-          fzf_previewer = false, -- Mask values in fzf preview buffers
-          snacks = true,
-          snacks_previewer = false,
-        },
+        -- snacks_previewer = false,
       },
-      -- true by default, enables built-in types (database_url, url, etc.)
-      types = true,
-      path = vim.fn.getcwd(), -- Path to search for .env files
-      preferred_environment = "development", -- Optional: prioritize specific env files
-      -- Controls how environment variables are extracted from code and how cmp works
-      provider_patterns = true, -- true by default, when false will not check provider patterns
     },
   },
   {
