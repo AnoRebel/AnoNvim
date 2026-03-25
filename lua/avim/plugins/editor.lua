@@ -105,8 +105,18 @@ utilities.map("v", ">", ">gv", { desc = "Indent Forward" })
 utilities.map("v", "p", "p<cmd>let @+=@0<CR>", { desc = "Paste" })
 -- utilities.map("v", "<Tab>", ">gv", { desc = "Tab Forward" })
 -- utilities.map("v", "<S-Tab>", "<gv", { desc = "Tab Backwards" })
-utilities.map({ "i", "n", "x", "s" }, "<C-s>", "<CMD>w<CR><esc>", { nowait = false, silent = false, desc = "Save File" })
-utilities.map({ "i", "n", "x", "v" }, "<C-S-w>", "<cmd>wa<CR><esc>", { nowait = false, silent = false, desc = "Save All" })
+utilities.map(
+  { "i", "n", "x", "s" },
+  "<C-s>",
+  "<CMD>w<CR><esc>",
+  { nowait = false, silent = false, desc = "Save File" }
+)
+utilities.map(
+  { "i", "n", "x", "v" },
+  "<C-S-w>",
+  "<cmd>wa<CR><esc>",
+  { nowait = false, silent = false, desc = "Save All" }
+)
 utilities.map({ "i", "n", "s" }, "<esc>", function()
   vim.cmd.nohlsearch() -- clear highlights
   --vim.cmd.echo()       -- clear short-message
@@ -259,43 +269,12 @@ return {
     },
   },
   {
-    "ph1losof/ecolog.nvim",
-    branch = "beta",
-    lazy = false,
-    -- config = function()
-    --   require("ecolog").setup()
-    -- end,
-    dependencies = { "ph1losof/shelter.nvim" },
-    init = function()
-      local ecolog = require("ecolog")
-      local shelter = require("shelter")
-
-      -- Mask values in variable list and pickers
-      ecolog.hooks().register("on_variables_list", function(vars)
-        for _, var in ipairs(vars) do
-          var.value = shelter.mask(var.value)
-        end
-        return vars
-      end, { priority = 200 })
-
-      -- Mask values in hover
-      ecolog.hooks().register("on_variable_hover", function(var)
-        var.value = shelter.mask(var.value)
-        return var
-      end, { priority = 200 })
-
-      -- Unmask values on peek/copy
-      ecolog.hooks().register("on_variable_peek", function(var)
-        var.value = shelter.reveal(var.value)
-        return var
-      end, { priority = 200 })
-
-      -- Transform picker entries
-      ecolog.hooks().register("on_picker_entry", function(entry)
-        entry.display_value = shelter.mask(entry.value)
-        return entry
-      end, { priority = 200 })
+    "ph1losof/ecolog2.nvim",
+    build = "cargo install ecolog-lsp",
+    config = function()
+      require("ecolog").setup()
     end,
+    dependencies = { "ph1losof/shelter.nvim" },
     keys = {
       { "<leader>cel", "<cmd>Ecolog list<cr>", desc = "Open variable picker" },
       -- { "<leader>cee", "<cmd>Ecolog files select<cr>", desc = "Open file picker to select active env file(s)" },
@@ -318,10 +297,10 @@ return {
   {
     "ph1losof/shelter.nvim",
     lazy = false,
-    -- build = ":ShelterBuild",
-    -- config = function()
-    --   require("shelter").setup({})
-    -- end,
+    build = ":ShelterBuild",
+    config = function()
+      require("shelter").setup({})
+    end,
     keys = {
       { "<leader>csf", "<cmd>:Shelter toggle files<CR>", desc = "Toggle file masking on/off" },
       { "<leader>csp", "<cmd>:Shelter peek<CR>", desc = "Reveal current line temporarily" },
@@ -329,13 +308,17 @@ return {
     },
     opts = {
       default_mode = "partial",
-      -- Module toggles
+
       modules = {
-        files = {
-          shelter_on_leave = true,
-          -- disable_cmp = true,
+        -- ecolog = true, -- Enable all contexts
+        -- Or with fine-grained control:
+        ecolog = {
+          cmp = true, -- Mask in completion
+          peek = true, -- Show real value on hover
+          picker = true, -- Show real value in picker
         },
-        -- snacks_previewer = false,
+        files = true,
+        snacks_previewer = false,
       },
     },
   },
