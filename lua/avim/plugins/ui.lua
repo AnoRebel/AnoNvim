@@ -246,12 +246,7 @@ return {
       -- │ Heading Info                                             │
       -- ╰──────────────────────────────────────────────────────────╯
 
-      local thingy = io.popen('echo "$(date +%a) $(date +%d) $(date +%b)" | tr -d "\n"')
-      if thingy == nil then
-        return
-      end
-      local date = thingy:read("*a")
-      thingy:close()
+      local date = os.date("%a %d %b")
 
       local datetime = os.date(" %H:%M")
 

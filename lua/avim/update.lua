@@ -96,16 +96,8 @@ local function get_changes(current, latest)
   local base_dir = _G.get_avim_base_dir and _G.get_avim_base_dir() or utilities.get_runtime_dir()
   local cmd = string.format("git -C %s log --pretty=format:'%%h %%s' %s..%s", base_dir, current, latest)
 
-  local handle = io.popen(cmd)
-  if not handle then
-    Log:warn("Failed to get changes")
-    return {}
-  end
-
-  local output = handle:read("*a")
-  handle:close()
-
-  if vim.trim(output) == "" then
+  local output = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 or vim.trim(output) == "" then
     return {}
   end
 
@@ -161,15 +153,11 @@ end
 function M.get_current_version()
   local base_dir = _G.get_avim_base_dir and _G.get_avim_base_dir() or utilities.get_runtime_dir()
   local cmd = string.format("git -C %s rev-parse --short HEAD", base_dir)
-  local handle = io.popen(cmd)
-  if not handle then
+  local output = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
     Log:warn("Failed to get current version")
     return "unknown"
   end
-
-  local output = handle:read("*a")
-  handle:close()
-
   return vim.trim(output)
 end
 
@@ -179,15 +167,11 @@ end
 function M.get_latest_version(branch)
   branch = branch or DEFAULT_BRANCH
   local cmd = string.format("git ls-remote %s %s", REPO_URL, branch)
-
-  local handle = io.popen(cmd)
-  if not handle then
+  local output = vim.fn.system(cmd)
+  if vim.v.shell_error ~= 0 then
     Log:warn("Failed to get latest version from remote")
     return "unknown"
   end
-
-  local output = handle:read("*a")
-  handle:close()
 
   local hash = output:match("(%w+)")
   if not hash then

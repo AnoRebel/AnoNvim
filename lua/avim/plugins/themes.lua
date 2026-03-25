@@ -145,33 +145,19 @@ return {
         "rose-pine/neovim",
         lazy = false,
         name = "rose-pine",
-        config = function()
-            local rp_ok, rp = pcall(require, "rose-pine")
-            if rp_ok then
-                rp.setup()
-            else
-                vim.notify("Theme Error: rose-pine", vim.log.levels.WARN)
-            end
-        end,
+        opts = {},
     },
     {
         "rebelot/kanagawa.nvim",
         lazy = false,
-        config = function()
-            local kngw_ok, kngw = pcall(require, "kanagawa")
-            if kngw_ok then
-                kngw.setup({
-                    compile = true,
-                    theme = "dragon",
-                    background = {
-                        dark = "dragon",
-                        light = "wave",
-                    },
-                })
-            else
-                vim.notify("Theme Error : kanagawa", vim.log.levels.WARN)
-            end
-        end,
+        opts = {
+            compile = true,
+            theme = "dragon",
+            background = {
+                dark = "dragon",
+                light = "wave",
+            },
+        },
     },
     {
         "nyoom-engineering/oxocarbon.nvim",

@@ -95,23 +95,6 @@ return {
     },
   },
   {
-    "SuperBo/fugit2.nvim",
-    enabled = false,
-    opts = {
-      width = 70,
-      external_diffview = true, -- tell fugit2 to use diffview.nvim instead of builtin implementation.
-    },
-    dependencies = {
-      "MunifTanjim/nui.nvim",
-      "nvim-tree/nvim-web-devicons",
-      "nvim-lua/plenary.nvim",
-      {
-        "chrisgrieser/nvim-tinygit", -- Optional: For Github PR view
-      },
-    },
-    cmd = { "Fugit2", "Fugit2Graph" },
-  },
-  {
     "isakbm/gitgraph.nvim",
     dependencies = { "sindrets/diffview.nvim" },
     ---@type I.GGConfig
@@ -190,7 +173,7 @@ return {
     },
     config = true,
   },
-  { "rhysd/committia.vim", lazy = false },
+  { "rhysd/committia.vim", ft = "gitcommit" },
   {
     "rhysd/git-messenger.vim",
     cmd = { "GitMessenger" },

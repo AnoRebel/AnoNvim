@@ -56,7 +56,7 @@ $directories = @(
     $env:ANONVIM_RUNTIME_DIR,
     $env:ANONVIM_CONFIG_DIR,
     $env:ANONVIM_STATE_DIR,
-    $env:ANONVIM_CACHE_DIR
+    $env:ANONVIM_CACHE_DIR,
     $env:ANONVIM_LOG_DIR
 )
 

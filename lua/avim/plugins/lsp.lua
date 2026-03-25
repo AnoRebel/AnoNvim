@@ -278,18 +278,6 @@ return {
           })
         end
 
-        -- Handle deno vs vtsls conflict
-        if lsp_utils.is_enabled("denols") and lsp_utils.is_enabled("vtsls") then
-          local is_deno = require("lspconfig.util").root_pattern("deno.json", "deno.jsonc")
-          lsp_utils.disable("vtsls", is_deno)
-          lsp_utils.disable("denols", function(root_dir, config)
-            if not is_deno(root_dir) then
-              config.settings.deno.enable = false
-            end
-            return false
-          end)
-        end
-
         -- Setup keymaps
         require("avim.plugins.lsp.keymaps").setup(client, bufnr)
       end
@@ -304,12 +292,6 @@ return {
       local fileOps, file_operations = pcall(require, "lsp-file-operations")
       if fileOps then
         capabilities = vim.tbl_deep_extend("force", capabilities, file_operations.default_capabilities())
-      end
-
-      -- Add cmp_nvim_lsp support if available (backward compat)
-      local status_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-      if status_ok then
-        capabilities = vim.tbl_deep_extend("force", capabilities, cmp_nvim_lsp.default_capabilities())
       end
 
       -- Add blink.cmp capabilities

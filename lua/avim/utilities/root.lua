@@ -173,9 +173,4 @@ function M.get(opts)
   return Util.is_win() and ret:gsub("/", "\\") or ret
 end
 
----@param opts? {hl_last?: string}
-function M.pretty_path(opts)
-  return ""
-end
-
 return M

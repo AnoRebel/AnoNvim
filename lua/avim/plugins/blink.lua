@@ -748,7 +748,7 @@ return {
       fuzzy = {
         frecency = { enabled  = true, },
         use_proximity = true,
-        sorts = { "label", "kind", "score" },
+        sorts = { "score", "kind", "label" },
         prebuilt_binaries = {
           download = true,
           force_version = nil,

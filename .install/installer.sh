@@ -119,7 +119,7 @@ function install_deps() {
 
 	case "$type" in
 	npm) cmd="npm install -g" ;;
-	pip) cmd=RECOMMEND_INSTALL ;;
+	pip) cmd="$RECOMMEND_INSTALL" ;;
 	cargo) cmd="cargo install" ;;
 	esac
 
@@ -332,12 +332,12 @@ function main() {
 		done
 	fi
 
-	# GUI installation
-	if [ "$INSTALL_NEORAY" -eq 1 ] || [ "$INSTALL_NEOVIDE" -eq 1 ]; then
-		if [ "$INTERACTIVE_MODE" -ne 1 ] || confirm "Install GUI?"; then
-			install_gui
-		fi
-	fi
+	# GUI installation (TODO: install_gui function is not yet implemented)
+	# if [ "$INSTALL_NEORAY" -eq 1 ] || [ "$INSTALL_NEOVIDE" -eq 1 ]; then
+	# 	if [ "$INTERACTIVE_MODE" -ne 1 ] || confirm "Install GUI?"; then
+	# 		install_gui
+	# 	fi
+	# fi
 
 	# Core installation
 	backup_old_config

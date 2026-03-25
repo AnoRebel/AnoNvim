@@ -12,18 +12,7 @@ vim.g.undotree_SetFocusWhenToggle = 1
 return {
   {
     "wakatime/vim-wakatime",
-    lazy = false,
-    -- init = function()
-    --   vim.g.wakatime_CLIPath = vim.env.HOME .. "/.wakatime/wakatime-cli"
-    -- end,
-  },
-  {
-    "tamton-aquib/zone.nvim",
-    enabled = false,
-    opts = {
-      style = "vanish",
-      after = 60,
-    },
+    event = "VeryLazy",
   },
   {
     "vuki656/package-info.nvim",

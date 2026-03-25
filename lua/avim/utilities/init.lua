@@ -229,42 +229,6 @@ M.run_expr = function(expr)
   api.nvim_feedkeys(api.nvim_replace_termcodes(expr, true, false, true), "n", true)
 end
 
-M.print_syntax_info = function()
-  local line = fn.line "."
-  local col = fn.col "."
-
-  -- Get the syntax ID of the character under the cursor
-  local syn_id_start = fn.synID(line, col, 1)
-  local syn_id_end = fn.synID(line, col, 0)
-
-  -- Get the syntax names for the IDs
-  local syn_name_start = fn.synIDattr(syn_id_start, "name")
-  local syn_name_end = fn.synIDattr(syn_id_end, "name")
-
-  -- Get the syntax name after translation
-  local syn_trans_id = fn.synIDtrans(syn_id_start)
-  local syn_trans_name = fn.synIDattr(syn_trans_id, "name")
-
-  vim.notify("hi<" .. syn_name_start .. ">")
-  vim.notify("trans<" .. syn_name_end .. ">")
-  vim.notify("lo<" .. syn_trans_name .. ">")
-end
-
-M.print_buf_info = function()
-  local winid = api.nvim_get_current_win()
-  local bufid = api.nvim_win_get_buf(winid)
-  local buftype = api.nvim_get_option_value("buftype", { buf = bufid })
-  local bufname = api.nvim_buf_get_name(bufid)
-  local filetype = api.nvim_get_option_value("filetype", { buf = bufid })
-  local floating = api.nvim_win_get_config(winid).relative ~= ""
-
-  vim.notify("winid " .. winid)
-  vim.notify("bufid " .. bufid)
-  vim.notify("buftype " .. buftype)
-  vim.notify("bufname " .. bufname)
-  vim.notify("filetype " .. filetype)
-  vim.notify("floating " .. (floating and "yes" or "no"))
-end
 
 M.fold_handler = function(virtText, lnum, endLnum, width, truncate)
   local newVirtText = {}
@@ -294,14 +258,6 @@ M.fold_handler = function(virtText, lnum, endLnum, width, truncate)
   return newVirtText
 end
 
-local function windowIsCf(windowId)
-  local buftype = vim.bo.buftype
-  if windowId ~= nil then
-    local bufferId = api.nvim_win_get_buf(windowId)
-    buftype = api.nvim_buf_get_option(bufferId, "buftype")
-  end
-  return buftype == "quickfix"
-end
 
 M.nN = function(c)
   local ok, winid = require("hlslens").nNPeekWithUFO(c)
@@ -316,24 +272,6 @@ M.nN = function(c)
   end
 end
 
--- Returns the colors/palette of the current theme
-M.get_theme_colors = function()
-  local colors = {}
-  local theme = vim.g.colors_name
-  if theme == "kanagawa" then
-    colors = require("kanagawa.colors").setup()
-  end
-  if theme == "rose-pine" then
-    colors = require("rose-pine").colorscheme()
-  end
-  if theme == "tokydark" then
-    colors = require("tokyodark").colorscheme()
-  end
-  if theme == "catppuccin" then
-    colors = require("catppuccin.palettes").get_palette()
-  end
-  return colors
-end
 
 M.toggle_diff = function()
   local present, diffview = pcall(require, "diffview")
@@ -354,66 +292,6 @@ M.toggle_diff = function()
   end
 end
 
-local function toggleTermMaximize()
-  local currentHeight = api.nvim_win_get_height(0)
-  local defaultHeight = 15
-
-  if currentHeight > defaultHeight then
-    api.nvim_win_set_height(0, defaultHeight)
-  else
-    local totalHeight = vim.o.lines
-    local nextHeight = totalHeight - defaultHeight
-
-    api.nvim_win_set_height(0, math.max(nextHeight, defaultHeight))
-  end
-end
-local function windowIsRelative(windowId)
-  return api.nvim_win_get_config(windowId).relative ~= ""
-end
-
-M.maximize_window = function()
-  -- resize only term
-  if vim.bo.filetype == "toggleterm" then
-    toggleTermMaximize()
-    return
-  end
-  local currentWindowId = api.nvim_get_current_win()
-  local windowsIds = api.nvim_list_wins()
-  -- nothing to resize
-  if #windowsIds < 2 or windowIsRelative(currentWindowId) then
-    return
-  end
-  local minWidth = 15
-  local totalWidth = 0
-  local currentRow = api.nvim_win_get_position(0)[1]
-  local currentRowWindowIds = {}
-  for _, id in ipairs(windowsIds) do
-    if not windowIsRelative(id) then
-      local y = api.nvim_win_get_position(id)[1]
-      if y == currentRow then
-        totalWidth = totalWidth + api.nvim_win_get_width(id)
-        table.insert(currentRowWindowIds, id)
-      end
-    end
-  end
-  local windowsInRow = #currentRowWindowIds
-  -- nothing to resize
-  if windowsInRow < 2 then
-    return
-  end
-  local maximizedWidth = totalWidth - (windowsInRow - 1) * minWidth
-  if maximizedWidth > minWidth and maximizedWidth > api.nvim_win_get_width(0) then
-    for _, id in ipairs(currentRowWindowIds) do
-      if id == currentWindowId then
-        api.nvim_win_set_option(0, "wrap", true)
-        api.nvim_win_set_width(id, maximizedWidth)
-      else
-        api.nvim_win_set_option(id, "wrap", false)
-        api.nvim_win_set_width(id, minWidth)
-      end
-    end
-  end
-end
 
 --- Serve a notification with a title of AnoNvim
 -- @param msg the notification body

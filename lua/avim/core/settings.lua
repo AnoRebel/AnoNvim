@@ -54,13 +54,10 @@ else
 
   -- Folding (Finally)
   -- vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
-  vim.wo.foldcolumn = "1"
-  vim.wo.foldlevel = 99 -- ufo provider needs large value
+  vim.o.foldcolumn = "1"
+  vim.o.foldlevel = 99
   vim.o.foldlevelstart = 99
-  -- set.foldmethod = "manual" -- folding, set to "expr" for treesitter based folding
-  -- set.foldexpr = "" -- set to "nvim_treesitter#foldexpr()" for treesitter based folding
-  set.foldenable = true -- Enable folding
-  -- set.foldmethod = "marker" -- Fold based on markers as opposed to indentation
+  set.foldenable = true
 
   -- disable tilde on end of buffer: https://github.com/neovim/neovim/pull/8546#issuecomment-643643758
   set.fillchars = {

@@ -12,7 +12,6 @@ local Utils = require("avim.utilities")
 ---@field on_dynamic_capability fun(fn: fun(client: vim.lsp.Client, buffer: number), opts?: {group?: integer}): nil
 ---@field on_supports_method fun(method: string, fn: fun(client: vim.lsp.Client, buffer: number)): nil
 ---@field opts fun(name: string): table
----@field peek_or_hover fun(): nil
 ---@field setup fun(): nil
 ---@field action table
 ---@field binary_exists fun(bin: any): boolean
@@ -64,14 +63,6 @@ M.get_pkg_path = function(pkg, path, opts)
     )
   end
   return ret
-end
-
-M.peek_or_hover = function()
-  local winid = require("ufo").peekFoldedLinesUnderCursor()
-  if not winid then
-    -- vim.lsp.buf.hover()
-    require("hover").hover()
-  end
 end
 
 ---@param name string
