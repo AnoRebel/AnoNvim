@@ -35,7 +35,7 @@ return {
     },
   },
   {
-    "tversteeg/registers.nvim",
+    "https://codeberg.org/fosk/registers.nvim",
     cmd = "Registers",
     config = true,
     keys = {

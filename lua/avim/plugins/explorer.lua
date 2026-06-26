@@ -107,17 +107,17 @@ return {
           local buf_id = args.data.buf_id
 
           -- Toggle hidden files
-          vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = buf_id, desc = "Toggle hidden files" })
+          -- vim.keymap.set("n", "g.", toggle_dotfiles, { buffer = buf_id, desc = "Toggle hidden files" })
           vim.keymap.set("n", "H", toggle_dotfiles, { buffer = buf_id, desc = "Toggle hidden files" })
 
           -- Splits
-          map_split(buf_id, "<C-x>", "belowright horizontal")
-          map_split(buf_id, "<C-v>", "belowright vertical")
+          map_split(buf_id, "<C-b>", "belowright horizontal")
+          map_split(buf_id, "<C-r>", "belowright vertical")
           map_split(buf_id, "<C-t>", "tab")
 
           -- Actions
           vim.keymap.set("n", "g~", set_cwd, { buffer = buf_id, desc = "Set cwd" })
-          vim.keymap.set("n", "<C-o>", ui_open, { buffer = buf_id, desc = "OS open" })
+          vim.keymap.set("n", "<C-x>", ui_open, { buffer = buf_id, desc = "OS open" })
           vim.keymap.set("n", "P", toggle_preview, { buffer = buf_id, desc = "Toggle Preview" })
           vim.keymap.set("n", "gy", yank_path, { buffer = buf_id, desc = "Yank path" })
           vim.keymap.set("n", "gs", grug_search, { buffer = buf_id, desc = "Search in directory" })
