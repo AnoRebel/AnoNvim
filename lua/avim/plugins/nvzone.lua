@@ -56,5 +56,4 @@ return {
     dependencies = "nvzone/volt",
     cmd = { "Shades", "Huefy" },
   },
-  { "nvzone/timerly", dependencies = "nvzone/volt", cmd = "TimerlyToggle" },
 }

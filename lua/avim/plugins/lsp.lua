@@ -77,14 +77,6 @@ return {
         end,
       },
       {
-        "jay-babu/mason-null-ls.nvim",
-        cmd = { "NullLsInstall", "NoneLsInstall", "NullLsUninstall", "NoneLsUninstall" },
-        opts = { ensure_installed = nil, automatic_installation = true },
-        config = function(_, opts)
-          require("mason-null-ls").setup(opts)
-        end,
-      },
-      {
         "WhoIsSethDaniel/mason-tool-installer.nvim",
         cmd = {
           "MasonToolsInstall",
@@ -146,6 +138,9 @@ return {
         "kevinhwang91/nvim-ufo",
         dependencies = { "kevinhwang91/promise-async" },
         event = "BufReadPost",
+        -- Reapplies patches/nvim-ufo.patch after every install/update, so upstream
+        -- changes can be pulled without losing our local fixes. See utilities/patch.lua.
+        build = require("avim.utilities.patch").builder("nvim-ufo"),
         init = function()
           -- Set fold options before ufo loads to prevent race conditions
           vim.o.foldcolumn = "1"
@@ -228,20 +223,13 @@ return {
           vim.bo[bufnr].tagfunc = "v:lua.vim.lsp.tagfunc"
         end
 
-        -- Setup code lens
+        -- Setup code lens.
+        -- `codelens.enable` is stateful: it registers the capability for the buffer and
+        -- the LSP capability framework handles refreshing from then on. This replaces
+        -- the deprecated `codelens.refresh()` (removed in 0.13) and the BufEnter/
+        -- InsertLeave autocmd that previously drove refreshes by hand.
         if client.server_capabilities.codeLensProvider then
-          local lens_group = pcall(api.nvim_get_autocmds, { group = "LspCodelens" })
-          if not lens_group then
-            api.nvim_create_augroup("LspCodelens", { clear = true })
-          end
-          api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-            group = "LspCodelens",
-            desc = "Auto show code lenses",
-            buffer = bufnr,
-            callback = function()
-              vim.lsp.codelens.refresh({ bufnr = bufnr })
-            end,
-          })
+          vim.lsp.codelens.enable(true, { bufnr = bufnr })
         end
 
         -- Setup document highlight
@@ -324,49 +312,44 @@ return {
         },
       }
 
-      local mason_lsp = require("mason-lspconfig")
-      local lspconfig = require("lspconfig")
-
       -- Setup Flutter tools separately (special handling required)
-      require("flutter-tools").setup({
-        ui = {
-          notification_style = "plugin",
-        },
-        widget_guides = {
-          enabled = true,
-        },
-        dev_log = {
-          enabled = true,
-          notify_errors = true,
-        },
-        dev_tools = {
-          autostart = true,
-        },
-        lsp = {
-          color = {
-            enabled = true,
-            background = false,
-            background_color = nil,
-            foreground = true,
-            virtual_text = false,
-            virtual_text_str = "■",
-          },
-          on_attach = on_attach,
-          capabilities = capabilities,
-          settings = {
-            showTodos = true,
-            completeFunctionCalls = true,
-            renameFilesWithClasses = "prompt",
-            enableSnippets = true,
-          },
-        },
-        decorations = {
-          statusline = {
-            app_version = true,
-            device = true,
-          },
-        },
-      })
+      -- Disabled: flutter-tools.nvim has compatibility issues with Neovim 0.12
+      -- require("flutter-tools").setup({
+      --   ui = {
+      --     notification_style = "plugin",
+      --   },
+      --   widget_guides = {
+      --     enabled = true,
+      --   },
+      --   dev_log = {
+      --     enabled = true,
+      --     notify_errors = true,
+      --   },
+      --   dev_tools = {
+      --     autostart = true,
+      --   },
+      --   lsp = {
+      --     on_attach = function(client, bufnr)
+      --       if client.server_capabilities.documentColorProvider then
+      --         vim.lsp.document_color.enable(true, bufnr)
+      --       end
+      --       on_attach(client, bufnr)
+      --     end,
+      --     capabilities = capabilities,
+      --     settings = {
+      --       showTodos = true,
+      --       completeFunctionCalls = true,
+      --       renameFilesWithClasses = "prompt",
+      --       enableSnippets = true,
+      --     },
+      --   },
+      --   decorations = {
+      --     statusline = {
+      --       app_version = true,
+      --       device = true,
+      --     },
+      --   },
+      -- })
 
       -- Common setup options
       local setup_opts = {
@@ -374,81 +357,38 @@ return {
         capabilities = capabilities,
       }
 
-      -- Check if using new vim.lsp.config API (Neovim 0.10+)
-      if vim.lsp.config then
-        -- Use new API
-        vim.lsp.config("*", setup_opts)
+      -- Setup specialized servers using vim.lsp.config (Neovim 0.12+)
+      vim.lsp.config("*", setup_opts)
 
-        -- Setup specialized servers
-        local roslyn_config = require("avim.plugins.lsp.servers.roslyn").setup(setup_opts)
-        vim.lsp.config("roslyn", roslyn_config)
+      local roslyn_config = require("avim.plugins.lsp.servers.roslyn").setup(setup_opts)
+      vim.lsp.config("roslyn", roslyn_config)
 
-        local vue_config = require("avim.plugins.lsp.servers.vue").setup(setup_opts)
-        vim.lsp.config("vue_ls", vue_config)
+      local vue_config = require("avim.plugins.lsp.servers.vue").setup(setup_opts)
+      vim.lsp.config("vue_ls", vue_config)
 
-        local vtsls_config = require("avim.plugins.lsp.servers.vtsls").setup(setup_opts)
-        vim.lsp.config("vtsls", vtsls_config)
+      local vtsls_config = require("avim.plugins.lsp.servers.vtsls").setup(setup_opts)
+      vim.lsp.config("vtsls", vtsls_config)
 
-        -- Setup common servers
-        local common_servers = require("avim.plugins.lsp.servers.common")
-        local common_server_names = {
-          "basedpyright",
-          "ruff",
-          "elixirls",
-          "emmet_language_server",
-          "eslint",
-          "gopls",
-          "jsonls",
-          "lua_ls",
-          "tailwindcss",
-        }
+      -- Setup common servers
+      local common_servers = require("avim.plugins.lsp.servers.common")
+      local common_server_names = {
+        "basedpyright",
+        "ruff",
+        "elixirls",
+        "emmet_language_server",
+        "eslint",
+        "gopls",
+        "jsonls",
+        "lua_ls",
+        "tailwindcss",
+      }
 
-        for _, server_name in ipairs(common_server_names) do
-          local config = common_servers.get_config(server_name, setup_opts)
-          if config then
-            vim.lsp.config(server_name, config)
-          end
-        end
-      else
-        -- Fallback for older Neovim versions
-        local roslyn_config = require("avim.plugins.lsp.servers.roslyn").setup(setup_opts)
-        require("roslyn").setup({
-          cmd = roslyn_config.cmd,
-          config = {
-            handlers = roslyn_config.handlers,
-            filetypes = roslyn_config.filetypes,
-            root_markers = roslyn_config.root_markers,
-            settings = roslyn_config.settings,
-          },
-        })
-
-        lspconfig.vue_ls.setup(require("avim.plugins.lsp.servers.vue").setup(setup_opts))
-        lspconfig.vtsls.setup(require("avim.plugins.lsp.servers.vtsls").setup(setup_opts))
-
-        -- Setup common servers
-        local common_servers = require("avim.plugins.lsp.servers.common")
-        local common_server_names = {
-          "basedpyright",
-          "ruff",
-          "elixirls",
-          "emmet_language_server",
-          "eslint",
-          "gopls",
-          "jsonls",
-          "lua_ls",
-          "tailwindcss",
-        }
-
-        for _, server_name in ipairs(common_server_names) do
-          local config = common_servers.get_config(server_name, setup_opts)
-          if config then
-            lspconfig[server_name].setup(config)
-          end
+      for _, server_name in ipairs(common_server_names) do
+        local config = common_servers.get_config(server_name, setup_opts)
+        if config then
+          vim.lsp.config(server_name, config)
         end
       end
-
-      -- Setup mason-lspconfig
-      mason_lsp.setup()
 
       -- Setup UFO for folding with optimized configuration
       local ftMap = {

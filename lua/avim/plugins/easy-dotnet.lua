@@ -109,8 +109,7 @@ return {
     ---@module 'roslyn.config'
     ---@type RoslynNvimConfig
     opts = {
-      -- Enable Razor/CSHTML cohosting (replacement for rzls.nvim)
-      filewatching = true,
+      filewatching = "auto",
     },
   },
   {

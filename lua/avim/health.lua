@@ -179,13 +179,16 @@ function M.check()
   vim.health.info("AnoNvim Version: " .. _G.avim.version)
   vim.health.info("Neovim Version: v" .. version_str)
 
-  -- Check Neovim version
+  -- Check Neovim version.
+  -- Floor is 0.12: the config uses the native `vim.lsp.config`/`vim.lsp.enable`
+  -- API, `vim.lsp.codelens.enable`, and Mason 2.0 patterns, none of which exist
+  -- on older releases.
   if v.prerelease then
     vim.health.warn("Neovim nightly is not officially supported and may have breaking changes")
-  elseif vim.fn.has("nvim-0.10") == 1 then
-    vim.health.ok("Using stable Neovim >= 0.10")
+  elseif vim.fn.has("nvim-0.12") == 1 then
+    vim.health.ok("Using stable Neovim >= 0.12")
   else
-    vim.health.error("Neovim > 0.10 is required")
+    vim.health.error("Neovim >= 0.12 is required (found " .. version_str .. ")")
   end
 
   -- Check XDG directories

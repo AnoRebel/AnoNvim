@@ -184,7 +184,7 @@ function M.on_rename(from, to, rename)
 
   local clients = M.get_clients()
   for _, client in ipairs(clients) do
-    if client.supports_method("workspace/willRenameFiles") then
+    if client:supports_method("workspace/willRenameFiles") then
       local resp = client.request_sync("workspace/willRenameFiles", changes, 1000, 0)
       if resp and resp.result ~= nil then
         lsp.util.apply_workspace_edit(resp.result, client.offset_encoding)
@@ -197,8 +197,7 @@ function M.on_rename(from, to, rename)
   end
 
   for _, client in ipairs(clients) do
-    -- if client_supports_method(client, "workspace/didRenameFiles") then
-    if client.supports_method("workspace/didRenameFiles") then
+    if client_supports_method(client, "workspace/didRenameFiles") then
       client.notify("workspace/didRenameFiles", changes)
     end
   end
@@ -292,8 +291,7 @@ M.get_clients = function(opts)
   if opts and opts.method then
     ---@param client vim.lsp.Client
     ret = vim.tbl_filter(function(client)
-      -- return client_supports_method(client, opts.method, opts.bufnr)
-      return client.supports_method(opts.method, { bufnr = opts.bufnr })
+      return client_supports_method(client, opts.method, opts.bufnr)
     end, ret)
   end
   return opts and opts.filter and vim.tbl_filter(opts.filter, ret) or ret
@@ -353,8 +351,7 @@ function M._check_methods(client, buffer)
   for method, clients in pairs(M._supports_method) do
     clients[client] = clients[client] or {}
     if not clients[client][buffer] then
-      -- if client_supports_method(client, method, buffer) then
-      if client.supports_method and client.supports_method(method, { bufnr = buffer }) then
+      if client_supports_method(client, method, buffer) then
         clients[client][buffer] = true
         api.nvim_exec_autocmds("User", {
           pattern = "LspSupportsMethod",
@@ -378,8 +375,7 @@ M.has = function(buffer, method)
   method = method:find("/") and method or "textDocument/" .. method
   local clients = M.get_clients({ bufnr = buffer })
   for _, client in ipairs(clients) do
-    -- if client_supports_method(client, method, buffer) then
-    if client.supports_method(method) then
+    if client_supports_method(client, method, buffer) then
       return true
     end
   end

@@ -189,7 +189,6 @@ return {
   { "nvim-lua/plenary.nvim" },
   {
     "Tastyep/structlog.nvim",
-    lazy = false,
   },
   {
     "lambdalisue/suda.vim",
@@ -223,6 +222,7 @@ return {
   {
     "ph1losof/ecolog2.nvim",
     build = "cargo install ecolog-lsp",
+    event = "BufReadPost",
     config = function()
       require("ecolog").setup()
     end,
@@ -236,14 +236,13 @@ return {
       { "<leader>ceo", "<cmd>Ecolog remote<cr>", desc = "Toggle Remote source" },
       { "<leader>cer", "<cmd>Ecolog refresh<cr>", desc = "Restart LSP and reload env files" },
     },
-    lazy = false,
     opts = {
       statusline = { hidden_mode = false },
     },
   },
   {
     "ph1losof/shelter.nvim",
-    lazy = false,
+    cmd = "Shelter",
     build = ":ShelterBuild",
     keys = {
       { "<leader>csf", "<cmd>:Shelter toggle files<CR>", desc = "Toggle file masking on/off" },

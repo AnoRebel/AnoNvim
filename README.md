@@ -51,14 +51,19 @@ designed for extensibility.
 
 ## Requirements
 
-- Neovim >= 0.11.0
+- Neovim >= 0.12.0
 - Git >= 2.19.0
 - A [Nerd Font](https://www.nerdfonts.com/) (Optional but recommended)
 - For optional features:
-  - Node.js >= 20
-  - Python >= 3.7
-  - Go >= 1.20
+  - Node.js >= 20.18
+  - Python >= 3.10
+  - Go >= 1.23
   - Rust ( >= latest stable)
+
+> Neovim 0.12 is a hard requirement, not a recommendation: the config uses the
+> native `vim.lsp.config` / `vim.lsp.enable` API, `vim.lsp.codelens.enable`, and
+> Mason 2.0 patterns, none of which exist on earlier releases. `:checkhealth avim`
+> reports an error below that floor.
 
 ## Installation
 
@@ -84,6 +89,30 @@ After installation:
 1. Run `avim` to start AnoNvim
 2. Initial setup will install required plugins
 
+### Docker
+
+Try AnoNvim without touching your host setup. The image uses
+[mise](https://mise.jdx.dev/) to provision Neovim and the toolchains plugins need
+at build time (Node, Python, Rust, LuaJIT, tree-sitter), so it works the same on
+any host.
+
+```bash
+docker build -t anonvim .
+docker run -it --rm anonvim
+
+# or work on a real project inside the container
+docker run -it --rm -v "$PWD:/work" -w /work anonvim
+```
+
+Neovim tracks `latest` and Node tracks `lts` by default. Pin them for a
+reproducible image:
+
+```bash
+docker build --build-arg NVIM_VERSION=0.12.4 --build-arg NODE_VERSION=24 -t anonvim .
+```
+
+The build fails loudly if the resolved Neovim is older than the required 0.12.
+
 ## Directory Structure
 
 ```lua
@@ -103,7 +132,7 @@ After installation:
 │   ├── plugins               # Plugin configurations
 │   │   ├── ai.lua            # AI related configurations
 │   │   ├── bufferline.lua    # Bufferline(top bar) configurations
-│   │   ├── completions.lua   # Code completion configurations
+│   │   ├── blink.lua         # Code completion (blink.cmp) configurations
 │   │   ├── database.lua      # Database configurations
 │   │   ├── editor.lua        # Editor configurations
 │   │   ├── explorer.lua      # File explorer configurations
@@ -112,7 +141,6 @@ After installation:
 │   │   ├── git.lua           # Git configurations
 │   │   ├── lsp.lua           # LSP configurations
 │   │   ├── lualine.lua       # Lualine(bottom bar) configurations
-│   │   ├── remote.lua        # Remote Coding configurations
 │   │   ├── rest.lua          # Rest client configurations
 │   │   ├── search.lua        # Search and Replace configurations
 │   │   ├── snacks.lua        # Folke's Snacks configurations
@@ -121,7 +149,31 @@ After installation:
 │   │   ├── ...               # Other plugin configurations
 │   │   └── ui.lua            # UI components and configurations
 │   └── utilities             # Utility functions
+├── patches                   # Local patches applied to third-party plugins
+└── Dockerfile                # Containerized AnoNvim (mise-provisioned)
 ```
+
+### Plugin patches
+
+Some plugins carry local fixes that upstream has not adopted. Rather than editing
+the plugin in place — which is lost on the next update — each fix lives as a patch
+in `patches/` and is reapplied by a lazy.nvim `build` hook
+(`lua/avim/utilities/patch.lua`) on every install and update.
+
+Patching is idempotent, and a patch that no longer applies is **refused** with an
+error rather than written as conflict markers, since a Lua file containing
+`<<<<<<<` would break startup far from the cause. If you see such an error, the
+plugin is left at pristine upstream and the patch needs rebasing against the new
+source.
+
+To add one:
+
+```bash
+# make your edit inside the plugin checkout, then:
+git -C ~/.local/share/anonvim/lazy/<plugin> diff > patches/<plugin>.patch
+```
+
+Then add `build = require("avim.utilities.patch").builder("<plugin>")` to its spec.
 
 ## Key Bindings
 

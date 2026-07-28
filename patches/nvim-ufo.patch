@@ -1,0 +1,25 @@
+diff --git a/lua/ufo/model/buffer.lua b/lua/ufo/model/buffer.lua
+index 6bc8f4b..e014089 100644
+--- a/lua/ufo/model/buffer.lua
++++ b/lua/ufo/model/buffer.lua
+@@ -225,7 +225,7 @@ end
+ ---@return string[]
+ function Buffer:lines(lnum, endLnum)
+     local lineCount = self:lineCount()
+-    assert(lineCount >= lnum, 'index out of bounds')
++    if lineCount < lnum then return {} end
+     local res = {}
+     endLnum = endLnum and endLnum or lnum
+     if endLnum < 0 then
+diff --git a/lua/ufo/render/init.lua b/lua/ufo/render/init.lua
+index efdd7a7..54e7a35 100644
+--- a/lua/ufo/render/init.lua
++++ b/lua/ufo/render/init.lua
+@@ -177,6 +177,7 @@ function M.getLineExtMarkIds(bufnr, lnum, namespaces)
+ end
+ 
+ function M.captureVirtText(bufnr, text, lnum, syntax, namespaces, concealLevel)
++    if not text then return {{'', 'UfoFoldedFg'}} end
+     local len = #text
+     if len == 0 then
+         return {{'', 'UfoFoldedFg'}}

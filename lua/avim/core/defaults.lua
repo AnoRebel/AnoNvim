@@ -11,7 +11,7 @@
 ---@field mappings table
 local M = {}
 
-M.version = "v4.1.0"
+M.version = "v4.5.0"
 
 ---- UI -----
 M.ui = {
@@ -48,6 +48,7 @@ M.servers = {
 }
 
 M.packages = {
+  "biome",
   "eslint_d",
   "goimports-reviser",
   "golines",

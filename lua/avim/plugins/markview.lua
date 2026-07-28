@@ -1,6 +1,7 @@
+-- { "noisesfromspace/touchup.nvim", opts = {} }
 return {
   "OXY2DEV/markview.nvim",
-  lazy = false, -- Recommended
+  ft = { "markdown", "md", "rmd", "quarto", "codecompanion" },
 
   dependencies = {
     "nvim-treesitter/nvim-treesitter",

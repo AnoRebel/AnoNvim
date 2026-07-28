@@ -25,7 +25,7 @@ autocmd({ "VimEnter", "VimResume" }, {
   callback = function()
     local _time = os.date("*t")
     local hour = _time.hour
-    
+
     -- Simplified time-based theme selection
     local theme
     if hour >= 21 or hour < 1 then
@@ -39,7 +39,7 @@ autocmd({ "VimEnter", "VimResume" }, {
     else -- 1-5 AM
       theme = "kanagawa"
     end
-    
+
     vim.cmd("colorscheme " .. theme)
     _G.avim.theme = vim.g.colors_name
   end,
@@ -534,21 +534,17 @@ return {
     },
   },
   {
-    "barrett-ruth/import-cost.nvim",
-    enabled = false, -- NOTE: Seems resource intensive
-    event = "VeryLazy",
-    build = "sh install.sh yarn",
-    opts = {
-      filetypes = {
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact",
-        "vue",
-        "svelte",
-        "astro",
-      },
-    },
+    "https://git.barrettruth.com/barrettruth/import-cost.nvim",
+    ft = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
+    init = function()
+      vim.g.import_cost = {
+        package_manager = "bun",
+        format = {
+          virtual_text = "%s",
+        },
+        highlight = "Comment",
+      }
+    end,
   },
   { "szw/vim-maximizer", cmd = { "MaximizerToggle" } },
   {
