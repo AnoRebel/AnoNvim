@@ -167,8 +167,10 @@ return {
       bufdelete = { enabled = true },
       dim = { enabled = true },
       git = { enabled = true },
-      -- image.nvim is used separately, disable snacks image
-      image = { enabled = false },
+      -- snacks.image handles picker previews and image files opened in a
+      -- buffer; image.nvim keeps doing inline markdown images, so leave
+      -- snacks' doc rendering off to avoid double-rendering markdown.
+      image = { enabled = true, doc = { enabled = false } },
       indent = { enabled = false },
       input = { enabled = true },
       lazygit = { enabled = true },
