@@ -318,19 +318,6 @@ return {
           end,
           color = { fg = "#CDD6F4", bg = "Normal" },
         }, ]]
-        {
-          function()
-            return require("vectorcode.integrations").lualine({ show_job_count = true })[1]()
-          end,
-          cond = function()
-            if package.loaded["vectorcode"] == nil then
-              return false
-            else
-              return require("vectorcode.integrations").lualine({ show_job_count = true }).cond()
-            end
-          end,
-          color = { fg = "#CDD6F4", bg = "Normal" },
-        },
       },
       lualine_x = {
         {

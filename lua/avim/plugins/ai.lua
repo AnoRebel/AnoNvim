@@ -10,16 +10,6 @@ return {
       "ravitemer/mcphub.nvim",
       "ravitemer/codecompanion-history.nvim",
       {
-        "nvim-mini/mini.diff",
-        config = function()
-          local diff = require("mini.diff")
-          diff.setup({
-            -- Disabled by default
-            source = diff.gen_source.none(),
-          })
-        end,
-      },
-      {
         "HakonHarnes/img-clip.nvim",
         opts = {
           filetypes = {
@@ -166,9 +156,10 @@ Follow best practices and the user's coding style when apparent.]],
             ".cursorrules",
             ".goosehints",
             ".rules",
-            "CLAUDE.md",
-            "CLAUDE.local.md",
-            "~/.claude/CLAUDE.md",
+            { path = "AGENTS.md", parser = "claude" },
+            { path = "CLAUDE.md", parser = "claude" },
+            { path = "CLAUDE.local.md", parser = "claude" },
+            { path = "~/.claude/CLAUDE.md", parser = "claude" },
           },
           is_preset = true,
         },
@@ -181,12 +172,10 @@ Follow best practices and the user's coding style when apparent.]],
       },
       -- Display settings
       display = {
-        diff = {
-          provider = "mini_diff",
-        },
         action_palette = {
           opts = {
             show_preset_actions = true,
+            show_preset_prompts = true,
           },
         },
         chat = {
@@ -197,8 +186,6 @@ Follow best practices and the user's coding style when apparent.]],
       },
       -- Prompt Library - load from markdown files for clarity
       prompt_library = {
-        -- Show preset prompts in action palette
-        show_preset_prompts = true,
         -- Load custom prompts from markdown files
         markdown = {
           dirs = {
@@ -207,13 +194,6 @@ Follow best practices and the user's coding style when apparent.]],
             -- Project-local prompts
             vim.fn.getcwd() .. "/.prompts",
           },
-        },
-      },
-      -- Tools configuration (for HTTP adapters only - ACP adapters have their own)
-      tools = {
-        opts = {
-          require_approval_before = true,
-          require_confirmation_after = false,
         },
       },
       -- Extensions
@@ -238,11 +218,6 @@ Follow best practices and the user's coding style when apparent.]],
             make_vars = true,
             make_slash_commands = true,
             show_result_in_chat = true,
-          },
-        },
-        vectorcode = {
-          opts = {
-            add_tool = true,
           },
         },
       },
@@ -299,18 +274,5 @@ Follow best practices and the user's coding style when apparent.]],
         },
       })
     end,
-  },
-  {
-    "Davidyz/VectorCode",
-    version = "*",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    build = "pipx upgrade vectorcode",
-    opts = {
-      n_query = 1,
-      async_opts = {
-        notify = true,
-      },
-    },
-    cmd = { "VectorCode" },
   },
 }

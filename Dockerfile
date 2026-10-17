@@ -60,7 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://mise.run | sh
 
 # Toolchains the config's plugin `build` steps need at runtime:
-# rust -> ecolog-lsp, node -> mcp-hub + tree-sitter-cli, python -> pynvim/vectorcode.
+# rust -> ecolog-lsp, node -> mcp-hub + tree-sitter-cli, python -> pynvim.
 # luajit matches Neovim's own Lua runtime, for building/testing Lua modules.
 # tree-sitter is the CLI used to compile parsers (treesitter.lua's build step).
 # ripgrep/fd/fzf back the pickers and are checked by :checkhealth.
