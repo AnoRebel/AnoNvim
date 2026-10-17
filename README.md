@@ -60,10 +60,9 @@ designed for extensibility.
   - Go >= 1.23
   - Rust ( >= latest stable)
 
-> Neovim 0.12 is a hard requirement, not a recommendation: the config uses the
-> native `vim.lsp.config` / `vim.lsp.enable` API, `vim.lsp.codelens.enable`, and
-> Mason 2.0 patterns, none of which exist on earlier releases. `:checkhealth avim`
-> reports an error below that floor.
+> Neovim 0.12 is a hard requirement, not a recommendation: the config uses the native `vim.lsp.config` /
+> `vim.lsp.enable` API, `vim.lsp.codelens.enable`, and Mason 2.0 patterns, none of which exist on earlier releases.
+> `:checkhealth avim` reports an error below that floor.
 
 ## Installation
 
@@ -91,10 +90,8 @@ After installation:
 
 ### Docker
 
-Try AnoNvim without touching your host setup. The image uses
-[mise](https://mise.jdx.dev/) to provision Neovim and the toolchains plugins need
-at build time (Node, Python, Rust, LuaJIT, tree-sitter), so it works the same on
-any host.
+Try AnoNvim without touching your host setup. The image uses [mise](https://mise.jdx.dev/) to provision Neovim and the
+toolchains plugins need at build time (Node, Python, Rust, LuaJIT, tree-sitter), so it works the same on any host.
 
 ```bash
 docker build -t anonvim .
@@ -104,8 +101,7 @@ docker run -it --rm anonvim
 docker run -it --rm -v "$PWD:/work" -w /work anonvim
 ```
 
-Neovim tracks `latest` and Node tracks `lts` by default. Pin them for a
-reproducible image:
+Neovim tracks `latest` and Node tracks `lts` by default. Pin them for a reproducible image:
 
 ```bash
 docker build --build-arg NVIM_VERSION=0.12.4 --build-arg NODE_VERSION=24 -t anonvim .
@@ -155,16 +151,13 @@ The build fails loudly if the resolved Neovim is older than the required 0.12.
 
 ### Plugin patches
 
-Some plugins carry local fixes that upstream has not adopted. Rather than editing
-the plugin in place — which is lost on the next update — each fix lives as a patch
-in `patches/` and is reapplied by a lazy.nvim `build` hook
+Some plugins carry local fixes that upstream has not adopted. Rather than editing the plugin in place — which is lost on
+the next update — each fix lives as a patch in `patches/` and is reapplied by a lazy.nvim `build` hook
 (`lua/avim/utilities/patch.lua`) on every install and update.
 
-Patching is idempotent, and a patch that no longer applies is **refused** with an
-error rather than written as conflict markers, since a Lua file containing
-`<<<<<<<` would break startup far from the cause. If you see such an error, the
-plugin is left at pristine upstream and the patch needs rebasing against the new
-source.
+Patching is idempotent, and a patch that no longer applies is **refused** with an error rather than written as conflict
+markers, since a Lua file containing `<<<<<<<` would break startup far from the cause. If you see such an error, the
+plugin is left at pristine upstream and the patch needs rebasing against the new source.
 
 To add one:
 
@@ -234,7 +227,7 @@ Note: `<leader>` key is mapped to the `Space` key
 <details><summary>📦 Git Integration</summary>
 
 - [Gitsigns](https://github.com/lewis6991/gitsigns.nvim) - Git decorations
-- [Diffview](https://github.com/sindrets/diffview.nvim) - Git diff viewer
+- [Diffview+](https://github.com/dlyongemallo/diffview-plus.nvim) - Git diff viewer
 - [Conflict](https://github.com/akinsho/git-conflict.nvim) - Conflict resolution
 
 </details>

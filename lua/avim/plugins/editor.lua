@@ -461,14 +461,12 @@ return {
       pre_hook = function()
         vim.opt.cursorline = false
         vim.cmd("NoMatchParen")
-        require("cmp").setup({ enabled = false })
         vim.b.completion = false
         require("nvim-autopairs").disable()
       end,
       post_hook = function()
         vim.opt.cursorline = true
         vim.cmd("DoMatchParen")
-        require("cmp").setup({ enabled = true })
         vim.b.completion = true
         require("nvim-autopairs").enable()
       end,

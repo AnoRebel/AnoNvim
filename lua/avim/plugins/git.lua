@@ -96,7 +96,7 @@ return {
   },
   {
     "isakbm/gitgraph.nvim",
-    dependencies = { "sindrets/diffview.nvim" },
+    dependencies = { "dlyongemallo/diffview-plus.nvim" },
     ---@type I.GGConfig
     opts = {
       symbols = {
@@ -131,7 +131,7 @@ return {
     },
   },
   {
-    "sindrets/diffview.nvim",
+    "dlyongemallo/diffview-plus.nvim",
     cmd = {
       "DiffviewOpen",
       "DiffviewClose",

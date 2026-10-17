@@ -9,15 +9,16 @@ This directory contains various configuration files used by AnoNvim.
 ├── code_runner/       # Code execution configurations
 │   ├── config.json   # Main runner configuration
 │   └── files.json    # File type associations
-├── formatters/       # Code formatting configurations
+├── formatters/        # Code formatting configurations
 │   ├── editorconfig  # EditorConfig settings
-│   ├── luacheck.toml # Lua linting configuration
 │   ├── prettier.json # Prettier formatting rules
+│   ├── .prettierrc.json # Prettier config used by prettierd (see formatting.lua)
 │   ├── selene.toml   # Selene linting rules
-│   └── stylua.toml   # Lua formatting rules
-└── templates/        # Template files and configurations
-    ├── .editorconfig # Default editor configuration
-    └── README.md     # This file
+│   ├── stylua.toml   # Lua formatting rules
+│   ├── vim.toml      # vim-language-server settings
+│   └── vim.yml       # vim-language-server settings (YAML variant)
+└── templates/         # Template files for project setup
+    └── .editorconfig # Default editor configuration
 ```
 
 ## Configuration Types
@@ -31,21 +32,19 @@ The `code_runner` directory contains configurations for running code:
 
 ### Formatters
 
-The `formatters` directory contains various formatting configurations:
+The `formatters` directory contains formatting and linting configurations:
 
 - `editorconfig`: Project-wide editor settings
-- `luacheck.toml`: Lua code linting rules
-- `prettier.json`: JavaScript/TypeScript/JSON formatting
-- `.prettierrc.json`: JavaScript/TypeScript/JSON formatting
+- `prettier.json` / `.prettierrc.json`: JavaScript/TypeScript/JSON formatting
 - `selene.toml`: Advanced Lua linting
 - `stylua.toml`: Lua code formatting
+- `vim.toml` / `vim.yml`: vim-language-server settings
 
 ### Templates
 
 The `templates` directory contains default configuration templates:
 
 - `.editorconfig`: Base editor configuration
-- Other template files for project setup
 
 ## Usage
 

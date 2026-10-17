@@ -534,7 +534,7 @@ return {
     },
   },
   {
-    "https://git.barrettruth.com/barrettruth/import-cost.nvim",
+    "https://forge.barrettruth.com/barrettruth/import-cost.nvim",
     ft = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
     init = function()
       vim.g.import_cost = {
