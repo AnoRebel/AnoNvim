@@ -223,21 +223,55 @@ return {
     "ph1losof/ecolog2.nvim",
     build = "cargo install ecolog-lsp",
     event = "BufReadPost",
-    config = function()
-      require("ecolog").setup()
+    -- lazy calls config(plugin, opts); the old `setup()` ignored opts entirely
+    config = function(_, opts)
+      require("ecolog").setup(opts)
     end,
     dependencies = { "ph1losof/shelter.nvim" },
     keys = {
-      { "<leader>cel", "<cmd>Ecolog list<cr>", desc = "Open variable picker" },
-      { "<leader>cey", "<cmd>Ecolog copy value<cr>", desc = "Copy variable value at cursor" },
-      { "<leader>cef", "<cmd>Ecolog files<cr>", desc = "Toggle File source" },
-      { "<leader>ces", "<cmd>Ecolog shell<cr>", desc = "Toggle Shell source" },
-      { "<leader>cei", "<cmd>Ecolog interpolation<cr>", desc = "Toggle interpolation" },
-      { "<leader>ceo", "<cmd>Ecolog remote<cr>", desc = "Toggle Remote source" },
-      { "<leader>cer", "<cmd>Ecolog refresh<cr>", desc = "Restart LSP and reload env files" },
+      { "<leader>cel", "<cmd>Ecolog list<cr>", desc = "Env: open variable picker" },
+      { "<leader>cec", "<cmd>Ecolog copy value<cr>", desc = "Env: copy value at cursor" },
+      { "<leader>cep", "<cmd>Ecolog files select<cr>", desc = "Env: pick active .env file(s)" },
+      { "<leader>cef", "<cmd>Ecolog files<cr>", desc = "Env: toggle File source" },
+      { "<leader>ces", "<cmd>Ecolog shell<cr>", desc = "Env: toggle Shell source" },
+      { "<leader>cei", "<cmd>Ecolog interpolation<cr>", desc = "Env: toggle interpolation" },
+      { "<leader>cer", "<cmd>Ecolog refresh<cr>", desc = "Env: restart LSP and reload env files" },
     },
     opts = {
       statusline = { hidden_mode = false },
+      -- ecolog-lsp indexes every code file under the workspace root; start
+      -- Neovim in $HOME and it scans the whole home dir. These caps go in
+      -- initializationOptions (the only config channel the server reads);
+      -- a project's ecolog.toml still overrides them.
+      -- shortcut: whole-repo indexing is capped/parallelism-limited rather
+      -- than workspace-root-aware; revisit if it hurts features in big monorepos.
+      lsp = {
+        init_options = {
+          indexing = {
+            exclude = {
+              "node_modules",
+              ".git",
+              "target",
+              "dist",
+              "build",
+              "out",
+              "coverage",
+              ".next",
+              ".nuxt",
+              ".venv",
+              "venv",
+              "__pycache__",
+              ".cache",
+              "vendor",
+              ".local",
+            },
+            max_files = 3000,
+            max_file_size = 1048576,
+            max_depth = 20,
+            parallelism = 2,
+          },
+        },
+      },
     },
   },
   {
