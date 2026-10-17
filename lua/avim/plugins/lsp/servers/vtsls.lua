@@ -41,14 +41,6 @@ function M.setup(opts)
               configNamespace = "typescript",
               enableForWorkspaceTypeScriptVersions = true,
             },
-            {
-              name = "typescript-svelte-plugin",
-              location = lsp_utils.get_pkg_path(
-                "svelte-language-server",
-                "/node_modules/typescript-svelte-plugin"
-              ),
-              enableForWorkspaceTypeScriptVersions = true,
-            },
           },
           -- Memory optimizations
           maxTsServerMemory = 4096, -- Limit to 4GB
@@ -80,7 +72,6 @@ function M.setup(opts)
         tsserver = {
           pluginPaths = {
             lsp_utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server"),
-            lsp_utils.get_pkg_path("svelte-language-server", "/node_modules/typescript-svelte-plugin"),
           },
         },
         -- Memory optimizations
