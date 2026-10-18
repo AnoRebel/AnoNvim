@@ -2,7 +2,6 @@
   "lua": "lua",
   "dart": "dart",
   "bun": "bun run",
-  "deno": "deno run",
   "elixir": "elixir",
   "typescript": "tsc",
   "javascript": "node",

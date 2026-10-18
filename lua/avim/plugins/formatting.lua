@@ -33,11 +33,6 @@ return {
             PRETTIERD_DEFAULT_CONFIG = vim.fn.expand(_G.get_avim_base_dir() .. "/.configs/formatters/.prettierrc.json"),
           },
         }),
-        -- b.formatting.deno_fmt.with({
-        --   condition = function(utilities)
-        --     return utilities.root_has_file({ "deno.json", "deno.jsonc" })
-        --   end,
-        -- }),
         -- Code Actions
         b.code_actions.gomodifytags,
         b.code_actions.impl,
