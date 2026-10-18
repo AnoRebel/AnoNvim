@@ -211,7 +211,14 @@ return {
       },
       statuscolumn = { enabled = true },
       scroll = { enabled = false },
-      -- styles = {},
+      styles = {
+        terminal = {
+          -- snacks binds a buffer-local <esc> ("double escape to normal mode")
+          -- that shadows our single-<esc> exit map, so ESC leaks to the shell,
+          -- where zsh meta bindings (M-u, M-a, M-l) mangle the command line.
+          keys = { term_normal = false },
+        },
+      },
       words = { enabled = true },
       zen = {
         enabled = true,
