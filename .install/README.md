@@ -29,10 +29,8 @@ Options:
     -h, --help                    Print this help message
     -l, --local                   Install local copy of AnoNvim
     -y, --yes                     Automatic yes to prompts
-    --overwrite                   Overwrite existing configuration
-    --no-install-dependencies     Skip dependency installation
-    --neovide                     Install Neovide GUI
-    --neoray                      Install Neoray GUI
+    --overwrite                   Replace an existing AnoNvim directory/link without asking
+    --no-install-dependencies     Skip dependency installation (mise toolchains, uv packages)
 ```
 
 After installation:

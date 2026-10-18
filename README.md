@@ -34,7 +34,7 @@ designed for extensibility.
 - 🔧 Tools & Utilities
 
   - Fuzzy finding with Snacks picker (with preview highlighting)
-  - File tree with NeoTree and Oil
+  - File tree with mini.files and NeoTree
   - Terminal integration with floating and split options
   - REST API client
   - Session management with Persisted
@@ -63,6 +63,11 @@ designed for extensibility.
 > `vim.lsp.enable` API, `vim.lsp.codelens.enable`, and Mason 2.0 patterns, none of which exist on earlier releases.
 > `:checkhealth avim` reports an error below that floor.
 
+> The installer provisions the toolchain with [mise](https://mise.jdx.dev/) (`neovim`, `node`, `python`, `rust`,
+> `luajit`, `tree-sitter`, `ripgrep`, `fd`, `fzf`) and installs Python packages (`pynvim`) with
+> [uv](https://docs.astral.sh/uv/). It also adds the [activation line](https://mise.jdx.dev/shell-setup.html) for your
+> shell so the tools are on `PATH`. Pass `--no-install-dependencies` to manage all of that yourself.
+
 ## Installation
 
 ```bash
@@ -76,10 +81,8 @@ Options:
     -h, --help                    Print this help message
     -l, --local                   Install local copy of AnoNvim
     -y, --yes                     Automatic yes to prompts
-    --overwrite                   Overwrite existing configuration
-    --no-install-dependencies     Skip dependency installation
-    --neovide                     Install Neovide GUI
-    --neoray                      Install Neoray GUI
+    --overwrite                   Replace an existing AnoNvim directory/link without asking
+    --no-install-dependencies     Skip dependency installation (mise toolchains, uv packages)
 ```
 
 After installation:
@@ -209,7 +212,9 @@ Note: `<leader>` key is mapped to the `Space` key
 - [Bufferline](https://github.com/akinsho/bufferline.nvim) - Buffer line
 - [Lualine](https://github.com/nvim-lualine/lualine.nvim) - Status line
 - [NeoTree](https://github.com/nvim-neo-tree/neo-tree.nvim) - File explorer
-- [Oil](https://github.com/stevearc/oil.nvim) - Buffer-like File explorer
+- [mini.files](https://github.com/nvim-mini/mini.files) - Vim-style file explorer
+- [Markview](https://github.com/OXY2DEV/markview.nvim) - In-buffer markdown preview
+- [Helpview](https://github.com/OXY2DEV/helpview.nvim) - In-buffer help rendering
 - [Snacks](https://github.com/folke/snacks.nvim) - Fuzzy finder
 
 </details>
@@ -217,12 +222,13 @@ Note: `<leader>` key is mapped to the `Space` key
 <details><summary>🛠️ Development Tools</summary>
 
 - [LSP](https://github.com/neovim/nvim-lspconfig) - Language Server Protocol
+- [Treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Syntax parsing and highlighting
 - [None-LS](https://github.com/nvimtools/none-ls.nvim) - Language Server Protocol (extras)
 - [Lazy](https://github.com/folke/lazy.nvim) - Plugin management
 - [Mason](https://github.com/williamboman/mason.nvim) - Package management
 - [Rest APIs](https://github.com/rest-nvim/rest.nvim) - REST client
 - [Persisted](https://github.com/olimorris/persisted.nvim) - Session management
-- [Multiple Cursors](https://github.com/brenton-leighton/multiple-cursors.nvim) - Multiple cursors
+- [Easy-Dotnet](https://github.com/GustavEikaas/easy-dotnet.nvim) - .NET project tooling
 
 </details>
 
