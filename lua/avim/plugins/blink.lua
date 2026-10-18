@@ -419,8 +419,9 @@ return {
         },
       },
       term = {
-        enabled = true,
-        keymap = { preset = "inherit" }, -- Inherits from top level `keymap` config when not set
+        -- Keep the top-level <CR> handler out of terminal mode: inherited, it ran
+        -- run_expr("<C-g>u") on every Enter and fed "\a"+"u" into the shell.
+        enabled = false,
         sources = {},
         completion = {
           trigger = {
