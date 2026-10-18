@@ -396,6 +396,9 @@ return {
           -- recommended, as the default keymap will only show and select the next item
           ["<Tab>"] = { "select_next", "show", "fallback" },
           ["<S-Tab>"] = { "select_prev", "show", "fallback" },
+          -- arrows navigate the menu, otherwise fall back to cmdline history
+          ["<Up>"] = { "select_prev", "fallback" },
+          ["<Down>"] = { "select_next", "fallback" },
         },
         completion = {
           list = {
