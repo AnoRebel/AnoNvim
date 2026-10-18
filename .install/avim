@@ -15,6 +15,11 @@ declare -r ANONVIM_CACHE_DIR="${ANONVIM_CACHE_DIR:-"$XDG_CACHE_HOME/avim"}"
 declare -r ANONVIM_LOG_DIR="${ANONVIM_LOG_DIR:-"$XDG_STATE_HOME/avim"}"
 declare -r ANONVIM_BASE_DIR="${ANONVIM_BASE_DIR:-"$ANONVIM_RUNTIME_DIR/avim"}"
 
+# GUI and desktop launches do not read shell rc files, so mise's shims are not
+# on PATH even when mise is activated; add them to resolve nvim and the tools
+# the config calls (lazygit, rg, fd, ...).
+export PATH="$XDG_DATA_HOME/mise/shims:$PATH"
+
 # Error handling
 function error_handler() {
     echo "Error: $1" >&2

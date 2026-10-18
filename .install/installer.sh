@@ -18,12 +18,25 @@ declare -A AVIM_DIRS=(
 )
 declare -r ANONVIM_BASE_DIR="${AVIM_DIRS[data]}/avim"
 
-# Dependencies
-declare -A DEPS=(
-	[npm]="neovim tree-sitter-cli"
-	[pip]="python3-pynvim"
-	[cargo]="fd-find ripgrep"
+# Toolchains and CLI tools, provisioned by mise (same set as the Dockerfile).
+# neovim and node have hard floors in lua/avim/health.lua, so they track
+# latest/lts rather than a pinned version.
+declare -a MISE_TOOLS=(
+	"neovim@latest"
+	"node@lts"
+	"python@3.12"
+	"rust@stable"
+	luajit
+	tree-sitter
+	ripgrep
+	fd
+	fzf
+	uv
 )
+
+# Python packages installed with uv: pip refuses to modify externally-managed
+# interpreters and is slower. pynvim is what the :python3 provider needs.
+declare -a PYTHON_PACKAGES=(pynvim)
 
 # Script arguments
 declare ARGS_LOCAL=0
@@ -34,10 +47,9 @@ declare INSTALL_NEOVIDE=${INSTALL_NEOVIDE:-0}
 declare INTERACTIVE_MODE=${INTERACTIVE_MODE:-1}
 declare ADDITIONAL_WARNINGS=""
 
-# Get base directory
+# Get base directory (the repo root: this script lives in <repo>/.install/)
 declare BASEDIR
-BASEDIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-BASEDIR="$(dirname -- "$(dirname -- "$BASEDIR")")"
+BASEDIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 readonly BASEDIR
 
 # Error handling
@@ -110,34 +122,90 @@ function detect_platform() {
 }
 
 # Dependency management
+function install_mise() {
+	if command -v mise >/dev/null; then
+		return
+	fi
+
+	show_progress "Installing mise"
+	curl -fsSL https://mise.run | sh
+	export PATH="$HOME/.local/bin:$PATH"
+	echo "done"
+}
+
 function install_deps() {
-	local type="$1"
-	local deps="${DEPS[$type]}"
-	local cmd=""
+	install_mise
 
-	detect_platform
+	show_progress "Installing toolchains with mise"
+	mise use -g -y "${MISE_TOOLS[@]}"
+	mise reshim
+	echo "done"
 
-	case "$type" in
-	npm) cmd="npm install -g" ;;
-	pip) cmd="$RECOMMEND_INSTALL" ;;
-	cargo) cmd="cargo install" ;;
+	local python_bin
+	python_bin="$(command -v python3 || command -v python || true)"
+	if [ -z "$python_bin" ]; then
+		msg "python not found, skipping: ${PYTHON_PACKAGES[*]}"
+		return
+	fi
+
+	show_progress "Installing ${PYTHON_PACKAGES[*]} with uv"
+	if command -v uv >/dev/null; then
+		uv pip install --python "$python_bin" "${PYTHON_PACKAGES[@]}"
+	else
+		# uv is not on PATH (mise install failed or was skipped): pip is all we have.
+		"$python_bin" -m pip install --user "${PYTHON_PACKAGES[@]}"
+	fi
+	echo "done"
+
+	activate_mise
+}
+
+# Interactive shells only see mise's tools after activation. Snippets match
+# https://mise.jdx.dev/shell-setup.html and are written only if missing.
+function activate_mise() {
+	local shell_name
+	shell_name="$(basename "${SHELL:-}")"
+	local mise_bin
+	mise_bin="$(command -v mise || echo "$HOME/.local/bin/mise")"
+	local rc line
+
+	case "$shell_name" in
+	zsh)
+		rc="${ZDOTDIR:-$HOME}/.zshrc"
+		line="eval \"\$($mise_bin activate zsh)\""
+		;;
+	bash)
+		rc="$HOME/.bashrc"
+		line="eval \"\$($mise_bin activate bash)\""
+		;;
+	fish)
+		rc="$HOME/.config/fish/config.fish"
+		line="$mise_bin activate fish | source"
+		;;
+	*)
+		# editors and desktop launchers resolve tools through the shims instead
+		msg "Shell '$shell_name' not auto-activated: see https://mise.jdx.dev/shell-setup.html"
+		return
+		;;
 	esac
 
-	if [ -n "$cmd" ]; then
-		show_progress "Installing $type dependencies"
-		$cmd $deps
-		echo "done"
+	if [ "$INTERACTIVE_MODE" -eq 1 ] && ! confirm "Add mise activation to $rc?"; then
+		msg "Skipped mise activation in $rc"
+		return
 	fi
+
+	show_progress "Activating mise in $rc"
+	mkdir -p "$(dirname "$rc")"
+	grep -qxF "$line" "$rc" 2>/dev/null || printf '%s\n' "$line" >>"$rc"
+	echo "done"
 }
 
 function check_system_deps() {
+	# git clones/patches, curl bootstraps mise. Everything else -- neovim, node,
+	# python, rust, ripgrep, fd, fzf -- comes from mise in install_deps.
 	local deps=(
 		git
-		nvim
-		node
-		npm
-		pip
-		cargo
+		curl
 	)
 
 	for dep in "${deps[@]}"; do
@@ -147,6 +215,13 @@ function check_system_deps() {
 			exit 1
 		fi
 	done
+
+	if ! command -v nvim >/dev/null && ! command -v mise >/dev/null; then
+		msg "Missing dependency: nvim"
+		msg "Install using: $RECOMMEND_INSTALL neovim"
+		msg "or install mise and let it provide Neovim: curl -fsSL https://mise.run | sh"
+		exit 1
+	fi
 }
 
 # Installation functions
@@ -191,8 +266,27 @@ function clone_avim() {
 }
 
 function link_local_avim() {
+	if [ "$(readlink -f "$ANONVIM_BASE_DIR" 2>/dev/null)" = "$BASEDIR" ]; then
+		msg "Already linked to $BASEDIR"
+		return
+	fi
+
+	# `ln -sf` into an existing directory links *inside* it
+	# ($ANONVIM_BASE_DIR/avim), so ask before replacing anything.
+	if [ -e "$ANONVIM_BASE_DIR" ] || [ -L "$ANONVIM_BASE_DIR" ]; then
+		if [ "$ARGS_OVERWRITE" -eq 1 ]; then
+			:
+		elif [ "$INTERACTIVE_MODE" -eq 1 ] && confirm "Replace existing $ANONVIM_BASE_DIR?"; then
+			:
+		else
+			msg "Refusing to overwrite $ANONVIM_BASE_DIR (use --overwrite)"
+			exit 1
+		fi
+		rm -rf "$ANONVIM_BASE_DIR"
+	fi
+
 	show_progress "Linking local AnoNvim"
-	ln -sf "$BASEDIR" "$ANONVIM_BASE_DIR"
+	ln -sfn "$BASEDIR" "$ANONVIM_BASE_DIR"
 	echo "done"
 }
 
@@ -205,7 +299,8 @@ function setup_avim() {
 	#     #!/bin/sh
 	#     ANONVIM_BASE_DIR="$ANONVIM_BASE_DIR" exec nvim -u "$ANONVIM_BASE_DIR/init.lua" "\$@"
 	# EOF
-	chmod +x "$shim_path"
+	# .install/avim is committed executable (mode 100755), so no chmod: it would
+	# follow the symlink and try to rewrite the repo file.
 
 	# Create desktop entry
 	local desktop_path="$XDG_DATA_HOME/applications/avim.desktop"
@@ -266,14 +361,14 @@ EOF
 
 function usage() {
 	cat <<EOF
-Usage: install.sh [<options>]
+Usage: installer.sh [<options>]
 
 Options:
     -h, --help                    Print this help message
     -l, --local                   Install local copy of AnoNvim
     -y, --yes                     Automatic yes to prompts
-    --overwrite                   Overwrite existing configuration
-    --no-install-dependencies     Skip dependency installation
+    --overwrite                   Replace an existing AnoNvim directory/link without asking
+    --no-install-dependencies     Skip dependency installation (mise toolchains, uv packages)
 EOF
 }
 
@@ -321,15 +416,9 @@ function main() {
 
 	# Install dependencies if requested
 	if [ "$ARGS_INSTALL_DEPENDENCIES" -eq 1 ]; then
-		for dep_type in "${!DEPS[@]}"; do
-			if [ "$INTERACTIVE_MODE" -eq 1 ]; then
-				if confirm "Install $dep_type dependencies?"; then
-					install_deps "$dep_type"
-				fi
-			else
-				install_deps "$dep_type"
-			fi
-		done
+		if [ "$INTERACTIVE_MODE" -ne 1 ] || confirm "Install toolchains (mise) and python packages (uv)?"; then
+			install_deps
+		fi
 	fi
 
 	# GUI installation (TODO: install_gui function is not yet implemented)

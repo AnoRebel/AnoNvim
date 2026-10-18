@@ -64,7 +64,7 @@ EOF
 
 function usage() {
     cat << EOF
-Usage: uninstall.sh [<options>]
+Usage: uninstaller.sh [<options>]
 
 Options:
     -h, --help              Print this help message
@@ -103,12 +103,13 @@ function remove_avim_dirs() {
             show_progress "Removing $dir directory"
             rm -rf "$path"
             echo "done"
-            
-            if [ "$ARGS_REMOVE_BACKUPS" -eq 1 ]; then
-                show_progress "Removing $dir backups"
-                rm -rf "$path".{bak.*,old} 2>/dev/null || true
-                echo "done"
-            fi
+        fi
+
+        # backups live beside the directory, so they can exist without it
+        if [ "$ARGS_REMOVE_BACKUPS" -eq 1 ]; then
+            show_progress "Removing $dir backups"
+            rm -rf "$path".bak.* "$path".old 2>/dev/null || true
+            echo "done"
         fi
     done
 }
