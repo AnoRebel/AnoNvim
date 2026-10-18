@@ -219,7 +219,12 @@ return {
   },
   {
     "ph1losof/ecolog2.nvim",
-    build = "cargo install ecolog-lsp",
+    build = {
+      "cargo install ecolog-lsp",
+      -- suda's smart edit replaces the buffer; ecolog's scheduled callback then
+      -- reads a dead bufnr.
+      require("avim.utilities.patch").builder("ecolog2.nvim"),
+    },
     event = "BufReadPost",
     -- lazy calls config(plugin, opts); the old `setup()` ignored opts entirely
     config = function(_, opts)
@@ -275,7 +280,13 @@ return {
   {
     "ph1losof/shelter.nvim",
     cmd = "Shelter",
-    build = ":ShelterBuild",
+    build = {
+      ":ShelterBuild",
+      -- suda's smart edit wipes the original buffer inside BufEnter, before
+      -- shelter's own BufEnter callback runs; skip dead ids and pseudo-buffers
+      -- (`acwrite`, which is what a suda:// buffer is).
+      require("avim.utilities.patch").builder("shelter.nvim"),
+    },
     keys = {
       { "<leader>csf", "<cmd>:Shelter toggle files<CR>", desc = "Toggle file masking on/off" },
       { "<leader>csp", "<cmd>:Shelter peek<CR>", desc = "Reveal current line temporarily" },

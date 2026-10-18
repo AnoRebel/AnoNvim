@@ -1,0 +1,15 @@
+diff --git a/lua/ecolog/lsp/lifecycle.lua b/lua/ecolog/lsp/lifecycle.lua
+index f96557e..336c01a 100644
+--- a/lua/ecolog/lsp/lifecycle.lua
++++ b/lua/ecolog/lsp/lifecycle.lua
+@@ -97,6 +97,10 @@ function M.create_on_attach(ctx)
+     -- Query buffer-specific variable count
+     vim.schedule(function()
+       local lsp_commands = require("ecolog.lsp.commands")
++      -- suda's smart edit replaces the buffer before this callback runs
++      if not vim.api.nvim_buf_is_valid(bufnr) then
++        return
++      end
+       local current_file = vim.api.nvim_buf_get_name(bufnr)
+ 
+       lsp_commands.list_variables(current_file, function(vars)

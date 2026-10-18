@@ -31,6 +31,7 @@ require("avim.core"):init(base_dir)
 require("avim.core.settings")
 require("avim.lazy"):init()
 require("avim.lazy").load()
+require("avim.utilities.patch").setup()
 require("avim.commands"):setup()
 
 -- Configure notifications after plugins are loaded

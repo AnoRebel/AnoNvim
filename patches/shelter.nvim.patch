@@ -1,0 +1,14 @@
+diff --git a/lua/shelter/utils/env_file.lua b/lua/shelter/utils/env_file.lua
+index 3c1b036..8ba8fcf 100644
+--- a/lua/shelter/utils/env_file.lua
++++ b/lua/shelter/utils/env_file.lua
+@@ -34,6 +34,9 @@ end
+ ---@param bufnr number
+ ---@return boolean
+ function M.is_env_buffer(bufnr)
++	if not vim.api.nvim_buf_is_valid(bufnr) or vim.bo[bufnr].buftype ~= "" then
++		return false
++	end
+ 	local filetype = vim.bo[bufnr].filetype
+ 	return M.is_env_filetype(filetype)
+ end
