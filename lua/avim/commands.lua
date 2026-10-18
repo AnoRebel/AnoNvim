@@ -335,9 +335,12 @@ Use :AnoCheckUpdate to check for updates]],
     "Prompt",
     "popup",
   }
+  -- Create the group once: calling augroup() again would clear the autocmds
+  -- registered above it.
+  local number_group = augroup("number_toggle")
   autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
     pattern = "*",
-    group = augroup("number_toggle"),
+    group = number_group,
     callback = function()
       local bufnr = api.nvim_get_current_buf()
       local buf_type = vim.bo[bufnr].buftype
@@ -359,7 +362,7 @@ Use :AnoCheckUpdate to check for updates]],
   })
   autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, {
     pattern = "*",
-    group = augroup("number_toggle"),
+    group = number_group,
     callback = function()
       local bufnr = api.nvim_get_current_buf()
       local buf_type = vim.bo[bufnr].buftype
@@ -372,7 +375,7 @@ Use :AnoCheckUpdate to check for updates]],
       then
         return
       end
-      if vim.o.nu ~= true and api.nvim_get_mode().mode == "i" then
+      if vim.o.relativenumber then
         vim.opt.relativenumber = false
         vim.cmd("redraw")
       end
