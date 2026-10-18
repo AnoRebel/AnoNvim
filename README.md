@@ -151,8 +151,11 @@ The build fails loudly if the resolved Neovim is older than the required 0.12.
 ### Plugin patches
 
 Some plugins carry local fixes that upstream has not adopted. Rather than editing the plugin in place — which is lost on
-the next update — each fix lives as a patch in `patches/` and is reapplied by a lazy.nvim `build` hook
-(`lua/avim/utilities/patch.lua`) on every install and update.
+the next update — each fix lives as a patch in `patches/`, applied by `lua/avim/utilities/patch.lua`.
+
+lazy.nvim checks a plugin out with `git checkout`, which refuses to run while a tracked file has local changes, so every
+patch is reversed before lazy installs, updates or restores and re-applied once the operation finishes. A `build` hook
+re-applies it for fresh clones, so a plugin is never left unpatched after `:Lazy sync`.
 
 Patching is idempotent, and a patch that no longer applies is **refused** with an error rather than written as conflict
 markers, since a Lua file containing `<<<<<<<` would break startup far from the cause. If you see such an error, the
