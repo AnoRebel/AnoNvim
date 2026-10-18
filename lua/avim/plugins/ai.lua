@@ -215,7 +215,9 @@ Follow best practices and the user's coding style when apparent.]],
         mcphub = {
           callback = "mcphub.extensions.codecompanion",
           opts = {
-            make_vars = true,
+            -- mcphub still writes interactions.chat.variables, which CodeCompanion
+            -- v19 renamed to editor_context; registering them errors on nil.
+            make_vars = false,
             make_slash_commands = true,
             show_result_in_chat = true,
           },
