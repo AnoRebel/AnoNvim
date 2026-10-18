@@ -148,7 +148,6 @@ local icons = {
         Method = "m", -- "",
         Function = "",
         Calendar = "",
-        Codeium = "",
         Supermaven = "",
         Constructor = "", -- "",
         Table = "",

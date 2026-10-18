@@ -27,7 +27,6 @@ designed for extensibility.
   - Advanced LSP integration with buffer-local keymaps
   - Modern completion engine with Blink.cmp
   - AI coding assistant (CodeCompanion)
-    - Codeium integration
   - Git integration with conflict resolution
   - Database integration with Dbee
   - Unified logging system (all logs go to avim.log)
@@ -186,7 +185,7 @@ Note: `<leader>` key is mapped to the `Space` key
 
 <details><summary>🧠 AI Assistance</summary>
 
-- [windsurf.nvim](https://github.com/Exafunction/windsurf.nvim) - AI code completion
+- [CodeCompanion](https://github.com/olimorris/codecompanion.nvim) - AI coding assistant
 
 </details>
 

@@ -9,28 +9,6 @@ end
 local deps = {
   { "L3MON4D3/LuaSnip" },
   { "rafamadriz/friendly-snippets" },
-  {
-    "Exafunction/windsurf.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    config = function()
-      require("codeium").setup({
-        enable_chat = true,
-        -- enable_cmp_source = false,
-        virtual_text = {
-          enabled = true,
-          map_keys = true,
-          key_bindings = {
-            accept = "<M-.>",
-            clear = "<C-e>",
-          },
-        },
-        config_path = utilities.get_config_dir() .. "/codeium/config.json",
-        bin_path = utilities.get_runtime_dir() .. "/codeium/bin",
-      })
-    end,
-  },
   { "moyiz/blink-emoji.nvim" },
   { "dmitmel/cmp-cmdline-history" },
   {
@@ -116,7 +94,6 @@ local function format_item(ctx)
     lazydev = "[LLS]",
     treesitter = "[TST]",
     cmdline = "[CMD]",
-    codeium = "[CODE]",
     ["cmp-dbee"] = "[DB]",
     dbee = "[DB]",
     npm = "[NPM]",
@@ -233,7 +210,7 @@ return {
           -- optionally inherit from the `default` sources
           lua = { inherit_defaults = true, "lazydev" },
         },
-        default = { "lsp", "path", "snippets", "buffer", "codeium", "npm", "emoji" },
+        default = { "lsp", "path", "snippets", "buffer", "npm", "emoji" },
         providers = {
           lazydev = {
             name = "LazyDev",
@@ -324,7 +301,6 @@ return {
             },
             -- kind = "History",
           },
-          codeium = { name = "Codeium", module = "codeium.blink", async = true, max_items = 3 },
           ecolog = { name = "ecolog", module = "ecolog.integrations.cmp.blink_cmp" },
           npm = {
             name = "npm",

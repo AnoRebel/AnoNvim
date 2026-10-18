@@ -86,10 +86,6 @@ local conditions = {
     end
     return true
   end,
-  has_codeium = function()
-    local has_it, _ = pcall(require, "codeium")
-    return has_it
-  end,
   has_package_info = function()
     local has_it, _ = pcall(require, "package-info")
     return has_it
@@ -216,26 +212,6 @@ vim.api.nvim_create_autocmd({ "User" }, {
   end,
 })
 
-local function codeium_status()
-  local status = require("codeium.virtual_text").status()
-
-  if status.state == "idle" then
-    -- Output was cleared, for example when leaving insert mode
-    return " "
-  end
-
-  if status.state == "waiting" then
-    -- Waiting for response
-    return "Waiting..."
-  end
-
-  if status.state == "completions" and status.total > 0 then
-    return string.format("%d/%d", status.current, status.total)
-  end
-
-  return " 0 "
-end
-
 return {
   "nvim-lualine/lualine.nvim",
   event = "VeryLazy",
@@ -300,11 +276,6 @@ return {
         },
       },
       lualine_c = {
-        {
-          codeium_status,
-          cond = conditions.has_codeium,
-          color = { fg = "#CDD6F4", bg = "Normal" },
-        },
         {
           companion_status,
           cond = function()
