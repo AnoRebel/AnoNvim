@@ -7,6 +7,16 @@ local Input = require("nui.input")
 local Menu = require("nui.menu")
 local event = require("nui.utils.autocmd").event
 
+--- Calls a public dbee function, reporting failures instead of raising.
+--- They raise for recoverable states (no connection selected, no result to
+--- store) which would otherwise surface as a traceback in a nui callback.
+local function call_dbee(name, ...)
+	local ok, err = pcall(require("dbee")[name], ...)
+	if not ok then
+		vim.notify(tostring(err), vim.log.levels.WARN, { title = "Dbee" })
+	end
+end
+
 local format = "json"
 local op_type = "buffer"
 local range = false
@@ -40,21 +50,20 @@ local file_name = Input({
 		local join_paths = require("avim.utilities").join_paths
 		local save_path = join_paths(os.getenv("HOME"), "Downloads")
 		local filename = "dbee_" .. os.date("%Y%m%d%H%M%S") .. "." .. format
-		if value ~= "" or value ~= nil then
-			filename = value:gsub("^%s*", "")
-			filename = filename:gsub("^%s*", "")
-			filename = filename:gsub("%s+", "_") .. "." .. format
+		if value and value ~= "" then
+			filename = vim.trim(value):gsub("%s+", "_") .. "." .. format
 		else
 			vim.notify("Empty name provided, using default", vim.log.levels.INFO, { title = "Dbee" })
 		end
 		if range then
-			require("avim.utilities.dbee").store(format, op_type, {
+			call_dbee("store", format, op_type, {
 				from = ranges[1],
 				to = ranges[2],
 				extra_arg = op_type == "file" and join_paths(save_path, filename) or 0,
 			})
 		else
-			require("avim.utilities.dbee").store(
+			call_dbee(
+				"store",
 				format,
 				op_type,
 				{ extra_arg = op_type == "file" and join_paths(save_path, filename) or 0 }
@@ -98,22 +107,30 @@ local range_input = Input({
 			range = false
 			ranges = {}
 		else
-			local sep = ","
-			if value:sub(2, 2) == sep then
-				return vim.notify("Invalid range format", vim.log.levels.INFO, { title = "Dbee" })
+			-- dbee wants integer row indexes; the input is free text.
+			local from, to = value:match("^%s*(%d+)%s*,%s*(%d+)%s*$")
+			if not from then
+				return vim.notify(
+					"Invalid range format (eg. 0,2)",
+					vim.log.levels.INFO,
+					{ title = "Dbee" }
+				)
 			end
-			ranges = {}
-			for rng in string.gmatch(value, "([^" .. sep .. "]+)") do
-				table.insert(ranges, rng)
-			end
+			ranges = { tonumber(from), tonumber(to) }
 		end
 		if op_type == "file" then
-			file_name:mount()
+			-- deferred: mounting from inside this prompt's submit lets the previous
+			-- prompt's unmount steal focus, so re-assert focus and insert mode
+			vim.schedule(function()
+				file_name:mount()
+				vim.api.nvim_set_current_win(file_name.winid)
+				vim.cmd("startinsert!")
+			end)
 		else
 			if range then
-				require("avim.utilities.dbee").store(format, op_type, { from = ranges[1], to = ranges[2] })
+				call_dbee("store", format, op_type, { from = ranges[1], to = ranges[2] })
 			else
-				require("avim.utilities.dbee").store(format, op_type, { extra_arg = 0 })
+				call_dbee("store", format, op_type, { extra_arg = 0 })
 			end
 		end
 	end,
@@ -160,16 +177,14 @@ local type_chooser = Menu({
 	end,
 	on_submit = function(item)
 		op_type = item.text:lower()
-		-- vim.notify("Format Selected: " .. item.text .. "(" .. format .. ")")
 		-- mount/open the component
-		if op_type == "file" then
-			if range then
-				range_input:mount()
-			else
-				file_name:mount()
-			end
+		if range then
+			-- the range is asked for first; a file name is asked afterwards
+			range_input:mount()
+		elseif op_type == "file" then
+			file_name:mount()
 		else
-			require("avim.utilities.dbee").store(format, op_type, { extra_arg = 0 })
+			call_dbee("store", format, op_type, { extra_arg = 0 })
 		end
 	end,
 })
@@ -256,7 +271,7 @@ local query = Input({
 		else
 			local tmp_query = string.sub(value, -1) == ";" and value:gsub("^%s*(.-)%s*$", "%1")
 				or value:gsub("^%s*(.-)%s*$", "%1") .. ";"
-			require("avim.utilities.dbee").execute(tmp_query)
+			call_dbee("execute", tmp_query)
 		end
 	end,
 })

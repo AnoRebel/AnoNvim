@@ -42,7 +42,7 @@ return {
             "<leader>dr",
             "<cmd>lua require('avim.utilities.dbee').save(true)<CR>",
             mode = { "n", "v" },
-            desc = "[Database] Save Output"
+            desc = "[Database] Save Output Range"
         },
         { "<leader>dp", "<cmd>lua require('dbee').prev()<CR>", mode = { "n", "v" }, desc = "[Database] Previous Page" },
         { "<leader>dn", "<cmd>lua require('dbee').next()<CR>", mode = { "n", "v" }, desc = "[Database] Next Page" },
