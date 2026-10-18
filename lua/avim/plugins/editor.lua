@@ -72,18 +72,13 @@ utilities.map("x", "<A-j>", "<cmd>move '>+1<CR>gv-gv", { desc = "Move Selection 
 utilities.map("v", "<", "<gv", { desc = "Indent Backwards" })
 utilities.map("v", ">", ">gv", { desc = "Indent Forward" })
 utilities.map("v", "p", "p<cmd>let @+=@0<CR>", { desc = "Paste" })
-utilities.map(
-  { "i", "n", "x", "s" },
-  "<C-s>",
-  "<CMD>w<CR><esc>",
-  { desc = "Save File" }
-)
-utilities.map(
-  { "i", "n", "x", "v" },
-  "<C-S-w>",
-  "<cmd>wa<CR><esc>",
-  { desc = "Save All" }
-)
+-- <Esc> runs *before* the write so nothing is left pending in typeahead when a
+-- save prompts (sudo password, overwrite confirm). A trailing <Esc> would be
+-- read as the answer and cancel the prompt.
+utilities.map("n", "<C-s>", "<CMD>w<CR>", { desc = "Save File" })
+utilities.map({ "i", "x", "s" }, "<C-s>", "<Esc><CMD>w<CR>", { desc = "Save File" })
+utilities.map("n", "<C-S-w>", "<CMD>wa<CR>", { desc = "Save All" })
+utilities.map({ "i", "x", "v" }, "<C-S-w>", "<Esc><CMD>wa<CR>", { desc = "Save All" })
 utilities.map({ "i", "n", "s" }, "<esc>", function()
   vim.cmd.nohlsearch()
   vim.api.nvim_feedkeys(vim.keycode("<esc>"), "n", false)
@@ -192,7 +187,10 @@ return {
   },
   {
     "lambdalisue/suda.vim",
-    cmd = { "SudaRead", "SudaWrite" },
+    -- g:suda_smart_edit only registers its BufEnter autocmd when plugin/suda.vim
+    -- is sourced, so it has to load at startup. Lazy-loading on :SudaWrite left
+    -- smart edit inert and non-writable files fell through to Neovim's dialog.
+    lazy = false,
     keys = {
       { "<leader>W", "<cmd>SudaWrite<CR>", desc = "Suda Write" },
     },
