@@ -90,6 +90,21 @@ After installation:
 1. Run `avim` to start AnoNvim
 2. Initial setup will install required plugins
 
+### Lua rocks
+
+`rest.nvim` is installed as a LuaRock. Its HTTP parser needs the
+`luarocks-build-treesitter-parser` build backend, and LuaRocks only looks for
+backends in its own tree. If the rock build fails with
+`module 'luarocks.build.treesitter-parser' not found`, install the backend where
+LuaRocks looks, then rebuild the plugin:
+
+```bash
+ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/anonvim/lazy-rocks"
+luarocks --tree "$ROOT/hererocks" --lua-version 5.1 install luarocks-build-treesitter-parser
+```
+
+Then run `:Lazy build rest.nvim` inside AnoNvim.
+
 ### Docker
 
 Try AnoNvim without touching your host setup. The image uses [mise](https://mise.jdx.dev/) to provision Neovim and the
@@ -244,9 +259,45 @@ Note: `<leader>` key is mapped to the `Space` key
 
 <details><summary>Screenshots (Click to expand)</summary>
 
-![Dashboard](.media/dashboard.png) ![NeoTree](.media/neotree.png) ![Keymaps](.media/keymaps.png)
-![Search and Replace](.media/search_and_replace.png) ![Themes](.media/themes.png) ![Terminal](.media/terminal.png)
-![Database](.media/database.png)
+**Fuzzy finder** — snacks.nvim backs `vim.ui.select`, so every list (files, buffers, sessions, code actions) is searchable.
+
+![Fuzzy finder](.media/snacks_picker.png)
+
+**Completion and signature help** — blink.cmp with LSP items first, signature float in the shared style.
+
+![Completion](.media/lsp_completion.png)
+
+**Diagnostics** — inline virtual text and the Trouble list, in one theme-driven float style.
+
+![Diagnostics](.media/diagnostics.png)
+
+**Git diff view** — diffview.nvim for staging and reviewing changes.
+
+![Diffview](.media/diffview.png)
+
+**Markdown preview** — markview.nvim renders markdown in the buffer.
+
+![Markdown](.media/markview.png)
+
+**HTTP client** — rest.nvim runs requests straight from `.http` files.
+
+![rest.nvim](.media/rest_nvim.png)
+
+**Sessions** — per-directory, per-git-branch session save and restore.
+
+![Sessions](.media/sessions.png)
+
+**Undo tree** — browse and jump through edit history.
+
+![Undo tree](.media/undotree.png)
+
+**Multiple cursors** — edit many places at once.
+
+![Multiple cursors](.media/multiple_cursors.png)
+
+**AI chat** — CodeCompanion, with the local agent CLI as backend.
+
+![CodeCompanion](.media/codecompanion.png)
 
 </details>
 
