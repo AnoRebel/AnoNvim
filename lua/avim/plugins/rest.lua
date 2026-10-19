@@ -1,20 +1,10 @@
-local defaults = require("avim.core.defaults")
 local utilities = require("avim.utilities")
 
+-- Rocks (nvim-nio, mimetypes, xml2lua, tree-sitter-http) come from the
+-- rockspec: lazy.nvim builds them into lazy-rocks/rest.nvim.
 return {
   "rest-nvim/rest.nvim",
   ft = "http",
-  dependencies = {
-    {
-      "vhyrro/luarocks.nvim",
-      enabled = false,
-      priority = 1000,
-      opts = {
-        rocks = defaults.rocks,
-        luarocks_build_args = { "--with-lua=/usr/bin/lua5.1" },
-      },
-    },
-  },
   cmd = { "Rest" },
   config = function(_, opts)
     require("rest-nvim").setup(opts)

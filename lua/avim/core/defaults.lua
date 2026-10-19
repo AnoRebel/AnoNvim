@@ -3,7 +3,6 @@
 ---@field ui table
 ---@field servers table<string>
 ---@field packages table<string>
----@field rocks table<string>
 ---@field treesitter table<string>
 ---@field tools table<string>
 ---@field options table
@@ -11,7 +10,7 @@
 ---@field mappings table
 local M = {}
 
-M.version = "v4.7.0"
+M.version = "v4.7.1"
 
 ---- UI -----
 M.ui = {
@@ -69,7 +68,6 @@ M.packages = {
   "stylua",
 }
 
-M.rocks = { "lua-curl", "nvim-nio", "mimetypes", "xml2lua", "magick" }
 
 -- Trimmed to essential languages for better performance
 -- Additional parsers will be auto-installed on demand if auto_install is enabled
