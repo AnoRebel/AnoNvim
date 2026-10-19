@@ -440,26 +440,11 @@ Use :AnoCheckUpdate to check for updates]],
 
       vim.defer_fn(function()
         local client = vim.lsp.get_client_by_id(args.data.client_id)
-
-        if client then
-          local clients = vim.lsp.get_clients({ id = args.data.client_id })
-          local count = 0
-
-          if clients and #clients > 0 then
-            local remaining_client = clients[1]
-
-            if remaining_client.attached_buffers then
-              for buf_id in pairs(remaining_client.attached_buffers) do
-                if buf_id ~= args.buf then
-                  count = count + 1
-                end
-              end
-            end
-          end
-          if count == 0 then
-            vim.notify("Stopping lingering Language Server", vim.log.levels.INFO, { title = "LSP" })
-            client:stop()
-          end
+        -- Re-check what is attached now: re-editing a file detaches and
+        -- reattaches the same buffer, which used to stop the server.
+        if client and not next(client.attached_buffers or {}) then
+          vim.notify("Stopping lingering Language Server", vim.log.levels.INFO, { title = "LSP" })
+          client:stop()
         end
       end, 200)
     end,
