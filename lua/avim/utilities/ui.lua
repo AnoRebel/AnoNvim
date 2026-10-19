@@ -1,6 +1,5 @@
 ---@class avim.utilities.ui
 ---@field input fun(opts: table, on_confirm: fun())
----@field select fun(items: table, opts: table, on_choice: fun())
 ---@field load fun()
 local UI = {}
 
@@ -20,28 +19,6 @@ local function input_opts()
     border = {
       style = defaults.ui.border,
       text = {
-        top_align = "left",
-      },
-    },
-    win_options = {
-      winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
-    },
-  }
-end
-
-local function select_opts()
-  return {
-    relative = "editor",
-    zindex = 48,
-    position = {
-      row = "10%",
-      col = "50%",
-    },
-    border = {
-      style = defaults.ui.border,
-      highlight = "FloatBorder",
-      text = {
-        top = "[Choose an Item]",
         top_align = "left",
       },
     },
@@ -113,96 +90,10 @@ function UI.input()
   end
 end
 
-function UI.select()
-  local Menu = require("nui.menu")
-  local event = require("nui.utils.autocmd").event
-
-  local select_ui = nil
-
-  vim.ui.select = function(items, opts, on_choice)
-    if select_ui then
-      -- ensure single ui.select operation
-      vim.notify("Another select is pending!", vim.log.levels.ERROR)
-      return
-    end
-
-    local on_done = function(item, index)
-      if select_ui then
-        -- if it's still mounted, unmount it
-        select_ui:unmount()
-      end
-      -- pass the select value
-      local ok, err = pcall(on_choice, item, index)
-      if not ok then
-        vim.notify(err, vim.log.levels.ERROR)
-      end
-
-      -- indicate the operation is done
-      select_ui = nil
-    end
-
-    local popup_opts = select_opts()
-
-    local format_item = function(item)
-      return string.format("* %s", tostring(item))
-    end
-
-    if type(opts.format_item) == "function" then
-      format_item = opts.format_item
-    end
-
-    local kind = opts.kind or "unknown"
-
-    if kind == "codeaction" then
-      -- change position for codeaction selection
-      popup_opts.relative = "cursor"
-      popup_opts.position = {
-        row = 1,
-        col = 0,
-      }
-
-      format_item = function(...)
-        local text = opts.format_item(...)
-        return string.format("* %s", text)
-      end
-    end
-
-    if opts.prompt then
-      popup_opts.border.text.top = string.format(" %s ", opts.prompt)
-    end
-
-    local max_width = vim.api.nvim_win_get_width(0)
-    local menu_items = {}
-
-    for index, item in ipairs(items) do
-      local data = { index = index, value = item }
-      local text = string.sub(format_item(item), 0, max_width - 2)
-      table.insert(menu_items, Menu.item(text, data))
-    end
-
-    select_ui = Menu(popup_opts, {
-      lines = menu_items,
-      min_width = popup_opts.border.text.top:len() + 2,
-      on_close = function()
-        on_done(nil, nil)
-      end,
-      on_submit = function(item)
-        on_done(item.value, item.index)
-      end,
-    })
-
-    select_ui:mount()
-
-    -- cancel operation if cursor leaves select
-    select_ui:on(event.BufLeave, function()
-      on_done(nil, nil)
-    end, { once = true })
-  end
-end
-
+-- Floating windows for `vim.ui.input`. `vim.ui.select` is left to snacks,
+-- whose picker is searchable (`Snacks.picker.setup` replaces it).
 function UI.load()
   UI.input()
-  UI.select()
 end
 
 return UI
