@@ -1,9 +1,10 @@
 local utilities = require("avim.utilities")
+local defaults = require("avim.core.defaults")
 
 -- Git Messenger
 -- TODO: Needs work
 vim.g.git_messenger_no_default_mappings = true
-vim.g.git_messenger_floating_win_opts = { border = "rounded" }
+vim.g.git_messenger_floating_win_opts = { border = defaults.ui.border }
 vim.g.git_messenger_popup_content_margins = false
 -- vim.g.git_messenger_include_diff = "none" -- "current" | "all"
 -- vim.g.git_messenger_max_popup_height = null
@@ -84,7 +85,7 @@ return {
       },
       preview_config = {
         -- Options passed to nvim_open_win
-        border = "rounded",
+        border = defaults.ui.border,
       },
       watch_gitdir = {
         follow_files = true,

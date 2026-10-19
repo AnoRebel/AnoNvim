@@ -1,6 +1,7 @@
 ---@class avim.lsp.handlers
 ---@field setup fun(): nil
 local M = {}
+local defaults = require("avim.core.defaults")
 
 ---Setup LSP handlers
 function M.setup()
@@ -12,14 +13,14 @@ function M.setup()
       return
     end
     config = config or {}
-    config.border = "rounded"
+    config.border = defaults.ui.border
     lsp.handlers.hover(_, result, ctx, config)
   end
 
   -- Signature help handler with rounded border
   lsp.handlers["textDocument/signatureHelp"] = function(_, result, ctx, config)
     config = config or {}
-    config.border = "rounded"
+    config.border = defaults.ui.border
     return lsp.handlers.signature_help(_, result, ctx, config)
   end
 end

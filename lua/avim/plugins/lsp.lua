@@ -109,28 +109,16 @@ return {
         config = function()
           require("lsp_signature").setup({
             bind = true,
+            -- Keep every float in this config on the same footing: rounded border
+            -- from the theme's FloatBorder, no winblend wash. (border = "shadow"
+            -- + transparency = 70 made this the odd one out vs blink/hover/snacks.)
             handler_opts = {
-              border = "shadow",
+              border = defaults.ui.border,
             },
-            transparency = 70,
             hint_prefix = " ",
             max_height = 22,
             max_width = 120,
             floating_window_off_x = 5,
-            floating_window_off_y = function()
-              local pumheight = vim.o.pumheight
-              local winline = vim.fn.winline()
-              local winheight = vim.fn.winheight(0)
-
-              if winline - 1 < pumheight then
-                return pumheight
-              end
-
-              if winheight - winline < pumheight then
-                return -pumheight
-              end
-              return 0
-            end,
           })
         end,
       },
@@ -189,13 +177,11 @@ return {
               "hover.providers.dictionary",
             },
             preview_opts = {
-              border = "rounded",
+              border = defaults.ui.border,
             },
             preview_window = true,
             title = true,
-            mouse_providers = {
-              "hover.providers.lsp",
-            },
+            mouse_providers = defaults.options.hover_mouse and { "hover.providers.lsp" } or {},
             mouse_delay = 1000,
           })
         end,
@@ -236,7 +222,14 @@ return {
         if client.server_capabilities.documentHighlightProvider then
           api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
             buffer = bufnr,
-            callback = lsp.buf.document_highlight,
+            callback = function()
+              -- The client may exit or restart later; asking with no live
+              -- provider errors on every cursor hold.
+              if #vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/documentHighlight" }) == 0 then
+                return
+              end
+              lsp.buf.document_highlight()
+            end,
             desc = "Document Highlight",
           })
           api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
@@ -249,7 +242,7 @@ return {
         -- Setup signature help overloads
         if client.server_capabilities.signatureHelpProvider then
           require("lsp-overloads").setup(client, {
-            ui = { border = "rounded" },
+            ui = { border = defaults.ui.border },
             keymaps = {
               next_signature = "<C-j>",
               previous_signature = "<C-k>",
@@ -407,9 +400,9 @@ return {
         },
         preview = {
           win_config = {
-            border = "rounded",
-            winhighlight = "Normal:Normal",
-            winblend = 0,
+            border = defaults.ui.border,
+            winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+            winblend = defaults.ui.winblend,
           },
         },
         enable_get_fold_virt_text = true,

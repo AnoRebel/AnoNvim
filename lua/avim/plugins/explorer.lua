@@ -1,6 +1,7 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 local get_icon = require("avim.icons")
+local defaults = require("avim.core.defaults")
 
 vim.g.neo_tree_remove_legacy_commands = true
 
@@ -225,7 +226,7 @@ return {
     opts = function()
       return {
         auto_clean_after_session_restore = true,
-        popup_border_style = "rounded",
+        popup_border_style = defaults.ui.border,
         sources = {
           "filesystem",
           "buffers",

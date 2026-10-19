@@ -1,5 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
+local defaults = require("avim.core.defaults")
 local utilities = require("avim.utilities")
 
 -- Maximizer
@@ -13,6 +14,57 @@ vim.g.maximizer_set_mapping_with_bang = 1
 vim.api.nvim_set_hl(0, "LspReferenceText", { link = "Visual" })
 vim.api.nvim_set_hl(0, "LspReferenceRead", { link = "Visual" })
 vim.api.nvim_set_hl(0, "LspReferenceWrite", { link = "Visual" })
+
+-- Every floating surface (completion menu, docs, hovers, signature help,
+-- previews, notifications, pickers) shares one palette: the popup menu
+-- background with a muted border. Values are read from the active theme, so a
+-- new colourscheme keeps everything consistent. Shape and blend come from
+-- defaults.ui.border / winblend.
+local function unify_floats()
+  local function hl(name)
+    return vim.api.nvim_get_hl(0, { name = name })
+  end
+
+  local float, menu, muted = hl("NormalFloat"), hl("Pmenu"), hl("Comment")
+  local bg = menu.bg or float.bg
+  if not bg then
+    return -- no colourscheme loaded yet; the ColorScheme autocmd below re-runs this
+  end
+
+  vim.api.nvim_set_hl(0, "NormalFloat", { fg = float.fg or menu.fg, bg = bg })
+  vim.api.nvim_set_hl(0, "FloatBorder", { fg = muted.fg or float.fg, bg = bg })
+  vim.api.nvim_set_hl(0, "FloatTitle", { fg = menu.fg or float.fg, bg = bg, bold = true })
+
+  -- Plugin popups that default to the editor background instead of the float
+  -- palette. Their accent borders (cmdline type, notification level) stay.
+  for _, name in ipairs({
+    "NoiceCmdlinePopup",
+    "NoiceMini",
+    "SnacksNotifierTrace",
+    "SnacksNotifierDebug",
+    "SnacksNotifierInfo",
+    "SnacksNotifierWarn",
+    "SnacksNotifierError",
+  }) do
+    vim.api.nvim_set_hl(0, name, { link = "NormalFloat" })
+  end
+end
+
+unify_floats()
+local floats_group = augroup("_avim_floats", { clear = true })
+-- ColourScheme covers theme switches; VeryLazy covers the startup colourscheme,
+-- which can be applied after these specs are sourced.
+autocmd("ColorScheme", {
+  group = floats_group,
+  desc = "Keep all floats on the theme's popup palette",
+  callback = unify_floats,
+})
+autocmd("User", {
+  group = floats_group,
+  pattern = "VeryLazy",
+  desc = "Keep all floats on the theme's popup palette",
+  callback = unify_floats,
+})
 
 local d_theme, _ = pcall(vim.api.nvim_get_autocmds, { group = "_dynamic_theme" })
 if not d_theme then
@@ -106,6 +158,12 @@ return {
         lsp_doc_border = false, -- add a border to hover docs and signature help
       },
       views = {
+        mini = {
+          win_options = {
+            winblend = defaults.ui.winblend,
+            winhighlight = { Normal = "NormalFloat" },
+          },
+        },
         cmdline_popup = {
           position = {
             row = 5,
@@ -127,11 +185,11 @@ return {
             height = 10,
           },
           border = {
-            style = "rounded",
+            style = defaults.ui.border,
             padding = { 0, 1 },
           },
           win_options = {
-            winhighlight = { Normal = "Normal", FloatBorder = "DiagnosticInfo" },
+            winhighlight = { Normal = "NormalFloat", FloatBorder = "FloatBorder" },
           },
         },
       },

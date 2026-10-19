@@ -4,6 +4,8 @@
 ---@field load fun()
 local UI = {}
 
+local defaults = require("avim.core.defaults")
+
 local function input_opts()
   return {
     relative = "win",
@@ -16,13 +18,13 @@ local function input_opts()
       width = "60%",
     },
     border = {
-      style = "rounded",
+      style = defaults.ui.border,
       text = {
         top_align = "left",
       },
     },
     win_options = {
-      winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
+      winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
     },
   }
 end
@@ -36,15 +38,15 @@ local function select_opts()
       col = "50%",
     },
     border = {
-      style = "rounded",
-      highlight = "Normal",
+      style = defaults.ui.border,
+      highlight = "FloatBorder",
       text = {
         top = "[Choose an Item]",
         top_align = "left",
       },
     },
     win_options = {
-      winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
+      winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
     },
   }
 end

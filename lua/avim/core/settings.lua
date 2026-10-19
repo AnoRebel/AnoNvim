@@ -1,5 +1,6 @@
 local set = vim.opt
 local api = vim.api
+local defaults = require("avim.core.defaults")
 local g = vim.g
 
 if vim.fn.has("nvim-0.9") == 1 then
@@ -36,6 +37,7 @@ else
   set.cursorlineopt = "screenline,number" -- Highlight the screen line of the cursor with CursorLine and the line number with CursorLineNr
   set.emoji = true -- Turn on emojis
   set.pumheight = 10 -- pop up menu height
+  set.winborder = defaults.ui.border -- border every float that does not set its own
   set.showtabline = 2 -- always show tabs
   set.formatoptions:remove("cro") -- auto-wrap comments, don't auto insert comment on o/O and enter
 
@@ -191,7 +193,7 @@ else
     float = {
       focusable = true,
       source = "if_many",
-      border = "rounded",
+      border = defaults.ui.border,
       style = "minimal",
       format = function(diagnostic)
         local code = diagnostic.code or (diagnostic.user_data and diagnostic.user_data.lsp.code)

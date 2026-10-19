@@ -1,6 +1,8 @@
 -- Ensure buffer is treated as markdown by treesitter despite being codecompanion filetype
 vim.treesitter.language.register("markdown", "codecompanion")
 
+local defaults = require("avim.core.defaults")
+
 return {
   {
     "olimorris/codecompanion.nvim",
@@ -180,7 +182,7 @@ Follow best practices and the user's coding style when apparent.]],
         },
         chat = {
           floating_window = {
-            border = "rounded",
+            border = defaults.ui.border,
           },
         },
       },

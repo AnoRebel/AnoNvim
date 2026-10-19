@@ -15,10 +15,7 @@ local M = {
 local api = vim.api
 
 local function create_floating_file(location, opts)
-	vim.validate({
-		location = { location, "t" },
-		opts = { opts, "t", true },
-	})
+	vim.validate("location", location, "t", false, "opts", opts, "t", true)
 
 	-- Set some defaults
 	opts = opts or {}
@@ -62,7 +59,7 @@ local function create_floating_file(location, opts)
 	api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
 
 	local winnr = api.nvim_open_win(bufnr, false, opts)
-	api.nvim_win_set_option(winnr, "winblend", 0)
+	api.nvim_win_set_option(winnr, "winblend", require("avim.core.defaults").ui.winblend)
 
 	api.nvim_win_set_cursor(winnr, { range.start.line + 1, range.start.character })
 	api.nvim_buf_set_var(bufnr, "lsp_floating_window", winnr)
@@ -86,7 +83,7 @@ local function preview_location_callback(result)
 	end
 
 	local opts = {
-		border = "rounded",
+		border = require("avim.core.defaults").ui.border,
 		context = require("avim.core.defaults").options.peek.context,
 	}
 

@@ -1,3 +1,4 @@
+local defaults = require("avim.core.defaults")
 local icons = require("avim.icons")
 local utilities = require("avim.utilities")
 
@@ -222,7 +223,9 @@ return {
           lsp = {
             name = "LSP",
             module = "blink.cmp.sources.lsp",
-            score_offset = 10,
+            -- outrank every other source (lazydev sits at 100) so server items
+            -- win whenever the server answers
+            score_offset = 200,
             max_items = 5,
             transform_items = vue_lsp_filter,
             opts = {
@@ -543,8 +546,8 @@ return {
           enabled = true,
           min_width = 15,
           max_height = 10,
-          border = "rounded",
-          winblend = vim.o.pumblend,
+          border = defaults.ui.border,
+          winblend = defaults.ui.winblend,
           winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel,Search:None",
           scrollbar = true,
           direction_priority = { "s", "n" },
@@ -669,7 +672,7 @@ return {
             min_width = 10,
             max_width = 60,
             max_height = 20,
-            border = "rounded",
+            border = defaults.ui.border,
             -- winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:Visual,Search:None",
             winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,CursorLine:PmenuSel,Search:None",
             scrollbar = true,
@@ -703,7 +706,9 @@ return {
       },
 
       signature = {
-        enabled = true,
+        -- lsp_signature.nvim draws this window (see lsp.lua); with both on,
+        -- blink's window lands on top of lsp_signature's for the same call.
+        enabled = false,
         trigger = {
           -- buggy
           show_on_insert = false,
@@ -716,7 +721,7 @@ return {
           min_width = 1,
           max_width = 100,
           max_height = 10,
-          border = "rounded",
+          border = defaults.ui.border,
           -- winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
           scrollbar = false,
           treesitter_highlighting = true,

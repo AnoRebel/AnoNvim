@@ -5,6 +5,7 @@ local M = {}
 
 local Input = require("nui.input")
 local Menu = require("nui.menu")
+local defaults = require("avim.core.defaults")
 local event = require("nui.utils.autocmd").event
 
 --- Calls a public dbee function, reporting failures instead of raising.
@@ -31,14 +32,14 @@ local file_name = Input({
 		width = 20,
 	},
 	border = {
-		style = "rounded",
+		style = defaults.ui.border,
 		text = {
 			top = "File Name?",
 			top_align = "center",
 		},
 	},
 	win_options = {
-		winhighlight = "Normal:Normal,FloatBorder:Normal",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
 	},
 }, {
 	prompt = "> ",
@@ -86,14 +87,14 @@ local range_input = Input({
 		filetype = "csv",
 	},
 	border = {
-		style = "rounded",
+		style = defaults.ui.border,
 		text = {
 			top = "Result Range(eg. 0,2)",
 			top_align = "center",
 		},
 	},
 	win_options = {
-		winhighlight = "Normal:Normal,FloatBorder:Normal",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
 	},
 }, {
 	prompt = ": ",
@@ -146,14 +147,14 @@ local type_chooser = Menu({
 		height = 3,
 	},
 	border = {
-		style = "rounded",
+		style = defaults.ui.border,
 		text = {
 			top = "Save Type?",
 			top_align = "center",
 		},
 	},
 	win_options = {
-		winhighlight = "Normal:Normal,FloatBorder:Normal",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
 	},
 }, {
 	lines = {
@@ -199,14 +200,14 @@ local format_chooser = Menu({
 		height = 3,
 	},
 	border = {
-		style = "rounded",
+		style = defaults.ui.border,
 		text = {
 			top = "Save Format?",
 			top_align = "center",
 		},
 	},
 	win_options = {
-		winhighlight = "Normal:Normal,FloatBorder:Normal",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
 	},
 }, {
 	lines = {
@@ -249,14 +250,14 @@ local query = Input({
 		filetype = "sql",
 	},
 	border = {
-		style = "rounded",
+		style = defaults.ui.border,
 		text = {
 			top = "SQL Query",
 			top_align = "center",
 		},
 	},
 	win_options = {
-		winhighlight = "Normal:Normal,FloatBorder:Normal",
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
 	},
 }, {
 	prompt = "> ",

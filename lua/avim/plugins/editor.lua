@@ -1,4 +1,5 @@
 local utilities = require("avim.utilities")
+local defaults = require("avim.core.defaults")
 
 local highlight = {
   "RainbowRed",
@@ -205,7 +206,7 @@ return {
         separator = "",
         group = " ",
       },
-      win = { border = "rounded" },
+      win = { border = defaults.ui.border },
     },
     keys = {
       {
@@ -475,7 +476,7 @@ return {
       buffer_leader_key = ",",
       separate_by_branch = true,
       always_show_path = false,
-      window = { border = "rounded" },
+      window = { border = defaults.ui.border },
       per_buffer_config = {
         satellite = { enable = true },
       },

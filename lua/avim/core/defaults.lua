@@ -19,6 +19,11 @@ M.ui = {
   background = "dark",
   fonts = "JetBrainsMono NF:h10",
   list = false,
+  -- Look shared by every floating surface: completion menu, docs, hovers,
+  -- signature help, diagnostics, previews, notifications, input boxes, pickers.
+  -- Change these here and all of them follow. Colours come from the theme.
+  border = "rounded", -- any 'winborder' value; also the default for core floats
+  winblend = 0, -- 0 = opaque
 }
 
 M.servers = {
@@ -142,6 +147,9 @@ M.options = {
     context = 10,
   },
   diagnostics = true,
+  -- hover.nvim shows a hover when the mouse rests on a symbol for a second.
+  -- Off by default; hovers stay on demand (<leader>K / gK).
+  hover_mouse = false,
 }
 
 M.mappings = {}

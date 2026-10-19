@@ -87,7 +87,7 @@ M.options = {
     colorscheme = { "habamax", "tokyodark" },
   },
   ui = {
-    border = "rounded",
+    border = require("avim.core.defaults").ui.border,
     icons = {
       loaded = "",
       not_loaded = "",
