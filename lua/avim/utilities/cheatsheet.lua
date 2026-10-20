@@ -289,7 +289,7 @@ end
 ---@param names string[] sections in card order
 ---@param active string "" for All
 ---@param badge_of table<string, string>
----@return string[] rows, table[] marks
+---@return string[] rows, table[] marks, table[] hits rows, byte columns and section names
 local function tab_bar(names, active, sheet, badge_of)
   local tabs = { { name = "", label = "All", key = key_pool:sub(1, 1) } }
   for i, name in ipairs(names) do
@@ -301,7 +301,7 @@ local function tab_bar(names, active, sheet, badge_of)
     tab.hl = tab.name == active and (tab.name == "" and "AvimCheatChipOn" or badge_of[tab.name]) or "AvimCheatChip"
   end
 
-  local rows, marks = {}, {}
+  local rows, marks, hits = {}, {}, {}
   local line, used = {}, 0
   local function flush()
     if #line == 0 then
@@ -314,11 +314,13 @@ local function tab_bar(names, active, sheet, badge_of)
       " "
     )
     local pad = math.max(0, math.floor((sheet - width(text)) / 2))
-    local row, col = #rows, pad
+    local row, col, byte = #rows, pad, pad
     rows[#rows + 1] = (" "):rep(pad) .. text
     for _, tab in ipairs(line) do
       table.insert(marks, { row, col, col + width(tab.text), tab.hl })
+      table.insert(hits, { row, byte, byte + #tab.text, tab.name })
       col = col + width(tab.text) + 1
+      byte = byte + #tab.text + 1
     end
     line, used = {}, 0
   end
@@ -331,7 +333,7 @@ local function tab_bar(names, active, sheet, badge_of)
     used = used + (used > 0 and 1 or 0) + w
   end
   flush()
-  return rows, marks
+  return rows, marks, hits
 end
 
 --- Center the block-letter title over the whole sheet.
@@ -379,6 +381,8 @@ function M.open()
   local win
   ---@type string "" shows every section
   local filter = ""
+  ---@type table[] tab rows, byte columns and section names from the last draw
+  local hits = {}
   local names = order(groups)
   local badge_of = {}
   for name, items in pairs(groups) do
@@ -400,7 +404,7 @@ function M.open()
     local body, marks = build(columns, cardw, height, math.floor((sheet - width_used) / 2))
 
     local head, head_marks = header(sheet)
-    local tabs, tab_marks = tab_bar(names, filter, sheet, badge_of)
+    local tabs, tab_marks, tab_hits = tab_bar(names, filter, sheet, badge_of)
 
     local rows = {}
     vim.list_extend(rows, head)
@@ -417,6 +421,10 @@ function M.open()
     end
     vim.list_extend(marks, tab_marks)
     vim.list_extend(marks, head_marks)
+    for _, hit in ipairs(tab_hits) do
+      hit[1] = hit[1] + #head
+    end
+    hits = tab_hits
 
     local w = math.min(vim.o.columns - 2, sheet)
     local h = math.min(vim.o.lines - 4, #rows)
@@ -492,6 +500,15 @@ function M.open()
   end, { buffer = buf, nowait = true })
   vim.keymap.set("n", "<S-Tab>", function()
     step(-1)
+  end, { buffer = buf, nowait = true })
+  vim.keymap.set("n", "<LeftMouse>", function()
+    local mouse = vim.fn.getmousepos()
+    for _, hit in ipairs(hits) do
+      if hit[1] + 1 == mouse.line and mouse.column - 1 >= hit[2] and mouse.column - 1 < hit[3] then
+        show(hit[4])
+        return
+      end
+    end
   end, { buffer = buf, nowait = true })
 
   -- tab hotkeys: 1..0 cover All and the nine fullest sections, then letters

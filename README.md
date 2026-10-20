@@ -264,7 +264,7 @@ Note: `<leader>` key is mapped to the `Space` key
 
 ![Fuzzy finder](.media/snacks_picker.png)
 
-**Cheatsheet** — every mapping in theme-coloured cards that reflow to the window. A tab per section filters the sheet: press its key, or cycle with `<Tab>` (`:Cheatsheet`, `<leader>ch`).
+**Cheatsheet** — every mapping in theme-coloured cards that reflow to the window. A tab per section filters the sheet: press its key, cycle with `<Tab>`, or click it (`:Cheatsheet`, `<leader>ch`).
 
 ![Cheatsheet](.media/cheatsheet.png)
 
