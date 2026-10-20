@@ -202,6 +202,24 @@ return {
             filename_first = true,
           },
         },
+        sources = {
+          keymaps = {
+            -- Upstream prints the description after the rhs, so a long `<Cmd>`
+            -- line pushes it off the window. Put it right after the keys.
+            format = function(item)
+              local map = item.item
+              local align = Snacks.picker.util.align
+              return {
+                { map.mode, "SnacksPickerKeymapMode" },
+                { " " },
+                { align(Snacks.util.normkey(map.lhs), 18), "SnacksPickerKeymapLhs" },
+                { " " },
+                { align(map.desc or "", 34) },
+                { (map.rhs and map.rhs ~= "") and map.rhs or "callback", "NonText" },
+              }
+            end,
+          },
+        },
       },
       quickfile = { enabled = true },
       scope = { enabled = false },
