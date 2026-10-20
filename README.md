@@ -20,7 +20,7 @@ designed for extensibility.
   - Beautiful and functional UI components with Snacks.nvim
   - Random Alpha logos/banners
   - Winbar with context information (Dropbar)
-  - Advanced file picker with line number jump support (:123 syntax)
+  - Advanced file picker with line number jump support (file:123)
 
 - 📝 Development
 
