@@ -161,6 +161,14 @@ Use :AnoCheckUpdate to check for updates]],
     desc = "Show AnoNvim version information",
   })
 
+  -- Every described mapping, grouped and laid out to fit the window
+  usercmd("Cheatsheet", function()
+    require("avim.utilities.cheatsheet").open()
+  end, {
+    desc = "Show all described key mappings",
+  })
+  vim.keymap.set("n", "<leader>ch", "<cmd>Cheatsheet<CR>", { desc = "Cheatsheet" })
+
   autocmd("User", {
     pattern = "GitConflictDetected",
     callback = function()

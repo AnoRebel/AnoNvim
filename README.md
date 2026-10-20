@@ -40,6 +40,7 @@ designed for extensibility.
   - Session management with Persisted
   - Advanced search and replace with GrugFar
   - Multiple cursors support
+  - Cheatsheet of every mapping, laid out to fit the window (:Cheatsheet, <leader>ch)
 
 - ⚙️ Configuration
   - Type checking and linting
