@@ -1,5 +1,5 @@
 ---@class avim.utilities.cheatsheet
----@field open fun(): nil # Show every described mapping, grouped by the first word of its description
+---@field open fun(): nil # Show every described mapping as cards, grouped by the first word of its description
 local M = {}
 
 local api = vim.api
@@ -7,6 +7,66 @@ local defaults = require("avim.core.defaults")
 
 local modes = { "n", "v", "i", "t", "c" }
 local ns = api.nvim_create_namespace("avim_cheatsheet")
+
+-- Badge colors, read from the active theme so the sheet follows a theme switch.
+local badge_sources = {
+  "DiagnosticError",
+  "DiagnosticWarn",
+  "DiagnosticInfo",
+  "DiagnosticHint",
+  "Function",
+  "String",
+  "Type",
+  "Keyword",
+  "Constant",
+  "Special",
+}
+local badges = 0
+
+local art = {
+  "█▀▀ █░█ █▀▀ ▄▀█ ▀█▀ █▀ █░█ █▀▀ █▀▀ ▀█▀",
+  "█▄▄ █▀█ ██▄ █▀█ ░█░ ▄█ █▀█ ██▄ ██▄ ░█░",
+}
+
+local function hl(name)
+  return api.nvim_get_hl(0, { name = name, link = false })
+end
+
+--- Mix `fg` into `bg` by `amount` (0..1), both as 0xRRGGBB.
+local function blend(bg, fg, amount)
+  local function channel(color, shift)
+    return math.floor(bit.band(bit.rshift(color, shift), 0xff))
+  end
+  local parts = {}
+  for _, shift in ipairs({ 16, 8, 0 }) do
+    local a, b = channel(bg, shift), channel(fg, shift)
+    parts[#parts + 1] = math.floor(a + (b - a) * amount)
+  end
+  return parts[1] * 65536 + parts[2] * 256 + parts[3]
+end
+
+--- One flat card color and one color per section badge, from the theme.
+local function setup_highlights()
+  local float, normal = hl("NormalFloat"), hl("Normal")
+  local bg = float.bg or normal.bg
+  local fg = float.fg or normal.fg
+  if not bg or not fg then
+    return
+  end
+
+  local card = blend(bg, fg, 0.08)
+  api.nvim_set_hl(0, "AvimCheatCard", { fg = fg, bg = card })
+  api.nvim_set_hl(0, "AvimCheatTitle", { fg = hl("DiagnosticInfo").fg or fg, bold = true })
+
+  badges = 0
+  for _, name in ipairs(badge_sources) do
+    local color = hl(name).fg
+    if color then
+      badges = badges + 1
+      api.nvim_set_hl(0, "AvimCheatBadge" .. badges, { fg = card, bg = color, bold = true })
+    end
+  end
+end
 
 local function width(s)
   return vim.fn.strdisplaywidth(s)
@@ -76,7 +136,7 @@ function M.collect()
   return groups
 end
 
---- Balance the sections over as many columns as the width allows.
+--- Balance whole cards over as many columns as the width allows.
 ---@param groups table<string, table[]>
 ---@param available number usable cells, the editor width minus its margins
 local function layout(groups, available)
@@ -85,9 +145,17 @@ local function layout(groups, available)
     table.sort(items, function(a, b)
       return a.lhs < b.lhs
     end)
-    entries[#entries + 1] = { head = head, items = items, height = #items + 2 }
+    entries[#entries + 1] = {
+      head = head,
+      items = items,
+      badge = items[1] and items[1].badge,
+      height = #items + 3,
+    }
   end
   table.sort(entries, function(a, b)
+    if a.height == b.height then
+      return a.head < b.head
+    end
     return a.height > b.height
   end)
 
@@ -98,10 +166,12 @@ local function layout(groups, available)
       descw = math.max(descw, width(item.desc))
     end
   end
-  keyw = math.min(keyw, 18)
+  keyw = math.min(keyw, 20)
+  descw = math.min(descw, 40)
 
-  local cols = math.max(1, math.min(#entries, math.floor(available / 60)))
-  local colw = math.min(math.floor(available / cols), keyw + descw + 6)
+  local needed = descw + keyw + 5 -- 2 left pad, 1 gap, 2 right pad
+  local cols = math.max(1, math.min(4, math.floor(available / (needed + 2))))
+  local cardw = math.min(needed, math.floor((available - 2 * (cols - 1)) / cols))
 
   local columns, heights = {}, {}
   for i = 1, cols do
@@ -118,41 +188,98 @@ local function layout(groups, available)
     heights[target] = heights[target] + entry.height
   end
 
-  return columns, colw, keyw, math.max(unpack(heights))
+  return columns, cardw, math.max(unpack(heights))
+end
+
+local function entry_line(item, cardw)
+  local left = "  " .. item.desc
+  local room = cardw - 2 - width(item.lhs)
+  if width(left) + 1 > room then
+    return fit(left, room - 1) .. " " .. item.lhs .. "  "
+  end
+  return left .. (" "):rep(room - width(left)) .. item.lhs .. "  "
+end
+
+--- One card per section: centered badge, entries, bottom padding, gap.
+local function card(entry, cardw)
+  local label = " " .. entry.head .. " "
+  local left = math.max(0, math.floor((cardw - width(label)) / 2))
+  local lines = {
+    {
+      text = fit((" "):rep(left) .. label, cardw),
+      bg = true,
+      marks = { { left, left + width(label), entry.badge } },
+    },
+    { text = (" "):rep(cardw), bg = true },
+  }
+
+  for _, item in ipairs(entry.items) do
+    lines[#lines + 1] = { text = entry_line(item, cardw), bg = true }
+  end
+
+  lines[#lines + 1] = { text = (" "):rep(cardw), bg = true }
+  lines[#lines + 1] = { text = (" "):rep(cardw) }
+  return lines
 end
 
 ---@return string[] rows, table[] marks
-local function build(columns, colw, keyw, height)
-  local cells, marks = {}, {}
+local function build(columns, cardw, height)
+  local cells = {}
   for c, entries in ipairs(columns) do
-    local start = (c - 1) * colw
-    local row = 1
     cells[c] = {}
     for _, entry in ipairs(entries) do
-      local pad = math.max(0, colw - 1 - width(entry.head))
-      local left = math.floor(pad / 2)
-      cells[c][row] = (" "):rep(left) .. entry.head .. (" "):rep(pad - left)
-      table.insert(marks, { row - 1, start + left, start + left + width(entry.head), "Title" })
-      row = row + 1
-      for _, item in ipairs(entry.items) do
-        local key = "  " .. fit(item.lhs, keyw) .. "  "
-        cells[c][row] = fit(key .. item.desc, colw)
-        table.insert(marks, { row - 1, start + 2, start + 2 + width(item.lhs), "Special" })
-        row = row + 1
-      end
-      row = row + 1
+      vim.list_extend(cells[c], card(entry, cardw))
     end
   end
 
-  local rows = {}
+  local rows, marks = {}, {}
   for r = 1, height do
     local parts = {}
     for c = 1, #columns do
-      parts[#parts + 1] = cells[c][r] or (" "):rep(colw)
+      local start = (c - 1) * (cardw + 2)
+      local line = cells[c][r]
+      parts[#parts + 1] = line and line.text or (" "):rep(cardw)
+      if c < #columns then
+        parts[#parts + 1] = "  "
+      end
+      if line and line.bg then
+        table.insert(marks, { r - 1, start, start + cardw, "AvimCheatCard" })
+      end
+      for _, mark in ipairs(line and line.marks or {}) do
+        table.insert(marks, { r - 1, start + mark[1], start + mark[2], mark[3] })
+      end
     end
-    rows[#rows + 1] = (table.concat(parts):gsub("%s+$", ""))
+    rows[#rows + 1] = table.concat(parts)
   end
+
   return rows, marks
+end
+
+--- Center the block-letter title over the whole sheet.
+local function header(sheet)
+  local lines, marks = {}, {}
+  for _, line in ipairs(art) do
+    local left = math.max(0, math.floor((sheet - width(line)) / 2))
+    lines[#lines + 1] = (" "):rep(left) .. line
+    table.insert(marks, { #lines - 1, left, left + width(line), "AvimCheatTitle" })
+  end
+  lines[#lines + 1] = ""
+  table.insert(lines, 1, "")
+  for _, mark in ipairs(marks) do
+    mark[1] = mark[1] + 1
+  end
+  return lines, marks
+end
+
+---@param groups table<string, table[]>
+local function assign_badges(groups)
+  local names = vim.tbl_keys(groups)
+  table.sort(names)
+  for i, name in ipairs(names) do
+    for _, entry in ipairs(groups[name]) do
+      entry.badge = "AvimCheatBadge" .. ((i - 1) % math.max(badges, 1) + 1)
+    end
+  end
 end
 
 function M.open()
@@ -161,6 +288,9 @@ function M.open()
     vim.notify("No described mappings in this buffer", vim.log.levels.WARN)
     return
   end
+
+  setup_highlights()
+  assign_badges(groups)
 
   local buf = api.nvim_create_buf(false, true)
   vim.bo[buf].bufhidden = "wipe"
@@ -173,11 +303,23 @@ function M.open()
     if not api.nvim_buf_is_valid(buf) then
       return
     end
-    local columns, colw, keyw, height = layout(groups, vim.o.columns - 4)
-    local rows, marks = build(columns, colw, keyw, height)
+    setup_highlights()
+    local columns, cardw, height = layout(groups, vim.o.columns - 4)
+    local sheet = cardw * #columns + 2 * (#columns - 1)
+    local body, marks = build(columns, cardw, height)
 
-    local w = math.min(vim.o.columns - 2, colw * #columns)
-    local h = math.min(vim.o.lines - 4, height)
+    local head, head_marks = header(sheet)
+    local offset = #head
+    local rows = {}
+    vim.list_extend(rows, head)
+    vim.list_extend(rows, body)
+    for _, mark in ipairs(marks) do
+      mark[1] = mark[1] + offset
+    end
+    vim.list_extend(marks, head_marks)
+
+    local w = math.min(vim.o.columns - 2, sheet)
+    local h = math.min(vim.o.lines - 4, #rows)
 
     vim.bo[buf].modifiable = true
     api.nvim_buf_set_lines(buf, 0, -1, false, rows)
@@ -213,7 +355,7 @@ function M.open()
   end
 
   local augroup = api.nvim_create_augroup("avim_cheatsheet", { clear = true })
-  api.nvim_create_autocmd("VimResized", { group = augroup, callback = draw })
+  api.nvim_create_autocmd({ "VimResized", "ColorScheme" }, { group = augroup, callback = draw })
   api.nvim_create_autocmd("BufWipeout", {
     group = augroup,
     buffer = buf,
