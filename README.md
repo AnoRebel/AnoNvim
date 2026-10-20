@@ -264,6 +264,10 @@ Note: `<leader>` key is mapped to the `Space` key
 
 ![Fuzzy finder](.media/snacks_picker.png)
 
+**Cheatsheet** — every mapping in theme-coloured cards that reflow to the window (`:Cheatsheet`, `<leader>ch`).
+
+![Cheatsheet](.media/cheatsheet.png)
+
 **Completion and signature help** — blink.cmp with LSP items first, signature float in the shared style.
 
 ![Completion](.media/lsp_completion.png)
