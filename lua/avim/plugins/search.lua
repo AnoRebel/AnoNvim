@@ -68,7 +68,14 @@ return {
   },
   {
     "ggandor/flit.nvim",
-    dependencies = { "ggandor/leap.nvim", dependencies = { "tpope/vim-repeat" } },
+    -- leap moved off GitHub and its old repo was wiped
+    dependencies = {
+      {
+        "andyg/leap.nvim",
+        url = "https://codeberg.org/andyg/leap.nvim",
+        dependencies = { "tpope/vim-repeat" },
+      },
+    },
     keys = function()
       local ret = {}
       for _, key in ipairs({ "f", "F", "t", "T" }) do
@@ -76,6 +83,15 @@ return {
       end
       return ret
     end,
-    opts = { labeled_modes = "nx" },
+    opts = {
+      labeled_modes = "nx",
+      -- flit still passes the removed `case_sensitive` to leap; false stops the warning,
+      -- and `go.ignorecase` below keeps f/F/t/T case-sensitive (the old behaviour)
+      opts = { case_sensitive = false },
+    },
+    config = function(_, opts)
+      require("leap").opts.vim_opts["go.ignorecase"] = false
+      require("flit").setup(opts)
+    end,
   },
 }
