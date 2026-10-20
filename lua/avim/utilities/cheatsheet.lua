@@ -28,6 +28,10 @@ local art = {
   "█▄▄ █▀█ ██▄ █▀█ ░█░ ▄█ █▀█ ██▄ ██▄ ░█░",
 }
 
+-- Tab hotkeys in card order. q closes the sheet, j/k/h/l scroll it, g goes to the
+-- top (gg) and n repeats a search, so none of those get a tab.
+local key_pool = "1234567890abcdefimoprstuvwxyz"
+
 local function hl(name)
   return api.nvim_get_hl(0, { name = name, link = false })
 end
@@ -54,9 +58,12 @@ local function setup_highlights()
     return
   end
 
+  local accent = hl("DiagnosticInfo").fg or fg
   local card = blend(bg, fg, 0.08)
   api.nvim_set_hl(0, "AvimCheatCard", { fg = fg, bg = card })
-  api.nvim_set_hl(0, "AvimCheatTitle", { fg = hl("DiagnosticInfo").fg or fg, bold = true })
+  api.nvim_set_hl(0, "AvimCheatTitle", { fg = accent, bold = true })
+  api.nvim_set_hl(0, "AvimCheatChip", { fg = hl("Comment").fg or fg })
+  api.nvim_set_hl(0, "AvimCheatChipOn", { fg = card, bg = accent, bold = true })
 
   badges = 0
   for _, name in ipairs(badge_sources) do
@@ -134,6 +141,27 @@ function M.collect()
     add(api.nvim_buf_get_keymap(0, mode))
   end
   return groups
+end
+
+--- Sections in card order: most entries first, then by name.
+---@param groups table<string, table[]>
+---@return string[]
+local function order(groups)
+  local names = {}
+  for name, items in pairs(groups) do
+    names[#names + 1] = { name = name, n = #items }
+  end
+  table.sort(names, function(a, b)
+    if a.n == b.n then
+      return a.name < b.name
+    end
+    return a.n > b.n
+  end)
+  local out = {}
+  for _, entry in ipairs(names) do
+    out[#out + 1] = entry.name
+  end
+  return out
 end
 
 --- Balance whole cards over as many columns as the width allows.
@@ -222,8 +250,10 @@ local function card(entry, cardw)
   return lines
 end
 
+---@param pad number left margin, used to center a single filtered card
 ---@return string[] rows, table[] marks
-local function build(columns, cardw, height)
+local function build(columns, cardw, height, pad)
+  pad = pad or 0
   local cells = {}
   for c, entries in ipairs(columns) do
     cells[c] = {}
@@ -243,15 +273,64 @@ local function build(columns, cardw, height)
         parts[#parts + 1] = "  "
       end
       if line and line.bg then
-        table.insert(marks, { r - 1, start, start + cardw, "AvimCheatCard" })
+        table.insert(marks, { r - 1, pad + start, pad + start + cardw, "AvimCheatCard" })
       end
       for _, mark in ipairs(line and line.marks or {}) do
-        table.insert(marks, { r - 1, start + mark[1], start + mark[2], mark[3] })
+        table.insert(marks, { r - 1, pad + start + mark[1], pad + start + mark[2], mark[3] })
       end
     end
-    rows[#rows + 1] = table.concat(parts)
+    rows[#rows + 1] = (" "):rep(pad) .. table.concat(parts)
   end
 
+  return rows, marks
+end
+
+--- Tabs in card order: `key label`, the active one lit in its section colour.
+---@param names string[] sections in card order
+---@param active string "" for All
+---@param badge_of table<string, string>
+---@return string[] rows, table[] marks
+local function tab_bar(names, active, sheet, badge_of)
+  local tabs = { { name = "", label = "All", key = key_pool:sub(1, 1) } }
+  for i, name in ipairs(names) do
+    local key = key_pool:sub(i + 1, i + 1)
+    tabs[#tabs + 1] = { name = name, label = name, key = key ~= "" and key or nil }
+  end
+  for _, tab in ipairs(tabs) do
+    tab.text = tab.key and (" " .. tab.key .. " " .. tab.label .. " ") or (" " .. tab.label .. " ")
+    tab.hl = tab.name == active and (tab.name == "" and "AvimCheatChipOn" or badge_of[tab.name]) or "AvimCheatChip"
+  end
+
+  local rows, marks = {}, {}
+  local line, used = {}, 0
+  local function flush()
+    if #line == 0 then
+      return
+    end
+    local text = table.concat(
+      vim.tbl_map(function(tab)
+        return tab.text
+      end, line),
+      " "
+    )
+    local pad = math.max(0, math.floor((sheet - width(text)) / 2))
+    local row, col = #rows, pad
+    rows[#rows + 1] = (" "):rep(pad) .. text
+    for _, tab in ipairs(line) do
+      table.insert(marks, { row, col, col + width(tab.text), tab.hl })
+      col = col + width(tab.text) + 1
+    end
+    line, used = {}, 0
+  end
+  for _, tab in ipairs(tabs) do
+    local w = width(tab.text)
+    if used > 0 and used + 1 + w > sheet then
+      flush()
+    end
+    line[#line + 1] = tab
+    used = used + (used > 0 and 1 or 0) + w
+  end
+  flush()
   return rows, marks
 end
 
@@ -298,24 +377,45 @@ function M.open()
   vim.bo[buf].modifiable = false
 
   local win
+  ---@type string "" shows every section
+  local filter = ""
+  local names = order(groups)
+  local badge_of = {}
+  for name, items in pairs(groups) do
+    badge_of[name] = items[1] and items[1].badge
+  end
 
   local function draw()
     if not api.nvim_buf_is_valid(buf) then
       return
     end
     setup_highlights()
-    local columns, cardw, height = layout(groups, vim.o.columns - 4)
-    local sheet = cardw * #columns + 2 * (#columns - 1)
-    local body, marks = build(columns, cardw, height)
+    -- size the sheet on every section so tabs and cards keep their places when filtering
+    local all_columns, all_cardw = layout(groups, vim.o.columns - 4)
+    local sheet = all_cardw * #all_columns + 2 * (#all_columns - 1)
+
+    local shown = filter == "" and groups or { [filter] = groups[filter] }
+    local columns, cardw, height = layout(shown, sheet)
+    local width_used = cardw * #columns + 2 * (#columns - 1)
+    local body, marks = build(columns, cardw, height, math.floor((sheet - width_used) / 2))
 
     local head, head_marks = header(sheet)
-    local offset = #head
+    local tabs, tab_marks = tab_bar(names, filter, sheet, badge_of)
+
     local rows = {}
     vim.list_extend(rows, head)
+    vim.list_extend(rows, tabs)
+    rows[#rows + 1] = ""
     vim.list_extend(rows, body)
+
+    local offset = #head + #tabs + 1
     for _, mark in ipairs(marks) do
       mark[1] = mark[1] + offset
     end
+    for _, mark in ipairs(tab_marks) do
+      mark[1] = mark[1] + #head
+    end
+    vim.list_extend(marks, tab_marks)
     vim.list_extend(marks, head_marks)
 
     local w = math.min(vim.o.columns - 2, sheet)
@@ -348,6 +448,27 @@ function M.open()
     vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder"
   end
 
+  --- Show one section, or all of them for "".
+  local function show(name)
+    filter = name
+    draw()
+    if win and api.nvim_win_is_valid(win) then
+      pcall(api.nvim_win_set_cursor, win, { 1, 0 })
+    end
+  end
+
+  local function step(delta)
+    local list = { "" }
+    vim.list_extend(list, names)
+    local at = 1
+    for i, name in ipairs(list) do
+      if name == filter then
+        at = i
+      end
+    end
+    show(list[(at - 1 + delta) % #list + 1])
+  end
+
   local function close()
     if win and api.nvim_win_is_valid(win) then
       api.nvim_win_close(win, true)
@@ -366,6 +487,26 @@ function M.open()
 
   vim.keymap.set("n", "q", close, { buffer = buf, nowait = true })
   vim.keymap.set("n", "<Esc>", close, { buffer = buf, nowait = true })
+  vim.keymap.set("n", "<Tab>", function()
+    step(1)
+  end, { buffer = buf, nowait = true })
+  vim.keymap.set("n", "<S-Tab>", function()
+    step(-1)
+  end, { buffer = buf, nowait = true })
+
+  -- tab hotkeys: 1..0 cover All and the nine fullest sections, then letters
+  local targets = { [key_pool:sub(1, 1)] = "" }
+  for i, name in ipairs(names) do
+    local key = key_pool:sub(i + 1, i + 1)
+    if key ~= "" then
+      targets[key] = name
+    end
+  end
+  for key, name in pairs(targets) do
+    vim.keymap.set("n", key, function()
+      show(name)
+    end, { buffer = buf, nowait = true })
+  end
 
   draw()
 end
